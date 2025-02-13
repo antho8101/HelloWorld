@@ -8,7 +8,6 @@ interface ProfilesGridProps {
 }
 
 export const ProfilesGrid: React.FC<ProfilesGridProps> = ({ profiles }) => {
-  // On mobile, we'll only show the first 6 profiles
   const displayedProfiles = window.innerWidth < 768 ? profiles.slice(0, 6) : profiles;
 
   return (
@@ -22,7 +21,7 @@ export const ProfilesGrid: React.FC<ProfilesGridProps> = ({ profiles }) => {
             age={profile.age}
             location={profile.location}
             isOnline={profile.isOnline}
-            id={profile.id || ""}
+            id={profile.id}
           />
         ))}
       </div>
