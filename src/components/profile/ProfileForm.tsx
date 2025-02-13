@@ -27,43 +27,47 @@ export const ProfileForm = ({
 }: ProfileFormProps) => {
   return (
     <>
-      <div className="flex flex-col md:flex-row gap-8 mb-8">
-        <ProfileAvatar
-          userId={userId}
-          username={profile.username}
-          avatarUrl={profile.avatar_url}
-          onAvatarChange={(url) => onProfileChange({ avatar_url: url })}
-        />
+      <div className="flex flex-col lg:flex-row gap-8 mb-8">
+        <div className="flex flex-col md:flex-row lg:flex-col gap-8">
+          <ProfileAvatar
+            userId={userId}
+            username={profile.username}
+            avatarUrl={profile.avatar_url}
+            onAvatarChange={(url) => onProfileChange({ avatar_url: url })}
+          />
 
-        <BasicInfo
-          username={profile.username}
-          name={profile.name}
-          age={profile.age}
-          gender={profile.gender}
-          country={profile.country}
-          city={profile.city}
-          citySearch={citySearch}
-          cities={cities}
-          onUsernameChange={(username) => onProfileChange({ username })}
-          onNameChange={(name) => onProfileChange({ name })}
-          onAgeChange={(age) => onProfileChange({ age })}
-          onGenderChange={(gender) => onProfileChange({ gender })}
-          onCountryChange={(country) => onProfileChange({ country })}
-          onCitySearch={onCitySearch}
-          onCitySelect={onCitySelect}
-        />
+          <BasicInfo
+            username={profile.username}
+            name={profile.name}
+            age={profile.age}
+            gender={profile.gender}
+            country={profile.country}
+            city={profile.city}
+            citySearch={citySearch}
+            cities={cities}
+            onUsernameChange={(username) => onProfileChange({ username })}
+            onNameChange={(name) => onProfileChange({ name })}
+            onAgeChange={(age) => onProfileChange({ age })}
+            onGenderChange={(gender) => onProfileChange({ gender })}
+            onCountryChange={(country) => onProfileChange({ country })}
+            onCitySearch={onCitySearch}
+            onCitySelect={onCitySelect}
+          />
+        </div>
+
+        <div className="flex-1">
+          <LanguagesAndPreferences
+            nativeLanguages={profile.native_languages}
+            learningLanguages={profile.learning_languages}
+            lookingFor={profile.looking_for}
+            interestedIn={profile.interested_in}
+            onNativeLanguagesChange={(native_languages) => onProfileChange({ native_languages })}
+            onLearningLanguagesChange={(learning_languages) => onProfileChange({ learning_languages })}
+            onLookingForChange={(looking_for) => onProfileChange({ looking_for })}
+            onInterestedInChange={(interested_in) => onProfileChange({ interested_in })}
+          />
+        </div>
       </div>
-
-      <LanguagesAndPreferences
-        nativeLanguages={profile.native_languages}
-        learningLanguages={profile.learning_languages}
-        lookingFor={profile.looking_for}
-        interestedIn={profile.interested_in}
-        onNativeLanguagesChange={(native_languages) => onProfileChange({ native_languages })}
-        onLearningLanguagesChange={(learning_languages) => onProfileChange({ learning_languages })}
-        onLookingForChange={(looking_for) => onProfileChange({ looking_for })}
-        onInterestedInChange={(interested_in) => onProfileChange({ interested_in })}
-      />
 
       <button
         onClick={onSubmit}
