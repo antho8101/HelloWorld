@@ -1,4 +1,13 @@
+
 import React from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { GlobeIcon } from "lucide-react";
 
 export const Header: React.FC = () => {
   return (
@@ -20,15 +29,19 @@ export const Header: React.FC = () => {
         </div>
       </div>
       <nav className="self-stretch flex min-w-60 items-center gap-5 text-base font-bold justify-center my-auto">
-        <div className="self-stretch flex items-center gap-2.5 text-[#FF6A48] font-medium whitespace-nowrap justify-center my-auto">
-          <div className="self-stretch my-auto">English</div>
-          <img
-            loading="lazy"
-            src="https://cdn.builder.io/api/v1/image/assets/f97848ecf61542bea4ab8ab7f8d20ea9/57f6d0397422e4c6bb3e66a33d8e65549dab8d908072844a4b59b30b287c5e15?placeholderIfAbsent=true"
-            className="aspect-[1] object-contain w-[21px] self-stretch shrink-0 my-auto"
-            alt="Language selector"
-          />
-        </div>
+        <Select defaultValue="en">
+          <SelectTrigger className="w-[140px] text-[#FF6A48] border-none font-medium flex items-center gap-2">
+            <GlobeIcon className="h-5 w-5" />
+            <SelectValue placeholder="Select language" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="en">English</SelectItem>
+            <SelectItem value="es">Español</SelectItem>
+            <SelectItem value="fr">Français</SelectItem>
+            <SelectItem value="zh">中文</SelectItem>
+            <SelectItem value="ar">العربية</SelectItem>
+          </SelectContent>
+        </Select>
         <button className="bg-[rgba(97,83,189,1)] self-stretch flex items-center gap-2.5 text-white justify-center my-auto px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2">
           <span className="self-stretch my-auto">Get started</span>
           <img
