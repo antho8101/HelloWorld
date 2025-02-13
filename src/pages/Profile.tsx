@@ -243,9 +243,11 @@ export const Profile = () => {
             nativeLanguages={profile.native_languages}
             learningLanguages={profile.learning_languages}
             lookingFor={profile.looking_for}
+            interestedIn={profile.interested_in}
             onNativeLanguagesChange={(languages) => setProfile(prev => ({ ...prev, native_languages: languages }))}
             onLearningLanguagesChange={(languages) => setProfile(prev => ({ ...prev, learning_languages: languages }))}
             onLookingForChange={(lookingFor) => setProfile(prev => ({ ...prev, looking_for: lookingFor }))}
+            onInterestedInChange={(interestedIn) => setProfile(prev => ({ ...prev, interested_in: interestedIn }))}
           />
 
           <button
