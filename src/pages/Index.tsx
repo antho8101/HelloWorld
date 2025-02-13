@@ -1,7 +1,12 @@
+
 import React from "react";
 import { Header } from "@/components/landing/Header";
 import { Hero } from "@/components/landing/Hero";
 import { FeaturesBanner } from "@/components/landing/FeaturesBanner";
+import { HowItWorks } from "@/components/landing/HowItWorks";
+import { Testimonials } from "@/components/landing/Testimonials";
+import { LanguagesAvailable } from "@/components/landing/LanguagesAvailable";
+import { FAQ } from "@/components/landing/FAQ";
 import { CommunityGrid } from "@/components/landing/CommunityGrid";
 import { CallToAction } from "@/components/landing/CallToAction";
 import { MobileApp } from "@/components/landing/MobileApp";
@@ -14,7 +19,11 @@ const Index = () => {
         <Hero />
       </div>
       <FeaturesBanner />
+      <HowItWorks />
+      <Testimonials />
       <CommunityGrid />
+      <LanguagesAvailable />
+      <FAQ />
       <CallToAction />
       <MobileApp />
     </main>
