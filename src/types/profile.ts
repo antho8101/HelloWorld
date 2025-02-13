@@ -3,6 +3,8 @@ import type { LanguageWithLevel } from "@/components/LanguageSelector";
 
 export interface ProfileData {
   username: string;
+  name: string;
+  age: number;
   avatar_url: string;
   native_languages: LanguageWithLevel[];
   learning_languages: LanguageWithLevel[];

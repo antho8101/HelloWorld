@@ -10,12 +10,16 @@ import {
 
 interface BasicInfoProps {
   username: string;
+  name: string;
+  age: number;
   gender: string;
   country: string;
   city: string;
   citySearch: string;
   cities: string[];
   onUsernameChange: (username: string) => void;
+  onNameChange: (name: string) => void;
+  onAgeChange: (age: number) => void;
   onGenderChange: (gender: string) => void;
   onCountryChange: (country: string) => void;
   onCitySearch: (search: string) => void;
@@ -221,12 +225,16 @@ const COUNTRIES = [
 
 export const BasicInfo = ({
   username,
+  name,
+  age,
   gender,
   country,
   city,
   citySearch,
   cities,
   onUsernameChange,
+  onNameChange,
+  onAgeChange,
   onGenderChange,
   onCountryChange,
   onCitySearch,
@@ -235,7 +243,7 @@ export const BasicInfo = ({
   return (
     <div className="flex-1 max-w-xl">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="md:col-span-2">
+        <div>
           <label className="block text-sm font-bold text-[#6153BD] mb-1">
             Username
           </label>
@@ -243,6 +251,30 @@ export const BasicInfo = ({
             type="text"
             value={username}
             onChange={(e) => onUsernameChange(e.target.value)}
+            className="w-full border-2 border-[#6153BD]/20 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#6153BD] focus:border-transparent transition-all duration-200"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-[#6153BD] mb-1">
+            Full Name
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => onNameChange(e.target.value)}
+            className="w-full border-2 border-[#6153BD]/20 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#6153BD] focus:border-transparent transition-all duration-200"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-[#6153BD] mb-1">
+            Age
+          </label>
+          <input
+            type="number"
+            min="13"
+            max="120"
+            value={age || ''}
+            onChange={(e) => onAgeChange(Number(e.target.value))}
             className="w-full border-2 border-[#6153BD]/20 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#6153BD] focus:border-transparent transition-all duration-200"
           />
         </div>
@@ -286,7 +318,7 @@ export const BasicInfo = ({
             </SelectContent>
           </Select>
         </div>
-        <div className="md:col-span-2">
+        <div>
           <label className="block text-sm font-bold text-[#6153BD] mb-1">
             City
           </label>

@@ -10,6 +10,8 @@ export const useProfile = (userId: string | null) => {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<ProfileData>({
     username: "",
+    name: "",
+    age: 0,
     avatar_url: "",
     native_languages: [],
     learning_languages: [],
@@ -35,6 +37,8 @@ export const useProfile = (userId: string | null) => {
       if (data) {
         setProfile({
           username: data.username || "",
+          name: data.name || "",
+          age: data.age || 0,
           avatar_url: data.avatar_url || "",
           native_languages: Array.isArray(data.native_languages) 
             ? data.native_languages.map((lang: string) => ({ language: lang })) 
@@ -80,6 +84,8 @@ export const useProfile = (userId: string | null) => {
         .upsert({
           id: userId,
           username: profile.username,
+          name: profile.name,
+          age: profile.age,
           avatar_url: profile.avatar_url,
           native_languages: profile.native_languages.map(lang => lang.language),
           language_levels: profile.learning_languages as unknown as Json,

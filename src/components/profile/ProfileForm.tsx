@@ -37,12 +37,16 @@ export const ProfileForm = ({
 
         <BasicInfo
           username={profile.username}
+          name={profile.name}
+          age={profile.age}
           gender={profile.gender}
           country={profile.country}
           city={profile.city}
           citySearch={citySearch}
           cities={cities}
           onUsernameChange={(username) => onProfileChange({ username })}
+          onNameChange={(name) => onProfileChange({ name })}
+          onAgeChange={(age) => onProfileChange({ age })}
           onGenderChange={(gender) => onProfileChange({ gender })}
           onCountryChange={(country) => onProfileChange({ country })}
           onCitySearch={onCitySearch}
