@@ -30,7 +30,7 @@ export const Header: React.FC = () => {
       </div>
       <nav className="self-stretch flex min-w-60 items-center gap-5 text-base font-bold justify-center my-auto">
         <Select defaultValue="en">
-          <SelectTrigger className="w-[140px] text-[#FF6A48] border-2 border-[#FF6A48] font-medium flex items-center gap-2">
+          <SelectTrigger className="w-[140px] h-[42px] text-[#FF6A48] border-2 border-[#FF6A48] font-medium flex items-center gap-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md">
             <GlobeIcon className="h-5 w-5" />
             <SelectValue placeholder="Select language" />
           </SelectTrigger>
@@ -42,7 +42,7 @@ export const Header: React.FC = () => {
             <SelectItem value="ar">العربية</SelectItem>
           </SelectContent>
         </Select>
-        <button className="bg-[rgba(97,83,189,1)] self-stretch flex items-center gap-2.5 text-white justify-center my-auto px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2">
+        <button className="bg-[rgba(97,83,189,1)] self-stretch flex items-center gap-2.5 text-white justify-center my-auto px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[rgba(97,83,189,0.9)]">
           <span className="self-stretch my-auto">Get started</span>
           <img
             loading="lazy"
@@ -51,7 +51,7 @@ export const Header: React.FC = () => {
             alt=""
           />
         </button>
-        <button className="self-stretch bg-white gap-2.5 text-[#6153BD] whitespace-nowrap my-auto px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2">
+        <button className="self-stretch bg-white gap-2.5 text-[#6153BD] whitespace-nowrap my-auto px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#6153BD] hover:text-white">
           Login
         </button>
       </nav>
