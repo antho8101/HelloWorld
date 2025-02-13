@@ -1,4 +1,3 @@
-
 import React from "react";
 import { UserProfile } from "./UserProfile";
 import { useQuery } from "@tanstack/react-query";
@@ -14,7 +13,8 @@ export const CommunityGrid: React.FC = () => {
       age: 28,
       location: "Paris, France",
       gender: "female",
-      messages: 245
+      messages: 245,
+      isOnline: true
     },
     {
       image: "https://i.pravatar.cc/150?img=5",
@@ -22,7 +22,8 @@ export const CommunityGrid: React.FC = () => {
       age: 24,
       location: "Lyon, France",
       gender: "female",
-      messages: 198
+      messages: 198,
+      isOnline: false
     },
     {
       image: "https://i.pravatar.cc/150?img=9",
@@ -30,7 +31,8 @@ export const CommunityGrid: React.FC = () => {
       age: 31,
       location: "Bordeaux, France",
       gender: "female",
-      messages: 167
+      messages: 167,
+      isOnline: true
     },
     {
       image: "https://i.pravatar.cc/150?img=13",
@@ -38,7 +40,8 @@ export const CommunityGrid: React.FC = () => {
       age: 29,
       location: "Marseille, France",
       gender: "male",
-      messages: 156
+      messages: 156,
+      isOnline: false
     },
     {
       image: "https://i.pravatar.cc/150?img=17",
@@ -46,7 +49,8 @@ export const CommunityGrid: React.FC = () => {
       age: 27,
       location: "Toulouse, France",
       gender: "male",
-      messages: 143
+      messages: 143,
+      isOnline: true
     },
     {
       image: "https://i.pravatar.cc/150?img=21",
@@ -54,7 +58,8 @@ export const CommunityGrid: React.FC = () => {
       age: 26,
       location: "Nice, France",
       gender: "female",
-      messages: 134
+      messages: 134,
+      isOnline: false
     },
     {
       image: "https://i.pravatar.cc/150?img=25",
@@ -62,7 +67,8 @@ export const CommunityGrid: React.FC = () => {
       age: 32,
       location: "Nantes, France",
       gender: "male",
-      messages: 129
+      messages: 129,
+      isOnline: true
     },
     // Ligne 2
     {
@@ -71,7 +77,8 @@ export const CommunityGrid: React.FC = () => {
       age: 25,
       location: "Lille, France",
       gender: "female",
-      messages: 123
+      messages: 123,
+      isOnline: false
     },
     {
       image: "https://i.pravatar.cc/150?img=33",
@@ -79,7 +86,8 @@ export const CommunityGrid: React.FC = () => {
       age: 30,
       location: "Strasbourg, France",
       gender: "male",
-      messages: 118
+      messages: 118,
+      isOnline: true
     },
     {
       image: "https://i.pravatar.cc/150?img=37",
@@ -87,7 +95,8 @@ export const CommunityGrid: React.FC = () => {
       age: 28,
       location: "Rennes, France",
       gender: "female",
-      messages: 112
+      messages: 112,
+      isOnline: false
     },
     {
       image: "https://i.pravatar.cc/150?img=41",
@@ -95,7 +104,8 @@ export const CommunityGrid: React.FC = () => {
       age: 33,
       location: "Montpellier, France",
       gender: "male",
-      messages: 108
+      messages: 108,
+      isOnline: true
     },
     {
       image: "https://i.pravatar.cc/150?img=45",
@@ -103,7 +113,8 @@ export const CommunityGrid: React.FC = () => {
       age: 27,
       location: "Grenoble, France",
       gender: "female",
-      messages: 103
+      messages: 103,
+      isOnline: false
     },
     {
       image: "https://i.pravatar.cc/150?img=49",
@@ -111,7 +122,8 @@ export const CommunityGrid: React.FC = () => {
       age: 31,
       location: "Dijon, France",
       gender: "male",
-      messages: 98
+      messages: 98,
+      isOnline: true
     },
     {
       image: "https://i.pravatar.cc/150?img=53",
@@ -119,7 +131,8 @@ export const CommunityGrid: React.FC = () => {
       age: 29,
       location: "Angers, France",
       gender: "female",
-      messages: 95
+      messages: 95,
+      isOnline: false
     },
     // Ligne 3
     {
@@ -128,7 +141,8 @@ export const CommunityGrid: React.FC = () => {
       age: 28,
       location: "Le Mans, France",
       gender: "male",
-      messages: 92
+      messages: 92,
+      isOnline: true
     },
     {
       image: "https://i.pravatar.cc/150?img=61",
@@ -136,7 +150,8 @@ export const CommunityGrid: React.FC = () => {
       age: 26,
       location: "Reims, France",
       gender: "female",
-      messages: 89
+      messages: 89,
+      isOnline: false
     },
     {
       image: "https://i.pravatar.cc/150?img=65",
@@ -144,7 +159,8 @@ export const CommunityGrid: React.FC = () => {
       age: 32,
       location: "Metz, France",
       gender: "male",
-      messages: 86
+      messages: 86,
+      isOnline: true
     },
     {
       image: "https://i.pravatar.cc/150?img=69",
@@ -152,7 +168,8 @@ export const CommunityGrid: React.FC = () => {
       age: 25,
       location: "Tours, France",
       gender: "female",
-      messages: 83
+      messages: 83,
+      isOnline: false
     },
     {
       image: "https://i.pravatar.cc/150?img=73",
@@ -160,7 +177,8 @@ export const CommunityGrid: React.FC = () => {
       age: 30,
       location: "Caen, France",
       gender: "male",
-      messages: 81
+      messages: 81,
+      isOnline: true
     },
     {
       image: "https://i.pravatar.cc/150?img=77",
@@ -168,7 +186,8 @@ export const CommunityGrid: React.FC = () => {
       age: 27,
       location: "Orléans, France",
       gender: "female",
-      messages: 78
+      messages: 78,
+      isOnline: false
     },
     {
       image: "https://i.pravatar.cc/150?img=81",
@@ -176,7 +195,8 @@ export const CommunityGrid: React.FC = () => {
       age: 29,
       location: "Rouen, France",
       gender: "male",
-      messages: 75
+      messages: 75,
+      isOnline: true
     }
   ];
 
@@ -199,6 +219,7 @@ export const CommunityGrid: React.FC = () => {
               name={profile.name}
               age={profile.age}
               location={profile.location}
+              isOnline={profile.isOnline}
             />
           ))}
         </div>
