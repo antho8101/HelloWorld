@@ -1,3 +1,4 @@
+
 import React from "react";
 import { UserProfile } from "./UserProfile";
 import { useQuery } from "@tanstack/react-query";
@@ -202,7 +203,7 @@ export const CommunityGrid: React.FC = () => {
 
   return (
     <section className="bg-white flex w-full flex-col items-stretch px-[220px] py-20 max-md:max-w-full max-md:px-5">
-      <div className="self-center flex flex-col items-center max-md:max-w-full">
+      <div className="self-center flex flex-col items-center gap-10 max-md:max-w-full">
         <h2 className="text-[#6153BD] text-5xl font-black max-md:max-w-full max-md:text-[40px]">
           Join a large community
         </h2>
