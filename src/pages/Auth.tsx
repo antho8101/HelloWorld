@@ -32,8 +32,8 @@ export const Auth = () => {
         });
         if (error) throw error;
         toast({
-          title: "Inscription réussie !",
-          description: "Vérifiez votre email pour confirmer votre compte.",
+          title: "Sign up successful!",
+          description: "Please check your email to confirm your account.",
         });
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -46,7 +46,7 @@ export const Auth = () => {
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Erreur",
+        title: "Error",
         description: error.message,
       });
     } finally {
@@ -75,7 +75,7 @@ export const Auth = () => {
             </p>
           </div>
           <h2 className="mt-6 text-center text-3xl font-black text-[#6153BD]">
-            {isSignUp ? "Créer un compte" : "Se connecter"}
+            {isSignUp ? "Create Account" : "Sign In"}
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -87,7 +87,7 @@ export const Auth = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="appearance-none rounded-t-[10px] relative block w-full px-3 py-2 border-2 border-[rgba(18,0,113,1)] placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#6153BD] focus:border-[#6153BD] focus:z-10 sm:text-sm"
-                placeholder="Adresse email"
+                placeholder="Email address"
               />
             </div>
             <div>
@@ -97,7 +97,7 @@ export const Auth = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="appearance-none rounded-b-[10px] relative block w-full px-3 py-2 border-2 border-[rgba(18,0,113,1)] placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#6153BD] focus:border-[#6153BD] focus:z-10 sm:text-sm"
-                placeholder="Mot de passe"
+                placeholder="Password"
               />
             </div>
           </div>
@@ -108,7 +108,7 @@ export const Auth = () => {
               disabled={loading}
               className="group relative w-full flex justify-center py-2.5 px-5 border-2 text-base font-bold rounded-[10px] text-white bg-[#6153BD] border-[rgba(18,0,113,1)] transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[rgba(97,83,189,0.9)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#6153BD]"
             >
-              {loading ? "Chargement..." : isSignUp ? "S'inscrire" : "Se connecter"}
+              {loading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
             </button>
           </div>
         </form>
@@ -119,8 +119,8 @@ export const Auth = () => {
             className="text-base font-bold text-[#6153BD] hover:text-[#6153BD]/90"
           >
             {isSignUp
-              ? "Déjà un compte ? Se connecter"
-              : "Pas de compte ? S'inscrire"}
+              ? "Already have an account? Sign in"
+              : "No account? Sign up"}
           </button>
         </div>
       </div>
