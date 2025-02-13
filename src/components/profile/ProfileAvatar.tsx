@@ -2,7 +2,7 @@
 import React, { useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Camera, Upload } from "lucide-react";
+import { Camera, Upload, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -48,10 +48,10 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
   return (
     <div className="flex flex-col items-center">
       <div className="relative">
-        <Avatar className="h-64 w-64 ring-4 ring-[#6153BD]/20">
+        <Avatar className="h-64 w-64 ring-4 ring-[#FF6A48]/20">
           <AvatarImage src={avatarUrl} />
-          <AvatarFallback className="bg-[#6153BD] text-white text-4xl">
-            {username?.[0]?.toUpperCase() || '?'}
+          <AvatarFallback className="bg-[#FF6A48] text-white text-4xl">
+            <User className="w-12 h-12" />
           </AvatarFallback>
         </Avatar>
         <div className="absolute bottom-2 right-2 flex gap-2">
