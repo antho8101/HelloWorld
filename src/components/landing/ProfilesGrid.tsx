@@ -22,7 +22,7 @@ export const ProfilesGrid: React.FC<ProfilesGridProps> = ({ profiles }) => {
             age={profile.age}
             location={profile.location}
             isOnline={profile.isOnline}
-            id="d7bed58c-7f8c-4a6f-b3cf-4ce95de0c0c6"
+            id={profile.id || ""}
           />
         ))}
       </div>
