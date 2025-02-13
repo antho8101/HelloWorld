@@ -32,19 +32,29 @@ export const Profile = () => {
         .from("profiles")
         .select("username, avatar_url")
         .eq("id", userId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
       if (data) {
         setUsername(data.username || "");
         setAvatarUrl(data.avatar_url || "");
+      } else {
+        // If no profile exists, create one
+        const { error: insertError } = await supabase
+          .from("profiles")
+          .insert([{ id: userId }])
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
       }
     } catch (error: any) {
+      console.error("Error in fetchProfile:", error);
       toast({
         variant: "destructive",
-        title: "Erreur",
-        description: "Erreur lors du chargement du profil",
+        title: "Error",
+        description: "Error loading profile",
       });
     } finally {
       setLoading(false);
@@ -67,14 +77,15 @@ export const Profile = () => {
       if (error) throw error;
 
       toast({
-        title: "Succès",
-        description: "Profil mis à jour avec succès",
+        title: "Success",
+        description: "Profile updated successfully",
       });
     } catch (error: any) {
+      console.error("Error in updateProfile:", error);
       toast({
         variant: "destructive",
-        title: "Erreur",
-        description: "Erreur lors de la mise à jour du profil",
+        title: "Error",
+        description: "Error updating profile",
       });
     }
   };
@@ -84,8 +95,8 @@ export const Profile = () => {
     if (error) {
       toast({
         variant: "destructive",
-        title: "Erreur",
-        description: "Erreur lors de la déconnexion",
+        title: "Error",
+        description: "Error signing out",
       });
     } else {
       navigate("/");
@@ -104,19 +115,19 @@ export const Profile = () => {
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-sm p-8">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Mon Profil</h1>
+          <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
           <button
             onClick={handleSignOut}
             className="px-4 py-2 text-sm text-red-600 hover:text-red-700 font-medium"
           >
-            Se déconnecter
+            Sign Out
           </button>
         </div>
 
         <div className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Nom d'utilisateur
+              Username
             </label>
             <input
               type="text"
@@ -128,7 +139,7 @@ export const Profile = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              URL de l'avatar
+              Avatar URL
             </label>
             <input
               type="url"
@@ -142,7 +153,7 @@ export const Profile = () => {
             onClick={updateProfile}
             className="w-full bg-[#6153BD] text-white py-2 px-4 rounded-md hover:bg-[#6153BD]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#6153BD]"
           >
-            Mettre à jour le profil
+            Update Profile
           </button>
         </div>
       </div>
