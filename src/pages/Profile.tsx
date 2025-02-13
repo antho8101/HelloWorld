@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import type { Json } from "@/integrations/supabase/types";
 
 const COUNTRIES = [
   "France", "United States", "United Kingdom", "Germany", "Spain", "Italy",
@@ -186,8 +187,6 @@ export const Profile = () => {
 
   const handleSearchCity = async (search: string) => {
     setCitySearch(search);
-    // Note: In a real application, you would integrate with a city search API here
-    // For demo purposes, we'll just show some mock cities
     if (search.length > 2) {
       setCities([
         `${search} City`,
