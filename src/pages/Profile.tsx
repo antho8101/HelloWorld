@@ -42,9 +42,20 @@ export const Profile = () => {
           .from('secrets')
           .select('value')
           .eq('name', 'API_NINJAS_KEY')
-          .single();
+          .maybeSingle();
 
         if (secretError) throw secretError;
+        if (!secretData) {
+          console.error('API key not found');
+          // Fallback to mock data if no API key is found
+          setCities([
+            `${search} City`,
+            `${search} Town`,
+            `New ${search}`,
+            `${search}ville`,
+          ].map(city => `${city}, ${profile.country}`));
+          return;
+        }
 
         const response = await fetch(
           `https://api.api-ninjas.com/v1/city?name=${search}&country=${profile.country}&limit=5`,
