@@ -1,5 +1,6 @@
 
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Select,
   SelectContent,
@@ -10,6 +11,8 @@ import {
 import { GlobeIcon } from "lucide-react";
 
 export const Header: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
     <header className="flex w-full items-center gap-[40px_100px] justify-between flex-wrap px-5 py-2.5 max-md:max-w-full">
       <div className="self-stretch flex min-w-60 items-center gap-2.5 my-auto">
@@ -42,7 +45,10 @@ export const Header: React.FC = () => {
             <SelectItem value="ar">العربية</SelectItem>
           </SelectContent>
         </Select>
-        <button className="bg-[rgba(97,83,189,1)] self-stretch flex items-center gap-2.5 text-white justify-center my-auto px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[rgba(97,83,189,0.9)]">
+        <button 
+          onClick={() => navigate("/auth?mode=signup")}
+          className="bg-[rgba(97,83,189,1)] self-stretch flex items-center gap-2.5 text-white justify-center my-auto px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[rgba(97,83,189,0.9)]"
+        >
           <span className="self-stretch my-auto">Get started</span>
           <img
             loading="lazy"
@@ -51,7 +57,10 @@ export const Header: React.FC = () => {
             alt=""
           />
         </button>
-        <button className="self-stretch bg-white gap-2.5 text-[#6153BD] whitespace-nowrap my-auto px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#6153BD] hover:text-white">
+        <button 
+          onClick={() => navigate("/auth")}
+          className="self-stretch bg-white gap-2.5 text-[#6153BD] whitespace-nowrap my-auto px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#6153BD] hover:text-white"
+        >
           Login
         </button>
       </nav>
