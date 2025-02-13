@@ -53,13 +53,17 @@ export type Database = {
           age: number | null
           avatar_url: string | null
           bio: string | null
+          city: string | null
           country: string | null
           created_at: string
           gender: string | null
           id: string
           image: string | null
+          interested_in: string[] | null
+          language_levels: Json | null
           learning_languages: string[] | null
           location: string | null
+          looking_for: string[] | null
           name: string | null
           native_languages: string[] | null
           updated_at: string | null
@@ -69,13 +73,17 @@ export type Database = {
           age?: number | null
           avatar_url?: string | null
           bio?: string | null
+          city?: string | null
           country?: string | null
           created_at?: string
           gender?: string | null
           id: string
           image?: string | null
+          interested_in?: string[] | null
+          language_levels?: Json | null
           learning_languages?: string[] | null
           location?: string | null
+          looking_for?: string[] | null
           name?: string | null
           native_languages?: string[] | null
           updated_at?: string | null
@@ -85,13 +93,17 @@ export type Database = {
           age?: number | null
           avatar_url?: string | null
           bio?: string | null
+          city?: string | null
           country?: string | null
           created_at?: string
           gender?: string | null
           id?: string
           image?: string | null
+          interested_in?: string[] | null
+          language_levels?: Json | null
           learning_languages?: string[] | null
           location?: string | null
+          looking_for?: string[] | null
           name?: string | null
           native_languages?: string[] | null
           updated_at?: string | null
@@ -133,7 +145,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      gender_type: "male" | "female" | "other"
+      interest_type:
+        | "friends"
+        | "postal_exchange"
+        | "in_person_meetings"
+        | "flirting"
+      language_level: "beginner" | "intermediate" | "advanced" | "fluent"
     }
     CompositeTypes: {
       [_ in never]: never
