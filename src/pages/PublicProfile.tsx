@@ -44,19 +44,14 @@ export const PublicProfile = () => {
   const { toast } = useToast();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
-      console.log("Fetching profile for ID:", id); // Debug log
+      console.log("Fetching profile for ID:", id);
 
       if (!id) {
-        console.log("No ID provided"); // Debug log
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "No profile ID provided",
-        });
-        navigate("/");
+        setError("No profile ID provided");
         return;
       }
 
@@ -68,22 +63,18 @@ export const PublicProfile = () => {
           .single();
 
         if (error) {
-          console.error("Supabase error:", error); // Debug log
-          throw error;
-        }
-
-        if (!data) {
-          console.log("No profile data found"); // Debug log
-          toast({
-            variant: "destructive",
-            title: "Not Found",
-            description: "Profile not found",
-          });
-          navigate("/");
+          console.error("Supabase error:", error);
+          setError(error.message);
           return;
         }
 
-        console.log("Profile data:", data); // Debug log
+        if (!data) {
+          console.log("No profile data found");
+          setError("Profile not found");
+          return;
+        }
+
+        console.log("Profile data:", data);
         
         setProfile({
           username: data.username,
@@ -99,26 +90,42 @@ export const PublicProfile = () => {
           looking_for: Array.isArray(data.looking_for) ? data.looking_for : [],
           bio: data.bio
         });
-      } catch (error: any) {
-        console.error("Error in fetchProfile:", error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to load profile",
-        });
-        navigate("/");
+        setError(null);
+      } catch (err) {
+        console.error("Error in fetchProfile:", err);
+        setError("Failed to load profile");
       } finally {
         setLoading(false);
       }
     };
 
     fetchProfile();
-  }, [id, navigate, toast]);
+  }, [id]);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#6153BD]"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[rgba(255,243,240,1)] py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-[#6153BD] font-bold mb-8 hover:text-[#6153BD]/90 transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5" />
+            Back
+          </button>
+          <div className="bg-white/80 backdrop-blur-sm rounded-[20px] shadow-lg p-8 text-center">
+            <h2 className="text-2xl font-bold text-[#6153BD] mb-4">Error</h2>
+            <p className="text-gray-600">{error}</p>
+          </div>
+        </div>
       </div>
     );
   }
