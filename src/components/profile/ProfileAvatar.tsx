@@ -21,6 +21,8 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
   const [isWebcamOpen, setIsWebcamOpen] = useState(false);
   const { toast } = useToast();
 
+  console.log("Current avatarUrl:", avatarUrl); // Debug log
+
   const startWebcam = async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -74,7 +76,7 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
         .from('avatars')
         .getPublicUrl(filePath);
 
-      console.log("Public URL:", publicUrl);
+      console.log("Generated public URL:", publicUrl); // Debug log
       return publicUrl;
     } catch (error: any) {
       console.error("Error in uploadToSupabase:", error);
@@ -96,6 +98,7 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
 
     try {
       const publicUrl = await uploadToSupabase(blob, 'jpg');
+      console.log("Photo taken and uploaded, public URL:", publicUrl); // Debug log
       onAvatarChange(publicUrl);
       setIsWebcamOpen(false);
       stopWebcam();
@@ -120,6 +123,7 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
     try {
       const fileExt = file.name.split('.').pop() || '';
       const publicUrl = await uploadToSupabase(file, fileExt);
+      console.log("File uploaded, public URL:", publicUrl); // Debug log
       onAvatarChange(publicUrl);
       resetFileInput();
       toast({
@@ -140,7 +144,7 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
     <div className="flex flex-col items-center">
       <div className="relative">
         <Avatar className="h-64 w-64 ring-4 ring-[#FECFC4]/20">
-          <AvatarImage src={avatarUrl} />
+          <AvatarImage src={avatarUrl} alt={username} />
           <AvatarFallback className="bg-[#FECFC4] text-white text-4xl">
             <User size={48} weight="bold" />
           </AvatarFallback>
