@@ -28,10 +28,21 @@ export const PublicProfile = () => {
         const { data, error } = await supabase
           .from("profiles")
           .select("username, name, avatar_url, age, location, gender")
-          .eq("id", id)
-          .single();
+          .eq('id', id)
+          .maybeSingle();
 
         if (error) throw error;
+        
+        if (!data) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Profile not found",
+          });
+          navigate("/");
+          return;
+        }
+        
         setProfile(data);
       } catch (error: any) {
         toast({
