@@ -52,36 +52,48 @@ export type Database = {
         Row: {
           age: number | null
           avatar_url: string | null
+          bio: string | null
+          country: string | null
           created_at: string
           gender: string | null
           id: string
           image: string | null
+          learning_languages: string[] | null
           location: string | null
           name: string | null
+          native_languages: string[] | null
           updated_at: string | null
           username: string | null
         }
         Insert: {
           age?: number | null
           avatar_url?: string | null
+          bio?: string | null
+          country?: string | null
           created_at?: string
           gender?: string | null
           id: string
           image?: string | null
+          learning_languages?: string[] | null
           location?: string | null
           name?: string | null
+          native_languages?: string[] | null
           updated_at?: string | null
           username?: string | null
         }
         Update: {
           age?: number | null
           avatar_url?: string | null
+          bio?: string | null
+          country?: string | null
           created_at?: string
           gender?: string | null
           id?: string
           image?: string | null
+          learning_languages?: string[] | null
           location?: string | null
           name?: string | null
+          native_languages?: string[] | null
           updated_at?: string | null
           username?: string | null
         }
