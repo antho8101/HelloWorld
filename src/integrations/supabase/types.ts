@@ -111,6 +111,27 @@ export type Database = {
         }
         Relationships: []
       }
+      secrets: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          value: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          value: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          value?: string
+        }
+        Relationships: []
+      }
       user_status: {
         Row: {
           is_online: boolean | null
