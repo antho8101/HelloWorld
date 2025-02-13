@@ -7,7 +7,7 @@ interface CommunityTitleProps {
 
 export const CommunityTitle: React.FC<CommunityTitleProps> = ({ memberCount }) => {
   return (
-    <div className="self-center flex flex-col items-center gap-10 max-md:max-w-full">
+    <div className="self-center flex flex-col items-center gap-5 max-md:max-w-full">
       <h2 className="text-[#6153BD] text-5xl font-black max-md:max-w-full max-md:text-[40px]">
         Join a large community
       </h2>
