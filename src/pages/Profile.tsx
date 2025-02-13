@@ -86,14 +86,18 @@ export const Profile = () => {
         setProfile({
           username: data.username || "",
           avatar_url: data.avatar_url || "",
-          native_languages: data.native_languages?.map((lang: string) => ({ language: lang })) || [],
-          learning_languages: data.language_levels || [],
+          native_languages: Array.isArray(data.native_languages) 
+            ? data.native_languages.map((lang: string) => ({ language: lang })) 
+            : [],
+          learning_languages: Array.isArray(data.language_levels) 
+            ? data.language_levels 
+            : [],
           country: data.country || "",
           city: data.city || "",
           bio: data.bio || "",
           gender: data.gender || "",
-          interested_in: data.interested_in || [],
-          looking_for: data.looking_for || [],
+          interested_in: Array.isArray(data.interested_in) ? data.interested_in : [],
+          looking_for: Array.isArray(data.looking_for) ? data.looking_for : [],
           language_levels: [],
         });
       } else {
@@ -153,8 +157,16 @@ export const Profile = () => {
         .from("profiles")
         .upsert({
           id: userId,
-          ...profile,
-          updated_at: new Date().toISOString(),
+          username: profile.username,
+          avatar_url: profile.avatar_url,
+          native_languages: profile.native_languages.map(lang => lang.language),
+          language_levels: profile.learning_languages,
+          country: profile.country,
+          city: profile.city,
+          bio: profile.bio,
+          gender: profile.gender,
+          interested_in: profile.interested_in,
+          looking_for: profile.looking_for,
         });
 
       if (error) throw error;
