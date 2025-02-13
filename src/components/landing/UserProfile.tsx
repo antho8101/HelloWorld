@@ -1,43 +1,61 @@
 
 import React from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { User } from "@phosphor-icons/react";
+import { Circle } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface UserProfileProps {
-  id: string;
+  image: string;
   name: string;
-  languages: string[];
-  avatar?: string;
-  onClick?: (id: string) => void;
+  age: number;
+  location: string;
+  isOnline?: boolean;
+  id?: string;
 }
 
-export const UserProfile = ({ id, name, languages, avatar, onClick }: UserProfileProps) => {
-  const handleClick = () => {
-    if (onClick) {
-      onClick(id);
-    }
-  };
+export const UserProfile: React.FC<UserProfileProps> = ({
+  image,
+  name,
+  age,
+  location,
+  isOnline = false,
+  id,
+}) => {
+  const Content = () => (
+    <div className="transform transition-all duration-300 hover:scale-105 hover:shadow-lg rounded-[10px] p-2">
+      <img
+        loading="lazy"
+        srcSet={image}
+        className="h-[200px] w-[180px] max-md:h-[160px] max-md:w-[140px] object-cover rounded-[10px] transition-transform duration-300"
+        alt={`${name}, ${age}`}
+      />
+      <div className="w-full mt-2.5 px-1">
+        <div className="text-xl max-md:text-lg font-bold flex items-center gap-2">
+          <Circle
+            size={12}
+            fill={isOnline ? "#10b981" : "#ea384c"}
+            stroke="none"
+            className="transition-all duration-300 group-hover:scale-110"
+          />
+          <span className="transform transition-all duration-300 group-hover:text-[#6153BD]">
+            {name}, {age}
+          </span>
+        </div>
+        <div className="self-stretch w-full gap-2.5 text-base max-md:text-sm font-medium transition-all duration-300 group-hover:text-[#6153BD]">
+          {location}
+        </div>
+      </div>
+    </div>
+  );
 
   return (
-    <div 
-      className="bg-white/80 backdrop-blur-sm p-6 rounded-[20px] flex flex-col items-center space-y-4 cursor-pointer hover:shadow-lg transition-shadow"
-      onClick={handleClick}
-    >
-      <Avatar className="h-24 w-24">
-        <AvatarImage src={avatar} />
-        <AvatarFallback className="bg-[#FECFC4]">
-          <User size={32} weight="bold" />
-        </AvatarFallback>
-      </Avatar>
-      <h3 className="text-xl font-semibold text-[#6153BD]">{name}</h3>
-      <div className="flex flex-wrap gap-2 justify-center">
-        {languages.map((language) => (
-          <Badge key={language} variant="secondary">
-            {language}
-          </Badge>
-        ))}
-      </div>
+    <div className="self-stretch w-[180px] my-auto max-md:w-[140px] group">
+      {id ? (
+        <Link to={`/profile/${id}`} className="block">
+          <Content />
+        </Link>
+      ) : (
+        <Content />
+      )}
     </div>
   );
 };

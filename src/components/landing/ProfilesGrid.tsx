@@ -1,32 +1,31 @@
 
 import React from "react";
 import { UserProfile } from "./UserProfile";
-import { staticProfiles } from "@/data/staticProfiles";
+import type { Profile } from "@/data/staticProfiles";
 
 interface ProfilesGridProps {
-  onProfileClick: (id: string) => void;
+  profiles: Profile[];
 }
 
-export const ProfilesGrid = ({ onProfileClick }: ProfilesGridProps) => {
+export const ProfilesGrid: React.FC<ProfilesGridProps> = ({ profiles }) => {
+  // On mobile, we'll only show the first 6 profiles
+  const displayedProfiles = window.innerWidth < 768 ? profiles.slice(0, 6) : profiles;
+
   return (
-    <section className="py-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-12 text-[#6153BD]">
-          Meet Our Community
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {staticProfiles.map((profile) => (
-            <UserProfile
-              key={profile.id}
-              id={profile.id}
-              name={profile.name}
-              languages={profile.languages || []}
-              avatar={profile.avatar}
-              onClick={onProfileClick}
-            />
-          ))}
-        </div>
+    <div className="flex w-full flex-col items-stretch text-black justify-center mt-20 max-md:mt-10">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
+        {displayedProfiles.map((profile, index) => (
+          <UserProfile
+            key={index}
+            image={profile.image}
+            name={profile.name}
+            age={profile.age}
+            location={profile.location}
+            isOnline={profile.isOnline}
+            id={profile.id || ""}
+          />
+        ))}
       </div>
-    </section>
+    </div>
   );
 };
