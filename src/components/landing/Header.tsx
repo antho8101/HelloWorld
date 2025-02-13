@@ -15,7 +15,10 @@ export const Header: React.FC = () => {
 
   return (
     <header className="flex w-full items-center gap-[40px_100px] justify-between flex-wrap px-5 py-2.5 max-md:max-w-full bg-[#FFF3F0]">
-      <div className="self-stretch flex min-w-60 items-center gap-2.5 my-auto">
+      <div 
+        onClick={() => navigate("/")}
+        className="self-stretch flex min-w-60 items-center gap-2.5 my-auto cursor-pointer hover:opacity-80 transition-opacity"
+      >
         <img
           loading="lazy"
           srcSet="https://cdn.builder.io/api/v1/image/assets/f97848ecf61542bea4ab8ab7f8d20ea9/fc1f6b1b3fc6ee87b690f1b6be44876cdf1e0e313d0c5d6607e5e53302011af2?placeholderIfAbsent=true&width=100 100w, https://cdn.builder.io/api/v1/image/assets/f97848ecf61542bea4ab8ab7f8d20ea9/fc1f6b1b3fc6ee87b690f1b6be44876cdf1e0e313d0c5d6607e5e53302011af2?placeholderIfAbsent=true&width=200 200w"
