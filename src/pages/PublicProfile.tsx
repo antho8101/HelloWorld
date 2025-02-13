@@ -145,7 +145,7 @@ export const PublicProfile = () => {
             Back
           </button>
 
-          <div className="bg-white/80 backdrop-blur-sm rounded-[20px] shadow-lg p-8">
+          <div className="backdrop-blur-sm rounded-[20px] shadow-lg p-8 border border-gray-200/50">
             <ProfileHeader
               name={profile.name}
               username={profile.username}
