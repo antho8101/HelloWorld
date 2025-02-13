@@ -3,7 +3,7 @@ import React from "react";
 import { Globe } from "lucide-react";
 
 export const LanguagesAvailable: React.FC = () => {
-  // Liste non exhaustive des langues les plus parlées
+  // Non-exhaustive list of most spoken languages
   const popularLanguages = [
     "English", "Español", "Français", "Deutsch", "日本語", 
     "한국어", "中文", "العربية", "Português", "Italiano",
@@ -14,17 +14,17 @@ export const LanguagesAvailable: React.FC = () => {
     <section className="bg-[rgba(255,243,240,1)] py-20 px-[220px] max-md:px-5">
       <div className="text-center mb-16">
         <h2 className="text-[#6153BD] text-5xl font-black mb-6 max-md:text-[40px]">
-          Toutes les langues du monde
+          All Languages Welcome
         </h2>
         <div className="flex items-center justify-center gap-4 mb-8">
           <Globe className="w-8 h-8 text-[#6153BD]" />
           <p className="text-xl font-bold text-gray-600">
-            Des utilisateurs du monde entier prêts à échanger avec vous
+            Users from around the world ready to connect with you
           </p>
         </div>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          Que vous souhaitiez apprendre une langue très répandue ou une langue plus rare,
-          vous trouverez forcément des locuteurs natifs prêts à vous aider dans votre apprentissage.
+          Whether you want to learn a widely spoken language or a rare one,
+          you'll find native speakers ready to help you in your learning journey.
         </p>
       </div>
       
@@ -38,7 +38,7 @@ export const LanguagesAvailable: React.FC = () => {
           </div>
         ))}
         <div className="bg-[#6153BD] px-6 py-3 rounded-full shadow-sm text-white font-bold">
-          Et bien d'autres...
+          And many more...
         </div>
       </div>
     </section>

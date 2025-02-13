@@ -6,25 +6,25 @@ export const HowItWorks: React.FC = () => {
   const steps = [
     {
       icon: <Globe className="w-12 h-12 text-[#6153BD]" />,
-      title: "Rejoignez la communauté mondiale",
-      description: "Créez votre profil gratuitement et indiquez les langues que vous parlez et celles que vous souhaitez apprendre."
+      title: "Join the Global Community",
+      description: "Create your free profile and indicate which languages you speak and which ones you want to learn."
     },
     {
       icon: <Users className="w-12 h-12 text-[#6153BD]" />,
-      title: "Trouvez des correspondants",
-      description: "Découvrez des personnes du monde entier qui parlent la langue que vous voulez apprendre et qui souhaitent apprendre votre langue."
+      title: "Find Language Partners",
+      description: "Discover people from around the world who speak the language you want to learn and want to learn your language."
     },
     {
       icon: <MessageSquare className="w-12 h-12 text-[#6153BD]" />,
-      title: "Commencez à échanger",
-      description: "Commencez à discuter, pratiquez votre langue cible, partagez votre culture et créez des liens durables."
+      title: "Start Exchanging",
+      description: "Start chatting, practice your target language, share your culture, and create lasting connections."
     }
   ];
 
   return (
     <section className="py-20 px-[220px] max-md:px-5">
       <h2 className="text-[#6153BD] text-5xl font-black text-center mb-16 max-md:text-[40px]">
-        Comment ça marche ?
+        How Does It Work?
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {steps.map((step, index) => (

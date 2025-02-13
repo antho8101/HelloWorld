@@ -7,30 +7,30 @@ export const Testimonials: React.FC = () => {
     {
       name: "Marie",
       country: "France",
-      text: "Grâce à HelloWorld!, j'ai pu améliorer mon japonais en discutant avec Yuki. Nous sommes devenues de vraies amies !",
+      text: "Thanks to HelloWorld!, I was able to improve my Japanese by chatting with Yuki. We've become true friends!",
       stars: 5,
-      languages: "Français ↔️ Japonais"
+      languages: "French ↔️ Japanese"
     },
     {
       name: "Carlos",
-      country: "Brésil",
-      text: "Une expérience incroyable ! J'ai appris l'allemand beaucoup plus rapidement qu'avec des cours traditionnels.",
+      country: "Brazil",
+      text: "An incredible experience! I learned German much faster than with traditional courses.",
       stars: 5,
-      languages: "Portugais ↔️ Allemand"
+      languages: "Portuguese ↔️ German"
     },
     {
       name: "Sarah",
-      country: "Australie",
-      text: "La meilleure façon d'apprendre une langue et de découvrir de nouvelles cultures. Je recommande à 100% !",
+      country: "Australia",
+      text: "The best way to learn a language and discover new cultures. I recommend it 100%!",
       stars: 5,
-      languages: "Anglais ↔️ Espagnol"
+      languages: "English ↔️ Spanish"
     }
   ];
 
   return (
     <section className="bg-[rgba(255,243,240,1)] py-20 px-[220px] max-md:px-5">
       <h2 className="text-[#6153BD] text-5xl font-black text-center mb-16 max-md:text-[40px]">
-        Ce qu'en pensent nos utilisateurs
+        What Our Users Say
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {testimonials.map((testimonial, index) => (

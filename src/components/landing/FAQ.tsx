@@ -10,31 +10,31 @@ import {
 export const FAQ: React.FC = () => {
   const faqs = [
     {
-      question: "Comment fonctionne l'échange linguistique ?",
-      answer: "Le principe est simple : vous aidez quelqu'un à apprendre votre langue maternelle, et en échange, cette personne vous aide à apprendre la sienne. C'est un échange mutuel et enrichissant !"
+      question: "How does language exchange work?",
+      answer: "The principle is simple: you help someone learn your native language, and in return, they help you learn theirs. It's a mutual and enriching exchange!"
     },
     {
-      question: "Est-ce vraiment 100% gratuit ?",
-      answer: "Oui ! HelloWorld! est et restera toujours 100% gratuit, sans publicités ni fonctionnalités premium. Nous croyons que l'apprentissage des langues et l'échange culturel doivent être accessibles à tous."
+      question: "Is it really 100% free?",
+      answer: "Yes! HelloWorld! is and will always be 100% free, with no ads or premium features. We believe language learning and cultural exchange should be accessible to everyone."
     },
     {
-      question: "Quel est le niveau requis pour commencer ?",
-      answer: "Aucun niveau minimum n'est requis ! Que vous soyez débutant ou avancé, vous trouverez des partenaires adaptés à votre niveau. L'important est d'être motivé pour apprendre et partager."
+      question: "What level do I need to start?",
+      answer: "No minimum level required! Whether you're a beginner or advanced, you'll find partners suited to your level. The important thing is being motivated to learn and share."
     },
     {
-      question: "Comment sont protégées mes données personnelles ?",
-      answer: "La protection de vos données est notre priorité. Nous utilisons un cryptage de bout en bout pour vos messages et ne partageons jamais vos informations personnelles avec des tiers."
+      question: "How is my personal data protected?",
+      answer: "Your data protection is our priority. We use end-to-end encryption for your messages and never share your personal information with third parties."
     },
     {
-      question: "Puis-je pratiquer plusieurs langues en même temps ?",
-      answer: "Absolument ! Vous pouvez apprendre autant de langues que vous le souhaitez et communiquer avec des locuteurs natifs de différents pays."
+      question: "Can I practice multiple languages at once?",
+      answer: "Absolutely! You can learn as many languages as you want and communicate with native speakers from different countries."
     }
   ];
 
   return (
     <section className="py-20 px-[220px] max-md:px-5">
       <h2 className="text-[#6153BD] text-5xl font-black text-center mb-16 max-md:text-[40px]">
-        Questions fréquentes
+        Frequently Asked Questions
       </h2>
       <Accordion type="single" collapsible className="max-w-3xl mx-auto">
         {faqs.map((faq, index) => (
