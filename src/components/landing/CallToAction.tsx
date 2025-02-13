@@ -1,7 +1,10 @@
 
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 export const CallToAction: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="px-[220px] max-md:px-5 mb-20">
       <div className="bg-[rgba(97,83,189,1)] flex w-full items-center gap-[40px_140px] justify-center flex-wrap mt-20 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-[3px] max-md:max-w-full max-md:mt-10 px-20 max-md:px-5">
@@ -15,7 +18,10 @@ export const CallToAction: React.FC = () => {
           <h2 className="text-white text-5xl font-black max-md:max-w-full max-md:text-[40px]">
             So what are you waiting for? Join the community!
           </h2>
-          <button className="bg-[rgba(254,207,196,1)] gap-2.5 text-base text-[#FF6A48] font-bold mt-10 px-5 py-2.5 rounded-[10px] border-[rgba(255,106,72,1)] border-solid border-2 w-fit transform transition-all duration-300 hover:scale-105 hover:shadow-md">
+          <button 
+            onClick={() => navigate("/auth?mode=signup")}
+            className="bg-[rgba(254,207,196,1)] gap-2.5 text-base text-[#FF6A48] font-bold mt-10 px-5 py-2.5 rounded-[10px] border-[rgba(255,106,72,1)] border-solid border-2 w-fit transform transition-all duration-300 hover:scale-105 hover:shadow-md"
+          >
             Join the community
           </button>
         </div>
