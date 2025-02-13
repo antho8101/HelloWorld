@@ -28,32 +28,30 @@ export const ProfileForm = ({
   return (
     <>
       <div className="flex flex-col lg:flex-row gap-8 mb-8">
-        <div className="flex flex-col md:flex-row lg:flex-col gap-8">
-          <ProfileAvatar
-            userId={userId}
-            username={profile.username}
-            avatarUrl={profile.avatar_url}
-            onAvatarChange={(url) => onProfileChange({ avatar_url: url })}
-          />
+        <ProfileAvatar
+          userId={userId}
+          username={profile.username}
+          avatarUrl={profile.avatar_url}
+          onAvatarChange={(url) => onProfileChange({ avatar_url: url })}
+        />
 
-          <BasicInfo
-            username={profile.username}
-            name={profile.name}
-            age={profile.age}
-            gender={profile.gender}
-            country={profile.country}
-            city={profile.city}
-            citySearch={citySearch}
-            cities={cities}
-            onUsernameChange={(username) => onProfileChange({ username })}
-            onNameChange={(name) => onProfileChange({ name })}
-            onAgeChange={(age) => onProfileChange({ age })}
-            onGenderChange={(gender) => onProfileChange({ gender })}
-            onCountryChange={(country) => onProfileChange({ country })}
-            onCitySearch={onCitySearch}
-            onCitySelect={onCitySelect}
-          />
-        </div>
+        <BasicInfo
+          username={profile.username}
+          name={profile.name}
+          age={profile.age}
+          gender={profile.gender}
+          country={profile.country}
+          city={profile.city}
+          citySearch={citySearch}
+          cities={cities}
+          onUsernameChange={(username) => onProfileChange({ username })}
+          onNameChange={(name) => onProfileChange({ name })}
+          onAgeChange={(age) => onProfileChange({ age })}
+          onGenderChange={(gender) => onProfileChange({ gender })}
+          onCountryChange={(country) => onProfileChange({ country })}
+          onCitySearch={onCitySearch}
+          onCitySelect={onCitySelect}
+        />
 
         <div className="flex-1">
           <LanguagesAndPreferences
