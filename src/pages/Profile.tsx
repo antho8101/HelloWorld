@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Footer } from "@/components/layout/Footer";
 
 interface ProfileData {
   username: string;
@@ -143,110 +144,115 @@ export const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-sm p-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
-          <button
-            onClick={handleSignOut}
-            className="px-4 py-2 text-sm text-red-600 hover:text-red-700 font-medium"
-          >
-            Sign Out
-          </button>
-        </div>
-
-        <div className="flex flex-col items-center mb-8">
-          <Avatar className="h-32 w-32 mb-4">
-            <AvatarImage src={profile.avatar_url} />
-            <AvatarFallback>{profile.username?.[0]?.toUpperCase() || '?'}</AvatarFallback>
-          </Avatar>
-        </div>
-
-        <div className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Username
-            </label>
-            <input
-              type="text"
-              name="username"
-              value={profile.username}
-              onChange={handleInputChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#6153BD] focus:border-[#6153BD]"
-            />
+    <div className="min-h-screen flex flex-col">
+      <div className="flex-grow bg-[rgba(255,243,240,1)] py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-lg p-8">
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-3xl font-black text-[#6153BD]">My Profile</h1>
+            <button
+              onClick={handleSignOut}
+              className="px-4 py-2 text-sm text-[#FF6A48] hover:text-[#FF6A48]/90 font-bold"
+            >
+              Sign Out
+            </button>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Avatar URL
-            </label>
-            <input
-              type="url"
-              name="avatar_url"
-              value={profile.avatar_url}
-              onChange={handleInputChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#6153BD] focus:border-[#6153BD]"
-            />
+          <div className="flex flex-col items-center mb-8">
+            <Avatar className="h-32 w-32 mb-4 ring-4 ring-[#6153BD]/20">
+              <AvatarImage src={profile.avatar_url} />
+              <AvatarFallback className="bg-[#6153BD] text-white">
+                {profile.username?.[0]?.toUpperCase() || '?'}
+              </AvatarFallback>
+            </Avatar>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Country
-            </label>
-            <input
-              type="text"
-              name="country"
-              value={profile.country}
-              onChange={handleInputChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#6153BD] focus:border-[#6153BD]"
-            />
-          </div>
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-bold text-[#6153BD]">
+                Username
+              </label>
+              <input
+                type="text"
+                name="username"
+                value={profile.username}
+                onChange={handleInputChange}
+                className="mt-1 block w-full border-2 border-[#6153BD]/20 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#6153BD] focus:border-transparent transition-all duration-200"
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Native Languages (comma-separated)
-            </label>
-            <input
-              type="text"
-              value={profile.native_languages.join(', ')}
-              onChange={(e) => handleLanguagesChange(e, 'native_languages')}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#6153BD] focus:border-[#6153BD]"
-            />
-          </div>
+            <div>
+              <label className="block text-sm font-bold text-[#6153BD]">
+                Avatar URL
+              </label>
+              <input
+                type="url"
+                name="avatar_url"
+                value={profile.avatar_url}
+                onChange={handleInputChange}
+                className="mt-1 block w-full border-2 border-[#6153BD]/20 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#6153BD] focus:border-transparent transition-all duration-200"
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Learning Languages (comma-separated)
-            </label>
-            <input
-              type="text"
-              value={profile.learning_languages.join(', ')}
-              onChange={(e) => handleLanguagesChange(e, 'learning_languages')}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#6153BD] focus:border-[#6153BD]"
-            />
-          </div>
+            <div>
+              <label className="block text-sm font-bold text-[#6153BD]">
+                Country
+              </label>
+              <input
+                type="text"
+                name="country"
+                value={profile.country}
+                onChange={handleInputChange}
+                className="mt-1 block w-full border-2 border-[#6153BD]/20 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#6153BD] focus:border-transparent transition-all duration-200"
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Bio
-            </label>
-            <textarea
-              name="bio"
-              value={profile.bio}
-              onChange={handleInputChange}
-              rows={4}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#6153BD] focus:border-[#6153BD]"
-            />
-          </div>
+            <div>
+              <label className="block text-sm font-bold text-[#6153BD]">
+                Native Languages (comma-separated)
+              </label>
+              <input
+                type="text"
+                value={profile.native_languages.join(', ')}
+                onChange={(e) => handleLanguagesChange(e, 'native_languages')}
+                className="mt-1 block w-full border-2 border-[#6153BD]/20 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#6153BD] focus:border-transparent transition-all duration-200"
+              />
+            </div>
 
-          <button
-            onClick={updateProfile}
-            className="w-full bg-[#6153BD] text-white py-2 px-4 rounded-md hover:bg-[#6153BD]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#6153BD]"
-          >
-            Update Profile
-          </button>
+            <div>
+              <label className="block text-sm font-bold text-[#6153BD]">
+                Learning Languages (comma-separated)
+              </label>
+              <input
+                type="text"
+                value={profile.learning_languages.join(', ')}
+                onChange={(e) => handleLanguagesChange(e, 'learning_languages')}
+                className="mt-1 block w-full border-2 border-[#6153BD]/20 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#6153BD] focus:border-transparent transition-all duration-200"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-[#6153BD]">
+                Bio
+              </label>
+              <textarea
+                name="bio"
+                value={profile.bio}
+                onChange={handleInputChange}
+                rows={4}
+                className="mt-1 block w-full border-2 border-[#6153BD]/20 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#6153BD] focus:border-transparent transition-all duration-200 resize-none"
+              />
+            </div>
+
+            <button
+              onClick={updateProfile}
+              className="w-full bg-[#6153BD] text-white py-3 px-4 rounded-xl font-bold hover:bg-[#6153BD]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#6153BD] transform transition-all duration-200 hover:scale-[1.02]"
+            >
+              Update Profile
+            </button>
+          </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };
