@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -190,17 +191,32 @@ export const Profile = () => {
     setCitySearch(search);
     if (search.length > 2 && profile.country) {
       try {
+        // Get the API key from Supabase secrets
+        const { data: secretData, error: secretError } = await supabase
+          .from('secrets')
+          .select('value')
+          .eq('name', 'API_NINJAS_KEY')
+          .single();
+
+        if (secretError) throw secretError;
+
         const response = await fetch(
           `https://api.api-ninjas.com/v1/city?name=${search}&country=${profile.country}&limit=5`,
           {
             headers: {
-              'X-Api-Key': 'YOUR_API_KEY'
+              'X-Api-Key': secretData.value
             }
           }
         );
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch cities');
+        }
+        
         const data = await response.json();
         setCities(data.map((city: any) => city.name));
       } catch (error) {
+        console.error('Error fetching cities:', error);
         // Fallback to simple suggestions if API fails
         setCities([
           `${search} City`,
