@@ -10,6 +10,7 @@ import { FAQ } from "@/components/landing/FAQ";
 import { CommunityGrid } from "@/components/landing/CommunityGrid";
 import { CallToAction } from "@/components/landing/CallToAction";
 import { MobileApp } from "@/components/landing/MobileApp";
+import { Footer } from "@/components/layout/Footer";
 
 const Index = () => {
   return (
@@ -26,6 +27,7 @@ const Index = () => {
       <FAQ />
       <CallToAction />
       <MobileApp />
+      <Footer />
     </main>
   );
 };
