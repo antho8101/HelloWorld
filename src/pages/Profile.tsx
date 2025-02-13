@@ -235,55 +235,56 @@ export const Profile = () => {
             </button>
           </div>
 
-          <div className="flex flex-col items-center mb-8">
-            <div className="relative">
-              <Avatar className="h-32 w-32 mb-4 ring-4 ring-[#6153BD]/20">
-                <AvatarImage src={profile.avatar_url} />
-                <AvatarFallback className="bg-[#6153BD] text-white">
-                  {profile.username?.[0]?.toUpperCase() || '?'}
-                </AvatarFallback>
-              </Avatar>
-              <div className="absolute bottom-4 right-0 flex gap-2">
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Upload className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="secondary"
-                >
-                  <Camera className="h-4 w-4" />
-                </Button>
+          <div className="flex flex-col md:flex-row gap-8 mb-8">
+            {/* Left side - Avatar */}
+            <div className="flex flex-col items-center">
+              <div className="relative">
+                <Avatar className="h-32 w-32 ring-4 ring-[#6153BD]/20">
+                  <AvatarImage src={profile.avatar_url} />
+                  <AvatarFallback className="bg-[#6153BD] text-white">
+                    {profile.username?.[0]?.toUpperCase() || '?'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="absolute bottom-0 right-0 flex gap-2">
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Upload className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                  >
+                    <Camera className="h-4 w-4" />
+                  </Button>
+                </div>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
+                  accept="image/*"
+                  className="hidden"
+                />
               </div>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileUpload}
-                accept="image/*"
-                className="hidden"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-bold text-[#6153BD]">
-                Username
-              </label>
-              <input
-                type="text"
-                value={profile.username}
-                onChange={(e) => setProfile(prev => ({ ...prev, username: e.target.value }))}
-                className="mt-1 block w-full border-2 border-[#6153BD]/20 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#6153BD] focus:border-transparent transition-all duration-200"
-              />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Right side - Basic Info */}
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="md:col-span-2">
+                <label className="block text-sm font-bold text-[#6153BD] mb-1">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  value={profile.username}
+                  onChange={(e) => setProfile(prev => ({ ...prev, username: e.target.value }))}
+                  className="w-full border-2 border-[#6153BD]/20 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#6153BD] focus:border-transparent transition-all duration-200"
+                />
+              </div>
               <div>
-                <label className="block text-sm font-bold text-[#6153BD]">
+                <label className="block text-sm font-bold text-[#6153BD] mb-1">
                   Gender
                 </label>
                 <Select
@@ -300,30 +301,8 @@ export const Profile = () => {
                   </SelectContent>
                 </Select>
               </div>
-
               <div>
-                <label className="block text-sm font-bold text-[#6153BD]">
-                  Interested in Meeting
-                </label>
-                <Select
-                  value={profile.interested_in.join(",")}
-                  onValueChange={(value) => setProfile(prev => ({ ...prev, interested_in: value.split(",").filter(Boolean) }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select preference" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male">Men</SelectItem>
-                    <SelectItem value="female">Women</SelectItem>
-                    <SelectItem value="male,female">Both</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-bold text-[#6153BD]">
+                <label className="block text-sm font-bold text-[#6153BD] mb-1">
                   Country
                 </label>
                 <Select
@@ -342,9 +321,8 @@ export const Profile = () => {
                   </SelectContent>
                 </Select>
               </div>
-
-              <div>
-                <label className="block text-sm font-bold text-[#6153BD]">
+              <div className="md:col-span-2">
+                <label className="block text-sm font-bold text-[#6153BD] mb-1">
                   City
                 </label>
                 <div className="relative">
@@ -352,7 +330,7 @@ export const Profile = () => {
                     type="text"
                     value={citySearch}
                     onChange={(e) => handleSearchCity(e.target.value)}
-                    className="mt-1 block w-full border-2 border-[#6153BD]/20 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#6153BD] focus:border-transparent transition-all duration-200"
+                    className="w-full border-2 border-[#6153BD]/20 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#6153BD] focus:border-transparent transition-all duration-200"
                     placeholder="Start typing your city..."
                   />
                   {cities.length > 0 && (
@@ -375,7 +353,9 @@ export const Profile = () => {
                 </div>
               </div>
             </div>
+          </div>
 
+          <div className="space-y-6">
             <div>
               <label className="block text-sm font-bold text-[#6153BD] mb-2">
                 Native Languages
