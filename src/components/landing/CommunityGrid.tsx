@@ -5,36 +5,180 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export const CommunityGrid: React.FC = () => {
-  // Query to fetch all profiles
-  const { data: profiles, isLoading } = useQuery({
-    queryKey: ['profiles'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('profiles').select('*');
-      if (error) throw error;
-      return data;
-    },
-  });
-
+  // Dans un premier temps, on utilise des profils fictifs
   const staticProfiles = [
+    // Ligne 1 - Femmes
     {
-      image:
-        "https://cdn.builder.io/api/v1/image/assets/f97848ecf61542bea4ab8ab7f8d20ea9/230e3c3d2ce5ed39703b4b55fed6ab3220b2b5b2f628d9f76b5aad2e718bcb90",
-      name: "Dmitry",
-      age: 34,
-      location: "Minsk, Belarus",
+      image: "https://i.pravatar.cc/150?img=1",
+      name: "Sophie",
+      age: 28,
+      location: "Paris, France",
+      gender: "female",
+      messages: 245
     },
     {
-      image:
-        "https://cdn.builder.io/api/v1/image/assets/f97848ecf61542bea4ab8ab7f8d20ea9/15f50657f144c91c7e09b0efaa7450296e25906ec5c89533470e41af8996d1a0",
-      name: "Anna",
-      age: 22,
-      location: "Moscow, Russia",
+      image: "https://i.pravatar.cc/150?img=5",
+      name: "Emma",
+      age: 24,
+      location: "Lyon, France",
+      gender: "female",
+      messages: 198
     },
-    // Add all other profiles here...
+    {
+      image: "https://i.pravatar.cc/150?img=9",
+      name: "Clara",
+      age: 31,
+      location: "Bordeaux, France",
+      gender: "female",
+      messages: 167
+    },
+    {
+      image: "https://i.pravatar.cc/150?img=13",
+      name: "Thomas",
+      age: 29,
+      location: "Marseille, France",
+      gender: "male",
+      messages: 156
+    },
+    {
+      image: "https://i.pravatar.cc/150?img=17",
+      name: "Lucas",
+      age: 27,
+      location: "Toulouse, France",
+      gender: "male",
+      messages: 143
+    },
+    {
+      image: "https://i.pravatar.cc/150?img=21",
+      name: "Léa",
+      age: 26,
+      location: "Nice, France",
+      gender: "female",
+      messages: 134
+    },
+    {
+      image: "https://i.pravatar.cc/150?img=25",
+      name: "Hugo",
+      age: 32,
+      location: "Nantes, France",
+      gender: "male",
+      messages: 129
+    },
+    // Ligne 2
+    {
+      image: "https://i.pravatar.cc/150?img=29",
+      name: "Marie",
+      age: 25,
+      location: "Lille, France",
+      gender: "female",
+      messages: 123
+    },
+    {
+      image: "https://i.pravatar.cc/150?img=33",
+      name: "Antoine",
+      age: 30,
+      location: "Strasbourg, France",
+      gender: "male",
+      messages: 118
+    },
+    {
+      image: "https://i.pravatar.cc/150?img=37",
+      name: "Julie",
+      age: 28,
+      location: "Rennes, France",
+      gender: "female",
+      messages: 112
+    },
+    {
+      image: "https://i.pravatar.cc/150?img=41",
+      name: "Nicolas",
+      age: 33,
+      location: "Montpellier, France",
+      gender: "male",
+      messages: 108
+    },
+    {
+      image: "https://i.pravatar.cc/150?img=45",
+      name: "Camille",
+      age: 27,
+      location: "Grenoble, France",
+      gender: "female",
+      messages: 103
+    },
+    {
+      image: "https://i.pravatar.cc/150?img=49",
+      name: "Pierre",
+      age: 31,
+      location: "Dijon, France",
+      gender: "male",
+      messages: 98
+    },
+    {
+      image: "https://i.pravatar.cc/150?img=53",
+      name: "Sarah",
+      age: 29,
+      location: "Angers, France",
+      gender: "female",
+      messages: 95
+    },
+    // Ligne 3
+    {
+      image: "https://i.pravatar.cc/150?img=57",
+      name: "Maxime",
+      age: 28,
+      location: "Le Mans, France",
+      gender: "male",
+      messages: 92
+    },
+    {
+      image: "https://i.pravatar.cc/150?img=61",
+      name: "Charlotte",
+      age: 26,
+      location: "Reims, France",
+      gender: "female",
+      messages: 89
+    },
+    {
+      image: "https://i.pravatar.cc/150?img=65",
+      name: "Alexandre",
+      age: 32,
+      location: "Metz, France",
+      gender: "male",
+      messages: 86
+    },
+    {
+      image: "https://i.pravatar.cc/150?img=69",
+      name: "Laura",
+      age: 25,
+      location: "Tours, France",
+      gender: "female",
+      messages: 83
+    },
+    {
+      image: "https://i.pravatar.cc/150?img=73",
+      name: "Gabriel",
+      age: 30,
+      location: "Caen, France",
+      gender: "male",
+      messages: 81
+    },
+    {
+      image: "https://i.pravatar.cc/150?img=77",
+      name: "Marine",
+      age: 27,
+      location: "Orléans, France",
+      gender: "female",
+      messages: 78
+    },
+    {
+      image: "https://i.pravatar.cc/150?img=81",
+      name: "Paul",
+      age: 29,
+      location: "Rouen, France",
+      gender: "male",
+      messages: 75
+    }
   ];
-
-  // Calculate total members (real + demo profiles)
-  const totalMembers = (profiles?.length || 0) + staticProfiles.length;
 
   return (
     <section className="bg-white flex w-full flex-col items-stretch px-[220px] py-20 max-md:max-w-full max-md:px-5">
@@ -43,23 +187,19 @@ export const CommunityGrid: React.FC = () => {
           Join a large community
         </h2>
         <p className="text-[#FF6A48] text-xl font-bold">
-          Already {totalMembers} members!
+          Already {staticProfiles.length} active members!
         </p>
       </div>
       <div className="flex w-full flex-col items-stretch text-black justify-center mt-20 max-md:max-w-full max-md:mt-10">
-        <div className="flex w-full items-center gap-[39px] justify-between flex-wrap max-md:max-w-full">
-          {/* Display both real and demo profiles */}
-          {profiles?.map((profile) => (
-            <UserProfile
-              key={profile.id}
-              image={profile.image || "https://via.placeholder.com/150"}
-              name={profile.name || "Anonymous"}
-              age={profile.age || 0}
-              location={profile.location || "Unknown"}
-            />
-          ))}
+        <div className="grid grid-cols-7 gap-8 max-md:grid-cols-2 max-sm:grid-cols-1">
           {staticProfiles.map((profile, index) => (
-            <UserProfile key={`static-${index}`} {...profile} />
+            <UserProfile
+              key={index}
+              image={profile.image}
+              name={profile.name}
+              age={profile.age}
+              location={profile.location}
+            />
           ))}
         </div>
       </div>
