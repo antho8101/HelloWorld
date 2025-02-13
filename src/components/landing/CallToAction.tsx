@@ -15,7 +15,7 @@ export const CallToAction: React.FC = () => {
           <h2 className="text-white text-5xl font-black max-md:max-w-full max-md:text-[40px]">
             So what are you waiting for? Join the community!
           </h2>
-          <button className="bg-[rgba(254,207,196,1)] gap-2.5 text-base text-[#FF6A48] font-bold mt-10 px-5 py-2.5 rounded-[10px] border-[rgba(255,106,72,1)] border-solid border-2 w-fit">
+          <button className="bg-[rgba(254,207,196,1)] gap-2.5 text-base text-[#FF6A48] font-bold mt-10 px-5 py-2.5 rounded-[10px] border-[rgba(255,106,72,1)] border-solid border-2 w-fit transform transition-all duration-300 hover:scale-105 hover:shadow-md">
             Join the community
           </button>
         </div>
