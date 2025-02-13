@@ -39,40 +39,42 @@ const transformLanguageLevels = (languageLevels: Json | null): LanguageWithLevel
 };
 
 export const PublicProfile = () => {
-  const params = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { id } = useParams<{ id?: string }>();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!params.id) {
+      if (!id) {
         setError("No profile ID provided");
         return;
       }
 
       try {
-        console.log("Fetching profile with ID:", params.id); // Debug log
+        console.log("Fetching profile with ID:", id);
 
-        const { data, error } = await supabase
+        // First attempt to fetch using maybeSingle()
+        let { data, error: fetchError } = await supabase
           .from("profiles")
           .select()
-          .eq('id', params.id)
+          .eq('id', id)
           .maybeSingle();
 
-        if (error) {
-          console.error("Supabase error:", error);
-          setError(error.message);
+        if (fetchError) {
+          console.error("Supabase error:", fetchError);
+          setError(fetchError.message);
           return;
         }
 
         if (!data) {
+          console.log("No profile found for ID:", id);
           setError("Profile not found");
           return;
         }
 
-        console.log("Profile data:", data); // Debug log
+        console.log("Profile data:", data);
 
         setProfile({
           username: data.username,
@@ -98,7 +100,7 @@ export const PublicProfile = () => {
     };
 
     fetchProfile();
-  }, [params.id]);
+  }, [id]);
 
   if (loading) {
     return (
