@@ -53,13 +53,17 @@ export const BasicInfo = ({
           value={name}
           onChange={onNameChange}
         />
-        <div className="md:col-span-2">
-          <BirthdateSelect onAgeChange={onAgeChange} />
+        <div className="md:col-span-2 grid grid-cols-4 gap-4">
+          <div className="col-span-3">
+            <BirthdateSelect onAgeChange={onAgeChange} />
+          </div>
+          <div className="col-span-1">
+            <GenderSelect
+              value={gender}
+              onChange={onGenderChange}
+            />
+          </div>
         </div>
-        <GenderSelect
-          value={gender}
-          onChange={onGenderChange}
-        />
         <CountrySelect
           value={country}
           onChange={onCountryChange}
