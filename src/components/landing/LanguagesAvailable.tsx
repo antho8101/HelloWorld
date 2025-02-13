@@ -32,12 +32,12 @@ export const LanguagesAvailable: React.FC = () => {
         {popularLanguages.map((language, index) => (
           <div
             key={index}
-            className="bg-white px-6 py-3 rounded-full shadow-sm border-2 border-[#6153BD] text-[#6153BD] font-bold"
+            className="bg-white px-6 py-3 rounded-full shadow-sm border-2 border-[#6153BD] text-[#6153BD] font-bold transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#6153BD] hover:text-white"
           >
             {language}
           </div>
         ))}
-        <div className="bg-[#6153BD] px-6 py-3 rounded-full shadow-sm text-white font-bold">
+        <div className="bg-[#6153BD] px-6 py-3 rounded-full shadow-sm text-white font-bold transform transition-all duration-300 hover:scale-105 hover:shadow-md">
           And many more...
         </div>
       </div>
