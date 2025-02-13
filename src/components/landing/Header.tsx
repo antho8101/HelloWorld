@@ -30,7 +30,7 @@ export const Header: React.FC = () => {
       </div>
       <nav className="self-stretch flex min-w-60 items-center gap-5 text-base font-bold justify-center my-auto">
         <Select defaultValue="en">
-          <SelectTrigger className="w-[140px] h-[42px] text-[#FF6A48] border-2 border-[#FF6A48] font-medium flex items-center gap-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md">
+          <SelectTrigger className="w-[140px] h-[42px] text-[#FF6A48] border-2 border-[#FF6A48] font-medium flex items-center gap-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md rounded-[10px]">
             <GlobeIcon className="h-5 w-5" />
             <SelectValue placeholder="Select language" />
           </SelectTrigger>
