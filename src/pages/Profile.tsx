@@ -1,26 +1,14 @@
-import React, { useEffect, useState, useRef } from "react";
+
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Footer } from "@/components/layout/Footer";
-import { LanguageSelector, type LanguageWithLevel } from "@/components/LanguageSelector";
-import { Button } from "@/components/ui/button";
-import { Camera, Upload } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
+import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
+import { BasicInfo } from "@/components/profile/BasicInfo";
+import { LanguagesAndPreferences } from "@/components/profile/LanguagesAndPreferences";
+import type { LanguageWithLevel } from "@/components/LanguageSelector";
 import type { Json } from "@/integrations/supabase/types";
-
-const COUNTRIES = [
-  "France", "United States", "United Kingdom", "Germany", "Spain", "Italy",
-  "Canada", "Australia", "Japan", "China", "Brazil", "India"
-] as const;
 
 interface ProfileData {
   username: string;
@@ -40,7 +28,6 @@ export const Profile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [profile, setProfile] = useState<ProfileData>({
     username: "",
     avatar_url: "",
@@ -121,31 +108,44 @@ export const Profile = () => {
     }
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleSearchCity = async (search: string) => {
+    setCitySearch(search);
+    if (search.length > 2 && profile.country) {
+      try {
+        const { data: secretData, error: secretError } = await supabase
+          .from('secrets')
+          .select('value')
+          .eq('name', 'API_NINJAS_KEY')
+          .single();
 
-    try {
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${userId}/${crypto.randomUUID()}.${fileExt}`;
+        if (secretError) throw secretError;
 
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
-      setProfile(prev => ({ ...prev, avatar_url: publicUrl }));
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Error uploading avatar",
-      });
+        const response = await fetch(
+          `https://api.api-ninjas.com/v1/city?name=${search}&country=${profile.country}&limit=5`,
+          {
+            headers: {
+              'X-Api-Key': secretData.value
+            }
+          }
+        );
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch cities');
+        }
+        
+        const data = await response.json();
+        setCities(data.map((city: any) => city.name));
+      } catch (error) {
+        console.error('Error fetching cities:', error);
+        setCities([
+          `${search} City`,
+          `${search} Town`,
+          `New ${search}`,
+          `${search}ville`,
+        ].map(city => `${city}, ${profile.country}`));
+      }
+    } else {
+      setCities([]);
     }
   };
 
@@ -186,62 +186,6 @@ export const Profile = () => {
     }
   };
 
-  const handleSearchCity = async (search: string) => {
-    setCitySearch(search);
-    if (search.length > 2 && profile.country) {
-      try {
-        // Get the API key from Supabase secrets
-        const { data: secretData, error: secretError } = await supabase
-          .from('secrets')
-          .select('value')
-          .eq('name', 'API_NINJAS_KEY')
-          .single();
-
-        if (secretError) throw secretError;
-
-        const response = await fetch(
-          `https://api.api-ninjas.com/v1/city?name=${search}&country=${profile.country}&limit=5`,
-          {
-            headers: {
-              'X-Api-Key': secretData.value
-            }
-          }
-        );
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch cities');
-        }
-        
-        const data = await response.json();
-        setCities(data.map((city: any) => city.name));
-      } catch (error) {
-        console.error('Error fetching cities:', error);
-        // Fallback to simple suggestions if API fails
-        setCities([
-          `${search} City`,
-          `${search} Town`,
-          `New ${search}`,
-          `${search}ville`,
-        ].map(city => `${city}, ${profile.country}`));
-      }
-    } else {
-      setCities([]);
-    }
-  };
-
-  const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Error signing out",
-      });
-    } else {
-      navigate("/");
-    }
-  };
-
   const handleCancel = () => {
     navigate("/");
   };
@@ -269,188 +213,47 @@ export const Profile = () => {
           </div>
 
           <div className="flex flex-col md:flex-row gap-8 mb-8">
-            {/* Left side - Avatar */}
-            <div className="flex flex-col items-center">
-              <div className="relative">
-                <Avatar className="h-64 w-64 ring-4 ring-[#6153BD]/20">
-                  <AvatarImage src={profile.avatar_url} />
-                  <AvatarFallback className="bg-[#6153BD] text-white text-4xl">
-                    {profile.username?.[0]?.toUpperCase() || '?'}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="absolute bottom-2 right-2 flex gap-2">
-                  <Button
-                    size="icon"
-                    variant="secondary"
-                    className="h-10 w-10"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Upload className="h-5 w-5" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="secondary"
-                    className="h-10 w-10"
-                  >
-                    <Camera className="h-5 w-5" />
-                  </Button>
-                </div>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileUpload}
-                  accept="image/*"
-                  className="hidden"
-                />
-              </div>
-            </div>
+            <ProfileAvatar
+              userId={userId || ""}
+              username={profile.username}
+              avatarUrl={profile.avatar_url}
+              onAvatarChange={(url) => setProfile(prev => ({ ...prev, avatar_url: url }))}
+            />
 
-            {/* Right side - Basic Info */}
-            <div className="flex-1 max-w-xl">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-bold text-[#6153BD] mb-1">
-                    Username
-                  </label>
-                  <input
-                    type="text"
-                    value={profile.username}
-                    onChange={(e) => setProfile(prev => ({ ...prev, username: e.target.value }))}
-                    className="w-full border-2 border-[#6153BD]/20 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#6153BD] focus:border-transparent transition-all duration-200"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-[#6153BD] mb-1">
-                    Gender
-                  </label>
-                  <Select
-                    value={profile.gender}
-                    onValueChange={(value) => setProfile(prev => ({ ...prev, gender: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select gender" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">Male</SelectItem>
-                      <SelectItem value="female">Female</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-[#6153BD] mb-1">
-                    Country
-                  </label>
-                  <Select
-                    value={profile.country}
-                    onValueChange={(value) => setProfile(prev => ({ ...prev, country: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select country" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {COUNTRIES.map((country) => (
-                        <SelectItem key={country} value={country}>
-                          {country}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-bold text-[#6153BD] mb-1">
-                    City
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={citySearch}
-                      onChange={(e) => handleSearchCity(e.target.value)}
-                      disabled={!profile.country}
-                      className="w-full border-2 border-[#6153BD]/20 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#6153BD] focus:border-transparent transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                      placeholder={profile.country ? "Start typing your city..." : "Please select a country first"}
-                    />
-                    {cities.length > 0 && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg">
-                        {cities.map((city) => (
-                          <div
-                            key={city}
-                            className="px-4 py-2 cursor-pointer hover:bg-gray-100"
-                            onClick={() => {
-                              setProfile(prev => ({ ...prev, city }));
-                              setCitySearch(city);
-                              setCities([]);
-                            }}
-                          >
-                            {city}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
+            <BasicInfo
+              username={profile.username}
+              gender={profile.gender}
+              country={profile.country}
+              city={profile.city}
+              citySearch={citySearch}
+              cities={cities}
+              onUsernameChange={(username) => setProfile(prev => ({ ...prev, username }))}
+              onGenderChange={(gender) => setProfile(prev => ({ ...prev, gender }))}
+              onCountryChange={(country) => setProfile(prev => ({ ...prev, country }))}
+              onCitySearch={handleSearchCity}
+              onCitySelect={(city) => {
+                setProfile(prev => ({ ...prev, city }));
+                setCitySearch(city);
+                setCities([]);
+              }}
+            />
           </div>
 
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-bold text-[#6153BD] mb-2">
-                Native Languages
-              </label>
-              <LanguageSelector
-                languages={profile.native_languages}
-                onChange={(languages) => setProfile(prev => ({ ...prev, native_languages: languages }))}
-                showLevel={false}
-              />
-            </div>
+          <LanguagesAndPreferences
+            nativeLanguages={profile.native_languages}
+            learningLanguages={profile.learning_languages}
+            lookingFor={profile.looking_for}
+            onNativeLanguagesChange={(languages) => setProfile(prev => ({ ...prev, native_languages: languages }))}
+            onLearningLanguagesChange={(languages) => setProfile(prev => ({ ...prev, learning_languages: languages }))}
+            onLookingForChange={(lookingFor) => setProfile(prev => ({ ...prev, looking_for: lookingFor }))}
+          />
 
-            <div>
-              <label className="block text-sm font-bold text-[#6153BD] mb-2">
-                Learning Languages
-              </label>
-              <LanguageSelector
-                languages={profile.learning_languages}
-                onChange={(languages) => setProfile(prev => ({ ...prev, learning_languages: languages }))}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-[#6153BD] mb-2">
-                I'm Looking For
-              </label>
-              <div className="space-y-2">
-                {['friends', 'postal_exchange', 'in_person_meetings', 'flirting'].map((option) => (
-                  <div key={option} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={option}
-                      checked={profile.looking_for.includes(option)}
-                      onCheckedChange={(checked) => {
-                        setProfile(prev => ({
-                          ...prev,
-                          looking_for: checked
-                            ? [...prev.looking_for, option]
-                            : prev.looking_for.filter(item => item !== option)
-                        }));
-                      }}
-                    />
-                    <label
-                      htmlFor={option}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      {option.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <button
-              onClick={updateProfile}
-              className="w-full bg-[#6153BD] text-white py-3 px-4 rounded-xl font-bold hover:bg-[#6153BD]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#6153BD] transform transition-all duration-200 hover:scale-[1.02]"
-            >
-              Continue to Bio
-            </button>
-          </div>
+          <button
+            onClick={updateProfile}
+            className="w-full bg-[#6153BD] text-white py-3 px-4 rounded-xl font-bold hover:bg-[#6153BD]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#6153BD] transform transition-all duration-200 hover:scale-[1.02] mt-6"
+          >
+            Continue to Bio
+          </button>
         </div>
       </div>
       <Footer />
