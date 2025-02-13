@@ -10,24 +10,24 @@ import {
 export const FAQ: React.FC = () => {
   const faqs = [
     {
-      question: "How does language exchange work?",
-      answer: "The principle is simple: you help someone learn your native language, and in return, they help you learn theirs. It's a mutual and enriching exchange!"
+      question: "What can I do on HelloWorld!?",
+      answer: "HelloWorld! offers multiple ways to connect: practice languages with native speakers, make new friends worldwide, exchange postcards and gifts, or even find romance! You choose how you want to interact based on your interests."
     },
     {
-      question: "Is it really 100% free?",
-      answer: "Yes! HelloWorld! is and will always be 100% free, with no ads or premium features. We believe language learning and cultural exchange should be accessible to everyone."
+      question: "Is it really free to use?",
+      answer: "Yes! HelloWorld! is free to use with no ads or premium features. We run annual fundraising campaigns (1-2 times per year) where we kindly ask users to contribute at least $1 to help maintain the platform, but this is completely optional and doesn't affect your access to features."
     },
     {
-      question: "What level do I need to start?",
-      answer: "No minimum level required! Whether you're a beginner or advanced, you'll find partners suited to your level. The important thing is being motivated to learn and share."
+      question: "What if I'm not fluent in any foreign language?",
+      answer: "That's perfectly fine! While many users are here to practice languages, you can also connect based on shared interests, friendship, or cultural exchange. The important thing is being open to meeting people from different cultures."
     },
     {
       question: "How is my personal data protected?",
       answer: "Your data protection is our priority. We use end-to-end encryption for your messages and never share your personal information with third parties."
     },
     {
-      question: "Can I practice multiple languages at once?",
-      answer: "Absolutely! You can learn as many languages as you want and communicate with native speakers from different countries."
+      question: "How do I find people with similar interests?",
+      answer: "When creating your profile, you can specify your interests and what you're looking for (language practice, friendship, cultural exchange, or romance). Our matching system will help you find people who share your interests and goals."
     }
   ];
 
