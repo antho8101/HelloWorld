@@ -1,6 +1,7 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Select,
   SelectContent,
@@ -12,6 +13,30 @@ import { GlobeIcon } from "lucide-react";
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+    };
+
+    checkSession();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
+  };
 
   return (
     <header className="flex w-full items-center gap-[40px_100px] justify-between flex-wrap px-5 py-2.5 max-md:max-w-full bg-[#FFF3F0]">
@@ -48,24 +73,36 @@ export const Header: React.FC = () => {
             <SelectItem value="ar">العربية</SelectItem>
           </SelectContent>
         </Select>
-        <button 
-          onClick={() => navigate("/auth?mode=signup")}
-          className="bg-[rgba(97,83,189,1)] self-stretch flex items-center gap-2.5 text-white justify-center my-auto px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[rgba(97,83,189,0.9)]"
-        >
-          <span className="self-stretch my-auto">Get started</span>
-          <img
-            loading="lazy"
-            src="https://cdn.builder.io/api/v1/image/assets/f97848ecf61542bea4ab8ab7f8d20ea9/6f00598569306f4eed36007bf36924a551566ffaca4cf8d159b94c54cd033c0b?placeholderIfAbsent=true"
-            className="aspect-[1] object-contain w-[21px] self-stretch shrink-0 my-auto"
-            alt=""
-          />
-        </button>
-        <button 
-          onClick={() => navigate("/auth")}
-          className="self-stretch bg-white gap-2.5 text-[#6153BD] whitespace-nowrap my-auto px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#6153BD] hover:text-white"
-        >
-          Login
-        </button>
+        
+        {!isLoggedIn ? (
+          <>
+            <button 
+              onClick={() => navigate("/auth?mode=signup")}
+              className="bg-[rgba(97,83,189,1)] self-stretch flex items-center gap-2.5 text-white justify-center my-auto px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[rgba(97,83,189,0.9)]"
+            >
+              <span className="self-stretch my-auto">Get started</span>
+              <img
+                loading="lazy"
+                src="https://cdn.builder.io/api/v1/image/assets/f97848ecf61542bea4ab8ab7f8d20ea9/6f00598569306f4eed36007bf36924a551566ffaca4cf8d159b94c54cd033c0b?placeholderIfAbsent=true"
+                className="aspect-[1] object-contain w-[21px] self-stretch shrink-0 my-auto"
+                alt=""
+              />
+            </button>
+            <button 
+              onClick={() => navigate("/auth")}
+              className="self-stretch bg-white gap-2.5 text-[#6153BD] whitespace-nowrap my-auto px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#6153BD] hover:text-white"
+            >
+              Login
+            </button>
+          </>
+        ) : (
+          <button 
+            onClick={handleLogout}
+            className="self-stretch bg-white gap-2.5 text-[#6153BD] whitespace-nowrap my-auto px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#6153BD] hover:text-white"
+          >
+            Logout
+          </button>
+        )}
       </nav>
     </header>
   );
