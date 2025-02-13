@@ -18,15 +18,15 @@ export const UserProfile: React.FC<UserProfileProps> = ({
   isOnline = false,
 }) => {
   return (
-    <div className="self-stretch w-[150px] my-auto">
+    <div className="self-stretch w-[150px] my-auto max-md:w-[120px]">
       <img
         loading="lazy"
         srcSet={image}
-        className="h-[200px] w-[150px] object-cover rounded-[10px]"
+        className="h-[200px] w-[150px] max-md:h-[160px] max-md:w-[120px] object-cover rounded-[10px]"
         alt={`${name}, ${age}`}
       />
       <div className="w-full mt-2.5">
-        <div className="text-xl font-bold flex items-center gap-2">
+        <div className="text-xl max-md:text-lg font-bold flex items-center gap-2">
           <Circle
             size={12}
             fill={isOnline ? "#10b981" : "#ea384c"}
@@ -34,7 +34,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
           />
           {name}, {age}
         </div>
-        <div className="self-stretch w-full gap-2.5 text-base font-medium">
+        <div className="self-stretch w-full gap-2.5 text-base max-md:text-sm font-medium">
           {location}
         </div>
       </div>
