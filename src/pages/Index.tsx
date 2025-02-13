@@ -13,7 +13,7 @@ import { MobileApp } from "@/components/landing/MobileApp";
 
 const Index = () => {
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen select-none">
       <div className="bg-[rgba(255,243,240,1)] flex w-full flex-col items-stretch p-5 max-md:max-w-full">
         <Header />
         <Hero />
