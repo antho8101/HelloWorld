@@ -29,6 +29,7 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
         videoRef.current.srcObject = mediaStream;
       }
     } catch (error) {
+      console.error("Webcam error:", error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -50,6 +51,37 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
     }
   };
 
+  const uploadToSupabase = async (file: File | Blob, fileExt: string) => {
+    try {
+      const filePath = `${userId}/${crypto.randomUUID()}.${fileExt}`;
+      console.log("Uploading to path:", filePath);
+
+      const { error: uploadError, data } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
+        throw uploadError;
+      }
+
+      console.log("Upload successful:", data);
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      console.log("Public URL:", publicUrl);
+      return publicUrl;
+    } catch (error: any) {
+      console.error("Error in uploadToSupabase:", error);
+      throw new Error("Error uploading avatar");
+    }
+  };
+
   const takePhoto = async () => {
     if (!videoRef.current) return;
 
@@ -63,22 +95,16 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
     );
 
     try {
-      const filePath = `${userId}/${crypto.randomUUID()}.jpg`;
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, blob);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
+      const publicUrl = await uploadToSupabase(blob, 'jpg');
       onAvatarChange(publicUrl);
       setIsWebcamOpen(false);
       stopWebcam();
       resetFileInput();
-    } catch (error: any) {
+      toast({
+        title: "Success",
+        description: "Photo uploaded successfully",
+      });
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
@@ -92,22 +118,16 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
     if (!file) return;
 
     try {
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${userId}/${crypto.randomUUID()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
+      const fileExt = file.name.split('.').pop() || '';
+      const publicUrl = await uploadToSupabase(file, fileExt);
       onAvatarChange(publicUrl);
       resetFileInput();
-    } catch (error: any) {
+      toast({
+        title: "Success",
+        description: "Avatar uploaded successfully",
+      });
+    } catch (error) {
+      console.error("File upload error:", error);
       toast({
         variant: "destructive",
         title: "Error",
