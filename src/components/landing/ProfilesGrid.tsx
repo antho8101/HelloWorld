@@ -13,7 +13,7 @@ export const ProfilesGrid: React.FC<ProfilesGridProps> = ({ profiles }) => {
 
   return (
     <div className="flex w-full flex-col items-stretch text-black justify-center mt-20 max-md:mt-10">
-      <div className="grid grid-cols-7 gap-8 max-md:grid-cols-2 max-sm:grid-cols-1">
+      <div className="grid grid-cols-7 gap-6 max-md:grid-cols-2 max-sm:grid-cols-1">
         {displayedProfiles.map((profile, index) => (
           <UserProfile
             key={index}
