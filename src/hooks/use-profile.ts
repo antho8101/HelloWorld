@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { ProfileData } from "@/types/profile";
@@ -22,7 +22,7 @@ export const useProfile = (userId: string | null) => {
     language_levels: [],
   });
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from("profiles")
@@ -69,10 +69,10 @@ export const useProfile = (userId: string | null) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   const updateProfile = async () => {
-    if (!userId) return;
+    if (!userId) return false;
 
     try {
       const { error } = await supabase

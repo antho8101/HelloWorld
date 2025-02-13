@@ -23,11 +23,16 @@ export const Profile = () => {
         return;
       }
       setUserId(session.user.id);
-      fetchProfile(session.user.id);
     };
 
     checkUser();
-  }, [navigate, fetchProfile]);
+  }, [navigate]);
+
+  useEffect(() => {
+    if (userId) {
+      fetchProfile(userId);
+    }
+  }, [userId, fetchProfile]);
 
   const handleSearchCity = async (search: string) => {
     setCitySearch(search);
