@@ -20,7 +20,7 @@ export const ProfilesGrid = ({ onProfileClick }: ProfilesGridProps) => {
               key={profile.id}
               id={profile.id}
               name={profile.name}
-              languages={profile.languages}
+              languages={profile.languages || []}
               avatar={profile.avatar}
               onClick={onProfileClick}
             />

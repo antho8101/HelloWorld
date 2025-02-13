@@ -15,7 +15,7 @@ import { CallToAction } from "@/components/landing/CallToAction";
 import { Footer } from "@/components/layout/Footer";
 import { useNavigate } from "react-router-dom";
 
-export const Index = () => {
+const Index = () => {
   const navigate = useNavigate();
 
   const handleProfileClick = (profileId: string) => {
@@ -28,7 +28,7 @@ export const Index = () => {
       <Hero />
       <FeaturesBanner />
       <HowItWorks />
-      <CommunityTitle />
+      <CommunityTitle memberCount={0} />
       <CommunityGrid />
       <ProfilesGrid onProfileClick={handleProfileClick} />
       <LanguagesAvailable />
@@ -40,3 +40,5 @@ export const Index = () => {
     </div>
   );
 };
+
+export default Index;
