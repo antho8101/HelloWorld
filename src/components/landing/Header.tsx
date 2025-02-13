@@ -14,7 +14,7 @@ export const Header: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <header className="flex w-full items-center gap-[40px_100px] justify-between flex-wrap px-5 py-2.5 max-md:max-w-full bg-[#FECFC4]">
+    <header className="flex w-full items-center gap-[40px_100px] justify-between flex-wrap px-5 py-2.5 max-md:max-w-full bg-[#FFF3F0]">
       <div className="self-stretch flex min-w-60 items-center gap-2.5 my-auto">
         <img
           loading="lazy"
