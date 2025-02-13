@@ -1,3 +1,4 @@
+
 import React from "react";
 
 interface UserProfileProps {
@@ -18,7 +19,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
       <img
         loading="lazy"
         srcSet={image}
-        className="aspect-[0.75] object-contain w-[150px] max-w-full rounded-[10px]"
+        className="h-[200px] w-[150px] object-cover rounded-[10px]"
         alt={`${name}, ${age}`}
       />
       <div className="w-full mt-2.5">
