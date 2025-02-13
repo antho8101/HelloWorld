@@ -9,6 +9,8 @@ import { ProfileError } from "@/components/profile/ProfileError";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { LanguagesSection } from "@/components/profile/LanguagesSection";
 import { InterestsSection } from "@/components/profile/InterestsSection";
+import { Header } from "@/components/landing/Header";
+import { Footer } from "@/components/layout/Footer";
 
 interface Profile {
   username: string | null;
@@ -108,58 +110,72 @@ export const PublicProfile = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#6153BD]"></div>
-      </div>
+      <>
+        <Header />
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#6153BD]"></div>
+        </div>
+        <Footer />
+      </>
     );
   }
 
   if (error) {
-    return <ProfileError error={error} />;
+    return (
+      <>
+        <Header />
+        <ProfileError error={error} />
+        <Footer />
+      </>
+    );
   }
 
   if (!profile) return null;
 
   return (
-    <div className="min-h-screen bg-[rgba(255,243,240,1)] py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-[#6153BD] font-bold mb-8 hover:text-[#6153BD]/90 transition-colors"
-        >
-          <ArrowLeft className="h-5 w-5" />
-          Back
-        </button>
+    <>
+      <Header />
+      <div className="min-h-screen bg-[rgba(255,243,240,1)] py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-[#6153BD] font-bold mb-8 hover:text-[#6153BD]/90 transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5" />
+            Back
+          </button>
 
-        <div className="bg-white/80 backdrop-blur-sm rounded-[20px] shadow-lg p-8">
-          <ProfileHeader
-            name={profile.name}
-            username={profile.username}
-            avatarUrl={profile.avatar_url}
-            age={profile.age}
-            city={profile.city}
-            country={profile.country}
-          />
-
-          <div className="w-full space-y-6 mt-6">
-            {profile.bio && (
-              <div className="text-center text-gray-700 max-w-xl mx-auto">
-                {profile.bio}
-              </div>
-            )}
-
-            <LanguagesSection
-              nativeLanguages={profile.native_languages}
-              learningLanguages={profile.language_levels}
+          <div className="bg-white/80 backdrop-blur-sm rounded-[20px] shadow-lg p-8">
+            <ProfileHeader
+              name={profile.name}
+              username={profile.username}
+              avatarUrl={profile.avatar_url}
+              age={profile.age}
+              city={profile.city}
+              country={profile.country}
             />
 
-            <InterestsSection
-              interestedIn={profile.interested_in}
-              lookingFor={profile.looking_for}
-            />
+            <div className="w-full space-y-6 mt-6">
+              {profile.bio && (
+                <div className="text-center text-gray-700 max-w-xl mx-auto">
+                  {profile.bio}
+                </div>
+              )}
+
+              <LanguagesSection
+                nativeLanguages={profile.native_languages}
+                learningLanguages={profile.language_levels}
+              />
+
+              <InterestsSection
+                interestedIn={profile.interested_in}
+                lookingFor={profile.looking_for}
+              />
+            </div>
           </div>
         </div>
       </div>
-    </div>
+      <Footer />
+    </>
   );
 };
