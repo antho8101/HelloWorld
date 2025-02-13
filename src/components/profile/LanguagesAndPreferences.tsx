@@ -32,7 +32,7 @@ export const LanguagesAndPreferences = ({
   onInterestedInChange,
 }: LanguagesAndPreferencesProps) => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 h-fit">
       <div>
         <label className="block text-sm font-bold text-[#6153BD] mb-2">
           Native Languages
