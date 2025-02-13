@@ -213,6 +213,10 @@ export const Profile = () => {
     }
   };
 
+  const handleCancel = () => {
+    navigate("/");
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -228,10 +232,10 @@ export const Profile = () => {
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-black text-[#6153BD]">Create a Profile</h1>
             <button
-              onClick={handleSignOut}
+              onClick={handleCancel}
               className="px-4 py-2 text-sm text-[#FF6A48] hover:text-[#FF6A48]/90 font-bold"
             >
-              Sign Out
+              Cancel
             </button>
           </div>
 
