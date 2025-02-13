@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
 import { User } from "@phosphor-icons/react";
 import type { LanguageWithLevel } from "@/components/LanguageSelector";
+import type { Json } from "@/integrations/supabase/types";
 
 interface Profile {
   username: string | null;
@@ -23,6 +24,19 @@ interface Profile {
   looking_for: string[];
   bio: string | null;
 }
+
+const transformLanguageLevels = (languageLevels: Json | null): LanguageWithLevel[] => {
+  if (!languageLevels || !Array.isArray(languageLevels)) return [];
+  return languageLevels.map(level => {
+    if (typeof level === 'object' && level !== null && 'language' in level) {
+      return {
+        language: String(level.language),
+        level: 'level' in level ? String(level.level) : undefined
+      };
+    }
+    return { language: String(level) };
+  });
+};
 
 export const PublicProfile = () => {
   const { id } = useParams();
@@ -65,7 +79,20 @@ export const PublicProfile = () => {
           return;
         }
         
-        setProfile(data);
+        setProfile({
+          username: data.username,
+          name: data.name,
+          avatar_url: data.avatar_url,
+          age: data.age,
+          city: data.city,
+          country: data.country,
+          gender: data.gender,
+          native_languages: Array.isArray(data.native_languages) ? data.native_languages : [],
+          language_levels: transformLanguageLevels(data.language_levels),
+          interested_in: Array.isArray(data.interested_in) ? data.interested_in : [],
+          looking_for: Array.isArray(data.looking_for) ? data.looking_for : [],
+          bio: data.bio
+        });
       } catch (error: any) {
         console.error("Error in fetchProfile:", error);
         toast({
@@ -106,7 +133,7 @@ export const PublicProfile = () => {
         <div className="bg-white/80 backdrop-blur-sm rounded-[20px] shadow-lg p-8">
           <div className="flex flex-col items-center space-y-6">
             <Avatar className="h-32 w-32 ring-4 ring-[#FECFC4]/20">
-              <AvatarImage src={profile.avatar_url || undefined} />
+              <AvatarImage src={profile?.avatar_url || undefined} />
               <AvatarFallback className="bg-[#FECFC4]">
                 <User size={48} weight="bold" />
               </AvatarFallback>
@@ -114,13 +141,13 @@ export const PublicProfile = () => {
 
             <div className="text-center space-y-2">
               <h1 className="text-3xl font-bold text-[#6153BD]">
-                {profile.name || profile.username}
-                {profile.age && <span className="ml-2">{profile.age}</span>}
+                {profile?.name || profile?.username}
+                {profile?.age && <span className="ml-2">{profile.age}</span>}
               </h1>
-              {profile.username && profile.name && (
+              {profile?.username && profile?.name && (
                 <p className="text-xl text-gray-600">@{profile.username}</p>
               )}
-              {(profile.city || profile.country) && (
+              {(profile?.city || profile?.country) && (
                 <p className="text-lg text-gray-600">
                   {[profile.city, profile.country].filter(Boolean).join(", ")}
                 </p>
@@ -128,7 +155,7 @@ export const PublicProfile = () => {
             </div>
 
             <div className="w-full space-y-6">
-              {profile.bio && (
+              {profile?.bio && (
                 <div className="text-center text-gray-700 max-w-xl mx-auto">
                   {profile.bio}
                 </div>
@@ -138,7 +165,7 @@ export const PublicProfile = () => {
                 <div className="space-y-4">
                   <h2 className="text-lg font-bold text-[#6153BD]">Native Languages</h2>
                   <div className="flex flex-wrap gap-2">
-                    {profile.native_languages?.map((lang) => (
+                    {profile?.native_languages?.map((lang) => (
                       <Badge key={lang} variant="secondary">{lang}</Badge>
                     ))}
                   </div>
@@ -147,7 +174,7 @@ export const PublicProfile = () => {
                 <div className="space-y-4">
                   <h2 className="text-lg font-bold text-[#6153BD]">Learning Languages</h2>
                   <div className="flex flex-wrap gap-2">
-                    {profile.language_levels?.map((lang) => (
+                    {profile?.language_levels?.map((lang) => (
                       <Badge key={lang.language} variant="outline" className="space-x-1">
                         <span>{lang.language}</span>
                         {lang.level && <span className="text-gray-500">({lang.level})</span>}
@@ -158,7 +185,7 @@ export const PublicProfile = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-6">
-                {profile.interested_in?.length > 0 && (
+                {profile?.interested_in?.length > 0 && (
                   <div>
                     <h2 className="text-lg font-bold text-[#6153BD] mb-2">Looking to Meet</h2>
                     <p className="text-gray-700 capitalize">
@@ -167,7 +194,7 @@ export const PublicProfile = () => {
                   </div>
                 )}
 
-                {profile.looking_for?.length > 0 && (
+                {profile?.looking_for?.length > 0 && (
                   <div>
                     <h2 className="text-lg font-bold text-[#6153BD] mb-2">Interested In</h2>
                     <div className="space-y-1">
