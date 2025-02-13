@@ -54,51 +54,53 @@ export const LanguagesAndPreferences = ({
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-bold text-[#6153BD] mb-2">
-          I Want to Meet
-        </label>
-        <Select
-          value={interestedIn[0] || ""}
-          onValueChange={(value) => onInterestedInChange([value])}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select who you want to meet" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="women">Women</SelectItem>
-            <SelectItem value="men">Men</SelectItem>
-            <SelectItem value="both">Both</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-bold text-[#6153BD] mb-2">
+            I Want to Meet
+          </label>
+          <Select
+            value={interestedIn[0] || ""}
+            onValueChange={(value) => onInterestedInChange([value])}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select who you want to meet" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="women">Women</SelectItem>
+              <SelectItem value="men">Men</SelectItem>
+              <SelectItem value="both">Both</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-      <div>
-        <label className="block text-sm font-bold text-[#6153BD] mb-2">
-          I'm Looking For
-        </label>
-        <div className="space-y-2">
-          {['friends', 'postal_exchange', 'in_person_meetings', 'flirting'].map((option) => (
-            <div key={option} className="flex items-center space-x-2">
-              <Checkbox
-                id={option}
-                checked={lookingFor.includes(option)}
-                onCheckedChange={(checked) => {
-                  onLookingForChange(
-                    checked
-                      ? [...lookingFor, option]
-                      : lookingFor.filter(item => item !== option)
-                  );
-                }}
-              />
-              <label
-                htmlFor={option}
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                {option.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-              </label>
-            </div>
-          ))}
+        <div>
+          <label className="block text-sm font-bold text-[#6153BD] mb-2">
+            I'm Looking For
+          </label>
+          <div className="space-y-2">
+            {['friends', 'postal_exchange', 'in_person_meetings', 'flirting'].map((option) => (
+              <div key={option} className="flex items-center space-x-2">
+                <Checkbox
+                  id={option}
+                  checked={lookingFor.includes(option)}
+                  onCheckedChange={(checked) => {
+                    onLookingForChange(
+                      checked
+                        ? [...lookingFor, option]
+                        : lookingFor.filter(item => item !== option)
+                    );
+                  }}
+                />
+                <label
+                  htmlFor={option}
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  {option.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                </label>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
