@@ -3,7 +3,7 @@ import React from "react";
 
 export const CallToAction: React.FC = () => {
   return (
-    <section className="px-[220px] max-md:px-5">
+    <section className="px-[220px] max-md:px-5 mb-20">
       <div className="bg-[rgba(97,83,189,1)] flex w-full items-center gap-[40px_140px] justify-center flex-wrap mt-20 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-[3px] max-md:max-w-full max-md:mt-10 px-20 max-md:px-5">
         <img
           loading="lazy"
