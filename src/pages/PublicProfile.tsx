@@ -3,16 +3,25 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
+import { User } from "@phosphor-icons/react";
+import type { LanguageWithLevel } from "@/components/LanguageSelector";
 
 interface Profile {
   username: string | null;
   name: string | null;
   avatar_url: string | null;
   age: number | null;
-  location: string | null;
+  city: string | null;
+  country: string | null;
   gender: string | null;
+  native_languages: string[];
+  language_levels: LanguageWithLevel[];
+  interested_in: string[];
+  looking_for: string[];
+  bio: string | null;
 }
 
 export const PublicProfile = () => {
@@ -37,7 +46,7 @@ export const PublicProfile = () => {
       try {
         const { data, error } = await supabase
           .from("profiles")
-          .select("username, name, avatar_url, age, location, gender")
+          .select("*")
           .eq('id', id)
           .maybeSingle();
 
@@ -85,51 +94,93 @@ export const PublicProfile = () => {
 
   return (
     <div className="min-h-screen bg-[rgba(255,243,240,1)] py-12 px-4 sm:px-6 lg:px-8">
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-2 text-[#6153BD] font-bold mb-8 hover:text-[#6153BD]/90 transition-colors"
-      >
-        <ArrowLeft className="h-5 w-5" />
-        Back
-      </button>
+      <div className="max-w-3xl mx-auto">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-[#6153BD] font-bold mb-8 hover:text-[#6153BD]/90 transition-colors"
+        >
+          <ArrowLeft className="h-5 w-5" />
+          Back
+        </button>
 
-      <div className="max-w-3xl mx-auto bg-white/80 backdrop-blur-sm rounded-[20px] shadow-lg p-8">
-        <div className="flex flex-col items-center space-y-4">
-          <Avatar className="h-32 w-32">
-            <AvatarImage src={profile.avatar_url || undefined} />
-            <AvatarFallback>
-              {profile.name?.[0]?.toUpperCase() || profile.username?.[0]?.toUpperCase() || '?'}
-            </AvatarFallback>
-          </Avatar>
+        <div className="bg-white/80 backdrop-blur-sm rounded-[20px] shadow-lg p-8">
+          <div className="flex flex-col items-center space-y-6">
+            <Avatar className="h-32 w-32 ring-4 ring-[#FECFC4]/20">
+              <AvatarImage src={profile.avatar_url || undefined} />
+              <AvatarFallback className="bg-[#FECFC4]">
+                <User size={48} weight="bold" />
+              </AvatarFallback>
+            </Avatar>
 
-          <div className="text-center space-y-2">
-            {profile.name && (
-              <h1 className="text-3xl font-bold text-[#6153BD]">{profile.name}</h1>
-            )}
-            {profile.username && (
-              <p className="text-xl text-gray-600">@{profile.username}</p>
-            )}
-          </div>
+            <div className="text-center space-y-2">
+              <h1 className="text-3xl font-bold text-[#6153BD]">
+                {profile.name || profile.username}
+                {profile.age && <span className="ml-2">{profile.age}</span>}
+              </h1>
+              {profile.username && profile.name && (
+                <p className="text-xl text-gray-600">@{profile.username}</p>
+              )}
+              {(profile.city || profile.country) && (
+                <p className="text-lg text-gray-600">
+                  {[profile.city, profile.country].filter(Boolean).join(", ")}
+                </p>
+              )}
+            </div>
 
-          <div className="w-full max-w-md mt-8 space-y-4">
-            {profile.age && (
-              <div className="flex justify-between items-center">
-                <span className="font-medium text-gray-500">Age</span>
-                <span className="text-gray-900">{profile.age}</span>
+            <div className="w-full space-y-6">
+              {profile.bio && (
+                <div className="text-center text-gray-700 max-w-xl mx-auto">
+                  {profile.bio}
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h2 className="text-lg font-bold text-[#6153BD]">Native Languages</h2>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.native_languages?.map((lang) => (
+                      <Badge key={lang} variant="secondary">{lang}</Badge>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h2 className="text-lg font-bold text-[#6153BD]">Learning Languages</h2>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.language_levels?.map((lang) => (
+                      <Badge key={lang.language} variant="outline" className="space-x-1">
+                        <span>{lang.language}</span>
+                        {lang.level && <span className="text-gray-500">({lang.level})</span>}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
               </div>
-            )}
-            {profile.location && (
-              <div className="flex justify-between items-center">
-                <span className="font-medium text-gray-500">Location</span>
-                <span className="text-gray-900">{profile.location}</span>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-6">
+                {profile.interested_in?.length > 0 && (
+                  <div>
+                    <h2 className="text-lg font-bold text-[#6153BD] mb-2">Looking to Meet</h2>
+                    <p className="text-gray-700 capitalize">
+                      {profile.interested_in.join(", ")}
+                    </p>
+                  </div>
+                )}
+
+                {profile.looking_for?.length > 0 && (
+                  <div>
+                    <h2 className="text-lg font-bold text-[#6153BD] mb-2">Interested In</h2>
+                    <div className="space-y-1">
+                      {profile.looking_for.map((interest) => (
+                        <div key={interest} className="text-gray-700 capitalize">
+                          {interest.split('_').join(' ')}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-            {profile.gender && (
-              <div className="flex justify-between items-center">
-                <span className="font-medium text-gray-500">Gender</span>
-                <span className="text-gray-900">{profile.gender}</span>
-              </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
