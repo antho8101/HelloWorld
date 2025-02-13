@@ -1,13 +1,23 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import React from "react";
+import { Header } from "@/components/landing/Header";
+import { Hero } from "@/components/landing/Hero";
+import { FeaturesBanner } from "@/components/landing/FeaturesBanner";
+import { CommunityGrid } from "@/components/landing/CommunityGrid";
+import { CallToAction } from "@/components/landing/CallToAction";
+import { MobileApp } from "@/components/landing/MobileApp";
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <main className="min-h-screen">
+      <div className="bg-[rgba(255,243,240,1)] flex w-full flex-col items-stretch p-5 max-md:max-w-full">
+        <Header />
+        <Hero />
       </div>
-    </div>
+      <FeaturesBanner />
+      <CommunityGrid />
+      <CallToAction />
+      <MobileApp />
+    </main>
   );
 };
 
