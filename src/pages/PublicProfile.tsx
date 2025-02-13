@@ -39,7 +39,7 @@ const transformLanguageLevels = (languageLevels: Json | null): LanguageWithLevel
 };
 
 export const PublicProfile = () => {
-  const { id } = useParams();
+  const params = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -47,17 +47,19 @@ export const PublicProfile = () => {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!id) {
+      if (!params.id) {
         setError("No profile ID provided");
         return;
       }
 
       try {
+        console.log("Fetching profile with ID:", params.id); // Debug log
+
         const { data, error } = await supabase
           .from("profiles")
-          .select("*")
-          .eq("id", id)
-          .single();
+          .select()
+          .eq('id', params.id)
+          .maybeSingle();
 
         if (error) {
           console.error("Supabase error:", error);
@@ -69,6 +71,8 @@ export const PublicProfile = () => {
           setError("Profile not found");
           return;
         }
+
+        console.log("Profile data:", data); // Debug log
 
         setProfile({
           username: data.username,
@@ -94,7 +98,7 @@ export const PublicProfile = () => {
     };
 
     fetchProfile();
-  }, [id]);
+  }, [params.id]);
 
   if (loading) {
     return (
