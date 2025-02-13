@@ -3,6 +3,7 @@ import { FormInput } from "./form/FormInput";
 import { GenderSelect } from "./form/GenderSelect";
 import { CountrySelect } from "./form/CountrySelect";
 import { CityInput } from "./form/CityInput";
+import { BirthdateSelect } from "./form/BirthdateSelect";
 
 interface BasicInfoProps {
   username: string;
@@ -52,14 +53,9 @@ export const BasicInfo = ({
           value={name}
           onChange={onNameChange}
         />
-        <FormInput
-          label="Age"
-          value={age || ''}
-          onChange={(value) => onAgeChange(Number(value))}
-          type="number"
-          min={13}
-          max={120}
-        />
+        <div className="md:col-span-2">
+          <BirthdateSelect onAgeChange={onAgeChange} />
+        </div>
         <GenderSelect
           value={gender}
           onChange={onGenderChange}
