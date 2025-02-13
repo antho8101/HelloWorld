@@ -2,7 +2,7 @@
 import React, { useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Camera, Upload, User } from "lucide-react";
+import { User, Camera, UploadSimple } from "@phosphor-icons/react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -51,7 +51,7 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
         <Avatar className="h-64 w-64 ring-4 ring-[#FF6A48]/20">
           <AvatarImage src={avatarUrl} />
           <AvatarFallback className="bg-[#FF6A48] text-white text-4xl">
-            <User className="w-12 h-12" />
+            <User size={48} weight="bold" />
           </AvatarFallback>
         </Avatar>
         <div className="absolute bottom-2 right-2 flex gap-2">
@@ -61,14 +61,14 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
             className="h-10 w-10"
             onClick={() => fileInputRef.current?.click()}
           >
-            <Upload className="h-5 w-5" />
+            <UploadSimple size={20} weight="bold" />
           </Button>
           <Button
             size="icon"
             variant="secondary"
             className="h-10 w-10"
           >
-            <Camera className="h-5 w-5" />
+            <Camera size={20} weight="bold" />
           </Button>
         </div>
         <input
