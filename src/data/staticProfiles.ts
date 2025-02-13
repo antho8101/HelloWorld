@@ -1,5 +1,6 @@
 
 export interface Profile {
+  id?: string;  // Add ID property
   image: string;
   name: string;
   age: number;
@@ -11,6 +12,7 @@ export interface Profile {
 
 export const staticProfiles: Profile[] = [
   {
+    id: "1",
     image: "https://i.pravatar.cc/150?img=1",
     name: "Sophie",
     age: 28,
@@ -20,6 +22,7 @@ export const staticProfiles: Profile[] = [
     isOnline: true
   },
   {
+    id: "2",
     image: "https://i.pravatar.cc/150?img=5",
     name: "Emma",
     age: 24,
@@ -200,3 +203,4 @@ export const staticProfiles: Profile[] = [
     isOnline: true
   }
 ];
+

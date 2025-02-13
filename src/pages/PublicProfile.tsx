@@ -24,6 +24,16 @@ export const PublicProfile = () => {
 
   useEffect(() => {
     const fetchProfile = async () => {
+      if (!id) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "No profile ID provided",
+        });
+        navigate("/");
+        return;
+      }
+
       try {
         const { data, error } = await supabase
           .from("profiles")
@@ -31,12 +41,15 @@ export const PublicProfile = () => {
           .eq('id', id)
           .maybeSingle();
 
-        if (error) throw error;
+        if (error) {
+          console.error("Error fetching profile:", error);
+          throw error;
+        }
         
         if (!data) {
           toast({
             variant: "destructive",
-            title: "Error",
+            title: "Not Found",
             description: "Profile not found",
           });
           navigate("/");
@@ -45,6 +58,7 @@ export const PublicProfile = () => {
         
         setProfile(data);
       } catch (error: any) {
+        console.error("Error in fetchProfile:", error);
         toast({
           variant: "destructive",
           title: "Error",
@@ -56,7 +70,7 @@ export const PublicProfile = () => {
       }
     };
 
-    if (id) fetchProfile();
+    fetchProfile();
   }, [id, navigate, toast]);
 
   if (loading) {
