@@ -48,9 +48,9 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
   return (
     <div className="flex flex-col items-center">
       <div className="relative">
-        <Avatar className="h-64 w-64 ring-4 ring-[#FF6A48]/20">
+        <Avatar className="h-64 w-64 ring-4 ring-[#FECFC4]/20">
           <AvatarImage src={avatarUrl} />
-          <AvatarFallback className="bg-[#FF6A48] text-white text-4xl">
+          <AvatarFallback className="bg-[#FECFC4] text-white text-4xl">
             <User size={48} weight="bold" />
           </AvatarFallback>
         </Avatar>
