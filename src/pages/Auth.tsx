@@ -31,8 +31,28 @@ export const Auth = () => {
         const { error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            emailRedirectTo: window.location.origin + '/auth'
+          }
         });
-        if (error) throw error;
+        
+        if (error) {
+          if (error.message === "Email signups are disabled") {
+            toast({
+              variant: "destructive",
+              title: "Signup Error",
+              description: "Email signups are currently disabled. Please contact the administrator.",
+            });
+          } else {
+            toast({
+              variant: "destructive",
+              title: "Signup Error",
+              description: error.message,
+            });
+          }
+          return;
+        }
+        
         toast({
           title: "Sign up successful!",
           description: "Please check your email to confirm your account.",
@@ -42,7 +62,24 @@ export const Auth = () => {
           email,
           password,
         });
-        if (error) throw error;
+        
+        if (error) {
+          if (error.message === "Invalid login credentials") {
+            toast({
+              variant: "destructive",
+              title: "Login Failed",
+              description: "Invalid email or password. Please check your credentials and try again.",
+            });
+          } else {
+            toast({
+              variant: "destructive",
+              title: "Login Error",
+              description: error.message,
+            });
+          }
+          return;
+        }
+        
         navigate("/profile");
       }
     } catch (error: any) {
