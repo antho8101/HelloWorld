@@ -239,25 +239,27 @@ export const Profile = () => {
             {/* Left side - Avatar */}
             <div className="flex flex-col items-center">
               <div className="relative">
-                <Avatar className="h-32 w-32 ring-4 ring-[#6153BD]/20">
+                <Avatar className="h-64 w-64 ring-4 ring-[#6153BD]/20">
                   <AvatarImage src={profile.avatar_url} />
-                  <AvatarFallback className="bg-[#6153BD] text-white">
+                  <AvatarFallback className="bg-[#6153BD] text-white text-4xl">
                     {profile.username?.[0]?.toUpperCase() || '?'}
                   </AvatarFallback>
                 </Avatar>
-                <div className="absolute bottom-0 right-0 flex gap-2">
+                <div className="absolute bottom-2 right-2 flex gap-2">
                   <Button
                     size="icon"
                     variant="secondary"
+                    className="h-10 w-10"
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    <Upload className="h-4 w-4" />
+                    <Upload className="h-5 w-5" />
                   </Button>
                   <Button
                     size="icon"
                     variant="secondary"
+                    className="h-10 w-10"
                   >
-                    <Camera className="h-4 w-4" />
+                    <Camera className="h-5 w-5" />
                   </Button>
                 </div>
                 <input
@@ -271,85 +273,87 @@ export const Profile = () => {
             </div>
 
             {/* Right side - Basic Info */}
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
-                <label className="block text-sm font-bold text-[#6153BD] mb-1">
-                  Username
-                </label>
-                <input
-                  type="text"
-                  value={profile.username}
-                  onChange={(e) => setProfile(prev => ({ ...prev, username: e.target.value }))}
-                  className="w-full border-2 border-[#6153BD]/20 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#6153BD] focus:border-transparent transition-all duration-200"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-[#6153BD] mb-1">
-                  Gender
-                </label>
-                <Select
-                  value={profile.gender}
-                  onValueChange={(value) => setProfile(prev => ({ ...prev, gender: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select gender" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-[#6153BD] mb-1">
-                  Country
-                </label>
-                <Select
-                  value={profile.country}
-                  onValueChange={(value) => setProfile(prev => ({ ...prev, country: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select country" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {COUNTRIES.map((country) => (
-                      <SelectItem key={country} value={country}>
-                        {country}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-bold text-[#6153BD] mb-1">
-                  City
-                </label>
-                <div className="relative">
+            <div className="flex-1 max-w-xl">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-bold text-[#6153BD] mb-1">
+                    Username
+                  </label>
                   <input
                     type="text"
-                    value={citySearch}
-                    onChange={(e) => handleSearchCity(e.target.value)}
+                    value={profile.username}
+                    onChange={(e) => setProfile(prev => ({ ...prev, username: e.target.value }))}
                     className="w-full border-2 border-[#6153BD]/20 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#6153BD] focus:border-transparent transition-all duration-200"
-                    placeholder="Start typing your city..."
                   />
-                  {cities.length > 0 && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg">
-                      {cities.map((city) => (
-                        <div
-                          key={city}
-                          className="px-4 py-2 cursor-pointer hover:bg-gray-100"
-                          onClick={() => {
-                            setProfile(prev => ({ ...prev, city }));
-                            setCitySearch(city);
-                            setCities([]);
-                          }}
-                        >
-                          {city}
-                        </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-[#6153BD] mb-1">
+                    Gender
+                  </label>
+                  <Select
+                    value={profile.gender}
+                    onValueChange={(value) => setProfile(prev => ({ ...prev, gender: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-[#6153BD] mb-1">
+                    Country
+                  </label>
+                  <Select
+                    value={profile.country}
+                    onValueChange={(value) => setProfile(prev => ({ ...prev, country: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COUNTRIES.map((country) => (
+                        <SelectItem key={country} value={country}>
+                          {country}
+                        </SelectItem>
                       ))}
-                    </div>
-                  )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-bold text-[#6153BD] mb-1">
+                    City
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={citySearch}
+                      onChange={(e) => handleSearchCity(e.target.value)}
+                      className="w-full border-2 border-[#6153BD]/20 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#6153BD] focus:border-transparent transition-all duration-200"
+                      placeholder="Start typing your city..."
+                    />
+                    {cities.length > 0 && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg">
+                        {cities.map((city) => (
+                          <div
+                            key={city}
+                            className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+                            onClick={() => {
+                              setProfile(prev => ({ ...prev, city }));
+                              setCitySearch(city);
+                              setCities([]);
+                            }}
+                          >
+                            {city}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
