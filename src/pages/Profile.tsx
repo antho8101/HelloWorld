@@ -101,7 +101,14 @@ export const Profile = () => {
     <div className="min-h-screen flex flex-col">
       <div className="flex-grow bg-[rgba(255,243,240,1)] py-12 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-[80%] mx-auto bg-white rounded-2xl shadow-lg p-8">
-          <ProfileHeader onCancel={() => navigate("/")} />
+          <ProfileHeader
+            name={profile.name}
+            username={profile.username}
+            avatarUrl={profile.avatar_url}
+            age={profile.age}
+            city={profile.city}
+            country={profile.country}
+          />
           
           <ProfileForm
             userId={userId || ""}
