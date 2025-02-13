@@ -17,10 +17,33 @@ export const Auth = () => {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        navigate("/profile");
+        checkExistingProfile(session.user.id);
       }
     });
   }, [navigate]);
+
+  const checkExistingProfile = async (userId: string) => {
+    try {
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      // Si un profil existe et a un nom d'utilisateur, on redirige vers le profil public
+      if (profile?.username) {
+        navigate(`/profile/${userId}`);
+      } else {
+        // Si pas de profil ou pas de username, on redirige vers la page de création de profil
+        navigate("/profile");
+      }
+    } catch (error: any) {
+      console.error("Error checking profile:", error);
+      navigate("/profile");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -58,7 +81,7 @@ export const Auth = () => {
           description: "Please check your email to confirm your account.",
         });
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data: { user }, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
@@ -79,8 +102,10 @@ export const Auth = () => {
           }
           return;
         }
-        
-        navigate("/profile");
+
+        if (user) {
+          await checkExistingProfile(user.id);
+        }
       }
     } catch (error: any) {
       toast({
