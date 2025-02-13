@@ -44,6 +44,12 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
     }
   };
 
+  const resetFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const takePhoto = async () => {
     if (!videoRef.current) return;
 
@@ -71,6 +77,7 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
       onAvatarChange(publicUrl);
       setIsWebcamOpen(false);
       stopWebcam();
+      resetFileInput();
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -99,6 +106,7 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
         .getPublicUrl(filePath);
 
       onAvatarChange(publicUrl);
+      resetFileInput();
     } catch (error: any) {
       toast({
         variant: "destructive",
