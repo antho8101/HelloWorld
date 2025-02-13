@@ -4,32 +4,39 @@ import { Header } from "@/components/landing/Header";
 import { Hero } from "@/components/landing/Hero";
 import { FeaturesBanner } from "@/components/landing/FeaturesBanner";
 import { HowItWorks } from "@/components/landing/HowItWorks";
-import { Testimonials } from "@/components/landing/Testimonials";
-import { LanguagesAvailable } from "@/components/landing/LanguagesAvailable";
-import { FAQ } from "@/components/landing/FAQ";
+import { CommunityTitle } from "@/components/landing/CommunityTitle";
 import { CommunityGrid } from "@/components/landing/CommunityGrid";
-import { CallToAction } from "@/components/landing/CallToAction";
+import { ProfilesGrid } from "@/components/landing/ProfilesGrid";
+import { LanguagesAvailable } from "@/components/landing/LanguagesAvailable";
 import { MobileApp } from "@/components/landing/MobileApp";
+import { Testimonials } from "@/components/landing/Testimonials";
+import { FAQ } from "@/components/landing/FAQ";
+import { CallToAction } from "@/components/landing/CallToAction";
 import { Footer } from "@/components/layout/Footer";
+import { useNavigate } from "react-router-dom";
 
-const Index = () => {
+export const Index = () => {
+  const navigate = useNavigate();
+
+  const handleProfileClick = (profileId: string) => {
+    navigate(`/profile/${profileId}`);
+  };
+
   return (
-    <main className="min-h-screen select-none">
-      <div className="bg-[rgba(255,243,240,1)] flex w-full flex-col items-stretch p-5 max-md:max-w-full">
-        <Header />
-        <Hero />
-      </div>
+    <div className="bg-[rgba(255,243,240,1)]">
+      <Header />
+      <Hero />
       <FeaturesBanner />
-      <CommunityGrid />
-      <LanguagesAvailable />
       <HowItWorks />
+      <CommunityTitle />
+      <CommunityGrid />
+      <ProfilesGrid onProfileClick={handleProfileClick} />
+      <LanguagesAvailable />
+      <MobileApp />
       <Testimonials />
       <FAQ />
       <CallToAction />
-      <MobileApp />
       <Footer />
-    </main>
+    </div>
   );
 };
-
-export default Index;
