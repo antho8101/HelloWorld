@@ -4,6 +4,7 @@ import Index from "@/pages/Index";
 import NotFound from "@/pages/NotFound";
 import { Auth } from "@/pages/Auth";
 import { Profile } from "@/pages/Profile";
+import { ProfileBio } from "@/pages/ProfileBio";
 import { PublicProfile } from "@/pages/PublicProfile";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -19,6 +20,10 @@ const router = createBrowserRouter([
   {
     path: "/profile",
     element: <Profile />,
+  },
+  {
+    path: "/profile/bio",
+    element: <ProfileBio />,
   },
   {
     path: "/profile/:id",

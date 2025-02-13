@@ -163,7 +163,6 @@ export const Profile = () => {
           language_levels: profile.learning_languages as unknown as Json,
           country: profile.country,
           city: profile.city,
-          bio: profile.bio,
           gender: profile.gender,
           interested_in: profile.interested_in,
           looking_for: profile.looking_for,
@@ -175,6 +174,8 @@ export const Profile = () => {
         title: "Success",
         description: "Profile updated successfully",
       });
+      
+      navigate("/profile/bio");
     } catch (error: any) {
       console.error("Error in updateProfile:", error);
       toast({
@@ -426,23 +427,11 @@ export const Profile = () => {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-bold text-[#6153BD]">
-                Bio
-              </label>
-              <textarea
-                value={profile.bio}
-                onChange={(e) => setProfile(prev => ({ ...prev, bio: e.target.value }))}
-                rows={4}
-                className="mt-1 block w-full border-2 border-[#6153BD]/20 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#6153BD] focus:border-transparent transition-all duration-200 resize-none"
-              />
-            </div>
-
             <button
               onClick={updateProfile}
               className="w-full bg-[#6153BD] text-white py-3 px-4 rounded-xl font-bold hover:bg-[#6153BD]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#6153BD] transform transition-all duration-200 hover:scale-[1.02]"
             >
-              Update Profile
+              Continue to Bio
             </button>
           </div>
         </div>
