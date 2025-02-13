@@ -40,41 +40,45 @@ const transformLanguageLevels = (languageLevels: Json | null): LanguageWithLevel
 
 export const PublicProfile = () => {
   const navigate = useNavigate();
-  const { id } = useParams<{ id?: string }>();
+  const params = useParams();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!id) {
+      // Log full params object to debug
+      console.log("URL Parameters:", params);
+      
+      const profileId = params.id;
+      if (!profileId) {
+        console.error("No profile ID in URL parameters");
         setError("No profile ID provided");
         return;
       }
 
       try {
-        console.log("Fetching profile with ID:", id);
+        console.log("Attempting to fetch profile with ID:", profileId);
 
-        // First attempt to fetch using maybeSingle()
-        let { data, error: fetchError } = await supabase
+        const { data, error: fetchError } = await supabase
           .from("profiles")
-          .select()
-          .eq('id', id)
+          .select("*")
+          .eq("id", profileId)
           .maybeSingle();
 
         if (fetchError) {
-          console.error("Supabase error:", fetchError);
+          console.error("Supabase fetch error:", fetchError);
           setError(fetchError.message);
           return;
         }
 
         if (!data) {
-          console.log("No profile found for ID:", id);
+          console.log("No profile found for ID:", profileId);
           setError("Profile not found");
           return;
         }
 
-        console.log("Profile data:", data);
+        console.log("Successfully fetched profile data:", data);
 
         setProfile({
           username: data.username,
@@ -92,7 +96,7 @@ export const PublicProfile = () => {
         });
         setError(null);
       } catch (err) {
-        console.error("Error in fetchProfile:", err);
+        console.error("Unexpected error in fetchProfile:", err);
         setError("Failed to load profile");
       } finally {
         setLoading(false);
@@ -100,7 +104,7 @@ export const PublicProfile = () => {
     };
 
     fetchProfile();
-  }, [id]);
+  }, [params]);
 
   if (loading) {
     return (
