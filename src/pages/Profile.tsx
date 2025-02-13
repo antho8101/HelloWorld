@@ -188,13 +188,27 @@ export const Profile = () => {
 
   const handleSearchCity = async (search: string) => {
     setCitySearch(search);
-    if (search.length > 2) {
-      setCities([
-        `${search} City`,
-        `${search} Town`,
-        `New ${search}`,
-        `${search}ville`,
-      ]);
+    if (search.length > 2 && profile.country) {
+      try {
+        const response = await fetch(
+          `https://api.api-ninjas.com/v1/city?name=${search}&country=${profile.country}&limit=5`,
+          {
+            headers: {
+              'X-Api-Key': 'YOUR_API_KEY'
+            }
+          }
+        );
+        const data = await response.json();
+        setCities(data.map((city: any) => city.name));
+      } catch (error) {
+        // Fallback to simple suggestions if API fails
+        setCities([
+          `${search} City`,
+          `${search} Town`,
+          `New ${search}`,
+          `${search}ville`,
+        ].map(city => `${city}, ${profile.country}`));
+      }
     } else {
       setCities([]);
     }
@@ -337,8 +351,9 @@ export const Profile = () => {
                       type="text"
                       value={citySearch}
                       onChange={(e) => handleSearchCity(e.target.value)}
-                      className="w-full border-2 border-[#6153BD]/20 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#6153BD] focus:border-transparent transition-all duration-200"
-                      placeholder="Start typing your city..."
+                      disabled={!profile.country}
+                      className="w-full border-2 border-[#6153BD]/20 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#6153BD] focus:border-transparent transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      placeholder={profile.country ? "Start typing your city..." : "Please select a country first"}
                     />
                     {cities.length > 0 && (
                       <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg">
