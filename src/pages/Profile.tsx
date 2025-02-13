@@ -90,7 +90,7 @@ export const Profile = () => {
             ? data.native_languages.map((lang: string) => ({ language: lang })) 
             : [],
           learning_languages: Array.isArray(data.language_levels) 
-            ? data.language_levels 
+            ? (data.language_levels as { language: string; level: string }[])
             : [],
           country: data.country || "",
           city: data.city || "",
@@ -160,7 +160,7 @@ export const Profile = () => {
           username: profile.username,
           avatar_url: profile.avatar_url,
           native_languages: profile.native_languages.map(lang => lang.language),
-          language_levels: profile.learning_languages,
+          language_levels: profile.learning_languages as unknown as Json,
           country: profile.country,
           city: profile.city,
           bio: profile.bio,
