@@ -1,49 +1,19 @@
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { Footer } from "@/components/layout/Footer";
-import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
-import { BasicInfo } from "@/components/profile/BasicInfo";
-import { LanguagesAndPreferences } from "@/components/profile/LanguagesAndPreferences";
-import type { LanguageWithLevel } from "@/components/LanguageSelector";
-import type { Json } from "@/integrations/supabase/types";
-
-interface ProfileData {
-  username: string;
-  avatar_url: string;
-  native_languages: LanguageWithLevel[];
-  learning_languages: LanguageWithLevel[];
-  country: string;
-  city: string;
-  bio: string;
-  gender: string;
-  interested_in: string[];
-  looking_for: string[];
-  language_levels: LanguageWithLevel[];
-}
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { ProfileHeader } from "@/components/profile/ProfileHeader";
+import { ProfileForm } from "@/components/profile/ProfileForm";
+import { useProfile } from "@/hooks/use-profile";
 
 export const Profile = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<ProfileData>({
-    username: "",
-    avatar_url: "",
-    native_languages: [],
-    learning_languages: [],
-    country: "",
-    city: "",
-    bio: "",
-    gender: "",
-    interested_in: [],
-    looking_for: [],
-    language_levels: [],
-  });
   const [userId, setUserId] = useState<string | null>(null);
   const [cities, setCities] = useState<string[]>([]);
   const [citySearch, setCitySearch] = useState("");
+  const { profile, setProfile, loading, fetchProfile, updateProfile } = useProfile(userId);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -57,56 +27,7 @@ export const Profile = () => {
     };
 
     checkUser();
-  }, [navigate]);
-
-  const fetchProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (data) {
-        setProfile({
-          username: data.username || "",
-          avatar_url: data.avatar_url || "",
-          native_languages: Array.isArray(data.native_languages) 
-            ? data.native_languages.map((lang: string) => ({ language: lang })) 
-            : [],
-          learning_languages: Array.isArray(data.language_levels) 
-            ? (data.language_levels as { language: string; level: string }[])
-            : [],
-          country: data.country || "",
-          city: data.city || "",
-          bio: data.bio || "",
-          gender: data.gender || "",
-          interested_in: Array.isArray(data.interested_in) ? data.interested_in : [],
-          looking_for: Array.isArray(data.looking_for) ? data.looking_for : [],
-          language_levels: [],
-        });
-      } else {
-        const { error: insertError } = await supabase
-          .from("profiles")
-          .insert([{ id: userId }])
-          .select()
-          .single();
-
-        if (insertError) throw insertError;
-      }
-    } catch (error: any) {
-      console.error("Error in fetchProfile:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Error loading profile",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [navigate, fetchProfile]);
 
   const handleSearchCity = async (search: string) => {
     setCitySearch(search);
@@ -149,113 +70,37 @@ export const Profile = () => {
     }
   };
 
-  const updateProfile = async () => {
-    try {
-      if (!userId) return;
-
-      const { error } = await supabase
-        .from("profiles")
-        .upsert({
-          id: userId,
-          username: profile.username,
-          avatar_url: profile.avatar_url,
-          native_languages: profile.native_languages.map(lang => lang.language),
-          language_levels: profile.learning_languages as unknown as Json,
-          country: profile.country,
-          city: profile.city,
-          gender: profile.gender,
-          interested_in: profile.interested_in,
-          looking_for: profile.looking_for,
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Profile updated successfully",
-      });
-      
+  const handleSubmit = async () => {
+    const success = await updateProfile();
+    if (success) {
       navigate("/profile/bio");
-    } catch (error: any) {
-      console.error("Error in updateProfile:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Error updating profile",
-      });
     }
   };
 
-  const handleCancel = () => {
-    navigate("/");
-  };
-
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#6153BD]"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (
     <div className="min-h-screen flex flex-col">
       <div className="flex-grow bg-[rgba(255,243,240,1)] py-12 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-[80%] mx-auto bg-white rounded-2xl shadow-lg p-8">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-black text-[#6153BD]">Create a Profile</h1>
-            <button
-              onClick={handleCancel}
-              className="px-4 py-2 text-sm text-[#FF6A48] hover:text-[#FF6A48]/90 font-bold"
-            >
-              Cancel
-            </button>
-          </div>
-
-          <div className="flex flex-col md:flex-row gap-8 mb-8">
-            <ProfileAvatar
-              userId={userId || ""}
-              username={profile.username}
-              avatarUrl={profile.avatar_url}
-              onAvatarChange={(url) => setProfile(prev => ({ ...prev, avatar_url: url }))}
-            />
-
-            <BasicInfo
-              username={profile.username}
-              gender={profile.gender}
-              country={profile.country}
-              city={profile.city}
-              citySearch={citySearch}
-              cities={cities}
-              onUsernameChange={(username) => setProfile(prev => ({ ...prev, username }))}
-              onGenderChange={(gender) => setProfile(prev => ({ ...prev, gender }))}
-              onCountryChange={(country) => setProfile(prev => ({ ...prev, country }))}
-              onCitySearch={handleSearchCity}
-              onCitySelect={(city) => {
-                setProfile(prev => ({ ...prev, city }));
-                setCitySearch(city);
-                setCities([]);
-              }}
-            />
-          </div>
-
-          <LanguagesAndPreferences
-            nativeLanguages={profile.native_languages}
-            learningLanguages={profile.learning_languages}
-            lookingFor={profile.looking_for}
-            interestedIn={profile.interested_in}
-            onNativeLanguagesChange={(languages) => setProfile(prev => ({ ...prev, native_languages: languages }))}
-            onLearningLanguagesChange={(languages) => setProfile(prev => ({ ...prev, learning_languages: languages }))}
-            onLookingForChange={(lookingFor) => setProfile(prev => ({ ...prev, looking_for: lookingFor }))}
-            onInterestedInChange={(interestedIn) => setProfile(prev => ({ ...prev, interested_in: interestedIn }))}
+          <ProfileHeader onCancel={() => navigate("/")} />
+          
+          <ProfileForm
+            userId={userId || ""}
+            profile={profile}
+            citySearch={citySearch}
+            cities={cities}
+            onProfileChange={(updates) => setProfile(prev => ({ ...prev, ...updates }))}
+            onCitySearch={handleSearchCity}
+            onCitySelect={(city) => {
+              setProfile(prev => ({ ...prev, city }));
+              setCitySearch(city);
+              setCities([]);
+            }}
+            onSubmit={handleSubmit}
           />
-
-          <button
-            onClick={updateProfile}
-            className="w-full bg-[#6153BD] text-white py-3 px-4 rounded-xl font-bold hover:bg-[#6153BD]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#6153BD] transform transition-all duration-200 hover:scale-[1.02] mt-6"
-          >
-            Continue to Bio
-          </button>
         </div>
       </div>
       <Footer />
