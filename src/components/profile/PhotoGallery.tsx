@@ -30,7 +30,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-[20px] p-6 shadow-lg w-[300px]">
+    <div className="bg-white/80 backdrop-blur-sm rounded-[20px] p-6 shadow-lg w-[450px]">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold text-[#6153BD]">Photos</h2>
         <Button
