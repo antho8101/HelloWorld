@@ -148,7 +148,7 @@ export const PublicProfile = () => {
       <div className="min-h-screen bg-[rgba(255,243,240,1)] py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white/80 backdrop-blur-sm rounded-[20px] shadow-lg p-8">
-            <div className="flex flex-col md:flex-row md:gap-8">
+            <div className="flex flex-col md:flex-row md:gap-12">
               <div className="w-fit">
                 <ProfileHeader
                   name={profile.name}
