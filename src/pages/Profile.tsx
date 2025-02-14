@@ -99,9 +99,9 @@ export const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className="flex-grow bg-[rgba(255,243,240,1)] py-12 px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-8 w-full max-w-[80%] mx-auto">
+    <main className="min-h-screen select-none">
+      <div className="bg-[rgba(255,243,240,1)] flex w-full flex-col items-stretch p-5 max-md:max-w-full">
+        <div className="flex justify-between items-center">
           <img
             loading="lazy"
             srcSet="https://cdn.builder.io/api/v1/image/assets/f97848ecf61542bea4ab8ab7f8d20ea9/fc1f6b1b3fc6ee87b690f1b6be44876cdf1e0e313d0c5d6607e5e53302011af2?placeholderIfAbsent=true&width=100 100w, https://cdn.builder.io/api/v1/image/assets/f97848ecf61542bea4ab8ab7f8d20ea9/fc1f6b1b3fc6ee87b690f1b6be44876cdf1e0e313d0c5d6607e5e53302011af2?placeholderIfAbsent=true&width=200 200w"
@@ -116,6 +116,9 @@ export const Profile = () => {
             Back to Homepage
           </button>
         </div>
+      </div>
+
+      <div className="bg-[rgba(255,243,240,1)] py-12 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-[80%] mx-auto bg-white rounded-2xl shadow-lg p-8">
           <ProfileHeader
             name={profile.name}
@@ -143,6 +146,6 @@ export const Profile = () => {
         </div>
       </div>
       <Footer />
-    </div>
+    </main>
   );
 };
