@@ -1,27 +1,16 @@
+
 import React, { useRef, useState } from "react";
-import { Plus, ArrowLeft, ArrowRight, Heart, X } from "@phosphor-icons/react";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { usePhotos } from "@/hooks/usePhotos";
 import { useSession } from "@/hooks/useSession";
-import { CommentForm } from "@/components/posts/CommentForm";
-import { CommentList } from "@/components/posts/CommentList";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { PhotoList } from "./photos/PhotoList";
+import { PhotoViewer } from "./photos/PhotoViewer";
+import { PhotoComment, Comment, mapPhotoCommentToComment } from "@/types/photo";
 
 interface PhotoGalleryProps {
   userId: string | null;
-}
-
-interface PhotoComment {
-  id: string;
-  content: string;
-  created_at: string;
-  profiles: {
-    name: string | null;
-    username: string | null;
-    avatar_url: string | null;
-  };
 }
 
 export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
@@ -30,7 +19,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
   const { currentUserId } = useSession();
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
   const [newComment, setNewComment] = useState("");
-  const [comments, setComments] = useState<PhotoComment[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
@@ -55,25 +44,25 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
     setSelectedPhotoIndex(index);
     if (userId && currentUserId) {
       try {
-        // Load comments for the selected photo
         const { data: commentsData, error: commentsError } = await supabase
           .from('comments')
           .select(`
             id,
             content,
             created_at,
+            user_id,
+            post_id,
             profiles:user_id (
               name,
               username,
               avatar_url
             )
           `)
-          .eq('photo_url', photos[index]);
+          .eq('post_id', photos[index]);
 
         if (commentsError) throw commentsError;
-        setComments(commentsData || []);
+        setComments((commentsData || []).map(mapPhotoCommentToComment));
 
-        // Check if the current user has liked this photo
         const { data: likeData, error: likeError } = await supabase
           .from('photo_likes')
           .select('id')
@@ -84,7 +73,6 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
         if (likeError) throw likeError;
         setIsLiked(!!likeData);
 
-        // Get likes count
         const { count, error: countError } = await supabase
           .from('photo_likes')
           .select('*', { count: 'exact', head: true })
@@ -122,12 +110,14 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
         .insert({
           content: newComment.trim(),
           user_id: currentUserId,
-          photo_url: photos[selectedPhotoIndex]
+          post_id: photos[selectedPhotoIndex]
         })
         .select(`
           id,
           content,
           created_at,
+          user_id,
+          post_id,
           profiles:user_id (
             name,
             username,
@@ -138,7 +128,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
 
       if (error) throw error;
 
-      setComments(prev => [...prev, data]);
+      setComments(prev => [...prev, mapPhotoCommentToComment(data)]);
       setNewComment("");
     } catch (error) {
       console.error('Error adding comment:', error);
@@ -181,19 +171,6 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
 
   return (
     <div className="bg-white/80 backdrop-blur-sm rounded-[20px] p-6 shadow-lg w-full">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-[#6153BD]">Photos</h2>
-        {isOwnProfile && (
-          <Button
-            onClick={handleAddPhoto}
-            variant="ghost"
-            className="text-[#6153BD] hover:text-[#6153BD]/80 hover:bg-[#6153BD]/10"
-          >
-            <Plus size={24} weight="bold" />
-          </Button>
-        )}
-      </div>
-      
       <input
         type="file"
         ref={fileInputRef}
@@ -202,89 +179,32 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
         className="hidden"
       />
       
-      {photos.length > 0 ? (
-        <div className="grid grid-cols-2 gap-2">
-          {photos.map((photo, index) => (
-            <img
-              key={index}
-              src={photo}
-              alt={`Photo ${index + 1}`}
-              className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-              onClick={() => handlePhotoClick(index)}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center text-gray-500 py-8">
-          No photos yet
-        </div>
-      )}
+      <PhotoList
+        photos={photos}
+        isOwnProfile={isOwnProfile}
+        onPhotoClick={handlePhotoClick}
+        onAddPhoto={handleAddPhoto}
+      />
 
       <Dialog open={selectedPhotoIndex !== null} onOpenChange={() => setSelectedPhotoIndex(null)}>
         <DialogContent className="max-w-4xl w-11/12 p-0 bg-white rounded-lg">
-          <div className="relative">
-            <Button
-              variant="ghost"
-              className="absolute top-2 right-2 text-white hover:bg-black/20 z-10"
-              onClick={() => setSelectedPhotoIndex(null)}
-            >
-              <X size={24} weight="bold" />
-            </Button>
-            
-            <div className="grid grid-cols-[1fr,400px]">
-              <div className="relative bg-black">
-                {selectedPhotoIndex !== null && (
-                  <img
-                    src={photos[selectedPhotoIndex]}
-                    alt={`Photo ${selectedPhotoIndex + 1}`}
-                    className="w-full h-[600px] object-contain"
-                  />
-                )}
-                
-                <Button
-                  variant="ghost"
-                  className="absolute left-2 top-1/2 -translate-y-1/2 text-white hover:bg-black/20"
-                  onClick={handlePrevious}
-                >
-                  <ArrowLeft size={24} weight="bold" />
-                </Button>
-                
-                <Button
-                  variant="ghost"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-white hover:bg-black/20"
-                  onClick={handleNext}
-                >
-                  <ArrowRight size={24} weight="bold" />
-                </Button>
-              </div>
-
-              <div className="p-4 flex flex-col h-[600px]">
-                <div className="flex items-center gap-2 mb-4">
-                  <Button
-                    variant="ghost"
-                    onClick={handleLike}
-                    className={`flex items-center gap-2 ${
-                      isLiked ? 'text-red-500' : 'text-gray-600'
-                    }`}
-                  >
-                    <Heart size={24} weight={isLiked ? "fill" : "regular"} />
-                    {likesCount}
-                  </Button>
-                </div>
-
-                <div className="flex-1 overflow-y-auto space-y-4 mb-4">
-                  <CommentList comments={comments} />
-                </div>
-
-                <CommentForm
-                  value={newComment}
-                  onChange={setNewComment}
-                  onSubmit={handleComment}
-                  isSubmitting={isSubmitting}
-                />
-              </div>
-            </div>
-          </div>
+          {selectedPhotoIndex !== null && (
+            <PhotoViewer
+              photoUrl={photos[selectedPhotoIndex]}
+              photoIndex={selectedPhotoIndex}
+              onClose={() => setSelectedPhotoIndex(null)}
+              onPrevious={handlePrevious}
+              onNext={handleNext}
+              isLiked={isLiked}
+              likesCount={likesCount}
+              onLike={handleLike}
+              comments={comments}
+              newComment={newComment}
+              onCommentChange={setNewComment}
+              onCommentSubmit={handleComment}
+              isSubmitting={isSubmitting}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
