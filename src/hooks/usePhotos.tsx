@@ -12,13 +12,9 @@ export const usePhotos = (userId: string | null) => {
   const [photos, setPhotos] = useState<PhotoData[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (userId) {
-      fetchPhotos();
-    }
-  }, [userId]);
-
   const fetchPhotos = async () => {
+    if (!userId) return;
+    
     try {
       const { data, error } = await supabase
         .from('photos')
@@ -35,6 +31,12 @@ export const usePhotos = (userId: string | null) => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (userId) {
+      fetchPhotos();
+    }
+  }, [userId]);
 
   const uploadPhoto = async (file: File) => {
     try {
@@ -69,5 +71,5 @@ export const usePhotos = (userId: string | null) => {
     }
   };
 
-  return { photos: photos.map(p => p.photo_url), uploadPhoto, loading };
+  return { photos: photos.map(p => p.photo_url), uploadPhoto, loading, fetchPhotos };
 };
