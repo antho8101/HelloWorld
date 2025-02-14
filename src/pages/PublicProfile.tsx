@@ -44,14 +44,26 @@ export const PublicProfile = () => {
     <>
       <Header />
       <div className="min-h-screen bg-[rgba(255,243,240,1)] py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-[950px] mx-auto space-y-8">
-          <ProfileContent profile={profile} />
-          <PostsList
-            posts={posts}
-            currentUserId={currentUserId}
-            profileId={profile.id}
-            onPostCreated={fetchPosts}
-          />
+        <div className="max-w-[1200px] mx-auto grid grid-cols-[2fr,1fr] gap-6">
+          <div className="space-y-6">
+            <ProfileContent profile={profile} />
+            <PostsList
+              posts={posts}
+              currentUserId={currentUserId}
+              profileId={profile.id}
+              onPostCreated={fetchPosts}
+            />
+          </div>
+          
+          <div className="space-y-6">
+            <PhotoGallery userId={profile.id} />
+            <div className="bg-white/80 backdrop-blur-sm rounded-[20px] p-6 shadow-lg">
+              <h3 className="text-lg font-semibold mb-4 text-[#6153BD]">Friends</h3>
+              <div className="text-gray-500 text-center">
+                No friends yet
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <Footer />
