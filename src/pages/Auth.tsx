@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,33 +56,11 @@ export const Auth = () => {
 
         // If signup successful and user is created
         if (signUpData.user) {
-          // Wait a bit to ensure the trigger has time to create the profile
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          // Check if profile exists
-          const { data: profileData, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', signUpData.user.id)
-            .single();
-
-          if (profileError) {
-            console.error('Profile creation error:', profileError);
-            toast({
-              variant: "destructive",
-              title: "Profile Creation Error",
-              description: "There was an issue creating your profile. Please try again.",
-            });
-            return;
-          }
-
-          if (profileData) {
-            toast({
-              title: "Account created successfully!",
-              description: "Welcome to HelloWorld! Let's set up your profile.",
-            });
-            navigate("/profile");
-          }
+          toast({
+            title: "Account created successfully!",
+            description: "Welcome to HelloWorld! Let's set up your profile.",
+          });
+          navigate("/profile");
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -206,3 +185,4 @@ export const Auth = () => {
     </div>
   );
 };
+
