@@ -2,10 +2,10 @@
 import React from "react";
 import { CommentForm } from "@/components/posts/CommentForm";
 import { CommentList } from "@/components/posts/CommentList";
-import { Comment } from "@/types/photo";
+import { PhotoCommentView } from "@/types/photo";
 
 interface CommentSectionProps {
-  comments: Comment[];
+  comments: PhotoCommentView[];
   newComment: string;
   onCommentChange: (value: string) => void;
   onCommentSubmit: (e: React.FormEvent) => void;

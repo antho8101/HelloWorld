@@ -12,7 +12,7 @@ export interface PhotoComment {
   };
 }
 
-export interface Comment {
+export interface PhotoCommentView {
   id: string;
   content: string;
   createdAt: string;
@@ -23,7 +23,7 @@ export interface Comment {
   };
 }
 
-export const mapPhotoCommentToComment = (photoComment: PhotoComment): Comment => ({
+export const mapPhotoCommentToComment = (photoComment: PhotoComment): PhotoCommentView => ({
   id: photoComment.id,
   content: photoComment.content,
   createdAt: photoComment.created_at,
