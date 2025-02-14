@@ -129,7 +129,7 @@ export const Post: React.FC<PostProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-lg p-4 shadow-md space-y-4">
+    <div className="bg-card/80 backdrop-blur-sm border border-border rounded-lg p-6 shadow-md space-y-4">
       <div className="flex items-center gap-3">
         <Avatar>
           <AvatarImage src={author.avatarUrl || undefined} />
@@ -139,14 +139,14 @@ export const Post: React.FC<PostProps> = ({
         </Avatar>
         <div>
           <div className="font-semibold">{author.name}</div>
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-muted-foreground">
             @{author.username} • {format(new Date(createdAt), "MMM d, yyyy")}
           </div>
         </div>
       </div>
 
       {content && (
-        <p className="text-gray-800">{content}</p>
+        <p className="text-foreground">{content}</p>
       )}
 
       {imageUrl && (
@@ -181,7 +181,7 @@ export const Post: React.FC<PostProps> = ({
       {showComments && (
         <div className="space-y-4">
           {comments.map(comment => (
-            <div key={comment.id} className="pl-4 border-l-2 border-gray-100">
+            <div key={comment.id} className="pl-4 border-l-2 border-border">
               <div className="flex items-center gap-2">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={comment.author.avatarUrl || undefined} />
@@ -191,12 +191,12 @@ export const Post: React.FC<PostProps> = ({
                 </Avatar>
                 <div>
                   <div className="font-semibold text-sm">{comment.author.name}</div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-muted-foreground">
                     {format(new Date(comment.createdAt), "MMM d, yyyy")}
                   </div>
                 </div>
               </div>
-              <p className="mt-2 text-sm text-gray-800">{comment.content}</p>
+              <p className="mt-2 text-sm text-foreground">{comment.content}</p>
             </div>
           ))}
 
