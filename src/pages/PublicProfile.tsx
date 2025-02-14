@@ -127,8 +127,8 @@ export const PublicProfile = () => {
                 currentUserId={currentUserId}
               />
             )}
-            <PhotoGallery userId={profile.id} />
             <FriendsSection />
+            <PhotoGallery userId={profile.id} />
             {!isOwnProfile && !profile.is_banned && (
               <ReportButton onClick={() => setIsReportModalOpen(true)} />
             )}
