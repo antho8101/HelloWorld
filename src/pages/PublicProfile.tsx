@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +10,8 @@ import { InterestsSection } from "@/components/profile/InterestsSection";
 import { Header } from "@/components/landing/Header";
 import { Footer } from "@/components/layout/Footer";
 import { toast } from "sonner";
+import { CreatePost } from "@/components/posts/CreatePost";
+import { Post } from "@/components/posts/Post";
 
 interface Profile {
   username: string | null;
@@ -25,6 +26,7 @@ interface Profile {
   interested_in: string[];
   looking_for: string[];
   bio: string | null;
+  id: string | null;
 }
 
 const transformLanguageLevels = (languageLevels: Json | null): LanguageWithLevel[] => {
@@ -46,6 +48,18 @@ export const PublicProfile = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [posts, setPosts] = useState<any[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setCurrentUserId(session.user.id);
+      }
+    };
+    checkUser();
+  }, []);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -62,6 +76,7 @@ export const PublicProfile = () => {
         const { data, error: fetchError } = await supabase
           .from("profiles")
           .select(`
+            id,
             username,
             name,
             avatar_url,
@@ -93,6 +108,7 @@ export const PublicProfile = () => {
         }
 
         setProfile({
+          id: data.id,
           username: data.username,
           name: data.name,
           avatar_url: data.avatar_url,
@@ -118,6 +134,87 @@ export const PublicProfile = () => {
     fetchProfile();
   }, [params]);
 
+  useEffect(() => {
+    const fetchPosts = async () => {
+      if (profile?.username) {
+        const { data: postsData, error: postsError } = await supabase
+          .from("posts")
+          .select(`
+            id,
+            content,
+            image_url,
+            created_at,
+            likes_count,
+            profiles!inner (
+              id,
+              name,
+              username,
+              avatar_url
+            )
+          `)
+          .eq("profiles.username", profile.username)
+          .order("created_at", { ascending: false });
+
+        if (postsError) {
+          console.error("Error fetching posts:", postsError);
+          return;
+        }
+
+        if (currentUserId) {
+          const { data: likedPosts } = await supabase
+            .from("post_likes")
+            .select("post_id")
+            .eq("user_id", currentUserId);
+
+          const likedPostIds = new Set(likedPosts?.map(like => like.post_id) || []);
+
+          const postsWithLikes = await Promise.all(
+            postsData.map(async (post) => {
+              const { data: comments } = await supabase
+                .from("comments")
+                .select(`
+                  id,
+                  content,
+                  created_at,
+                  likes_count,
+                  profiles (
+                    name,
+                    username,
+                    avatar_url
+                  )
+                `)
+                .eq("post_id", post.id)
+                .order("created_at", { ascending: true });
+
+              return {
+                ...post,
+                isLiked: likedPostIds.has(post.id),
+                comments: comments?.map(comment => ({
+                  id: comment.id,
+                  content: comment.content,
+                  createdAt: comment.created_at,
+                  author: {
+                    name: comment.profiles.name,
+                    username: comment.profiles.username,
+                    avatarUrl: comment.profiles.avatar_url,
+                  },
+                  likesCount: comment.likes_count,
+                  isLiked: false, // To be implemented
+                })) || [],
+              };
+            })
+          );
+
+          setPosts(postsWithLikes);
+        }
+      }
+    };
+
+    if (profile) {
+      fetchPosts();
+    }
+  }, [profile, currentUserId]);
+
   if (loading) {
     return (
       <>
@@ -142,11 +239,89 @@ export const PublicProfile = () => {
 
   if (!profile) return null;
 
+  const handlePostCreated = () => {
+    const fetchPosts = async () => {
+      if (profile?.username) {
+        const { data: postsData, error: postsError } = await supabase
+          .from("posts")
+          .select(`
+            id,
+            content,
+            image_url,
+            created_at,
+            likes_count,
+            profiles!inner (
+              id,
+              name,
+              username,
+              avatar_url
+            )
+          `)
+          .eq("profiles.username", profile.username)
+          .order("created_at", { ascending: false });
+
+        if (postsError) {
+          console.error("Error fetching posts:", postsError);
+          return;
+        }
+
+        if (currentUserId) {
+          const { data: likedPosts } = await supabase
+            .from("post_likes")
+            .select("post_id")
+            .eq("user_id", currentUserId);
+
+          const likedPostIds = new Set(likedPosts?.map(like => like.post_id) || []);
+
+          const postsWithLikes = await Promise.all(
+            postsData.map(async (post) => {
+              const { data: comments } = await supabase
+                .from("comments")
+                .select(`
+                  id,
+                  content,
+                  created_at,
+                  likes_count,
+                  profiles (
+                    name,
+                    username,
+                    avatar_url
+                  )
+                `)
+                .eq("post_id", post.id)
+                .order("created_at", { ascending: true });
+
+              return {
+                ...post,
+                isLiked: likedPostIds.has(post.id),
+                comments: comments?.map(comment => ({
+                  id: comment.id,
+                  content: comment.content,
+                  createdAt: comment.created_at,
+                  author: {
+                    name: comment.profiles.name,
+                    username: comment.profiles.username,
+                    avatarUrl: comment.profiles.avatar_url,
+                  },
+                  likesCount: comment.likes_count,
+                  isLiked: false, // To be implemented
+                })) || [],
+              };
+            })
+          );
+
+          setPosts(postsWithLikes);
+        }
+      }
+    };
+    fetchPosts();
+  };
+
   return (
     <>
       <Header />
       <div className="min-h-screen bg-[rgba(255,243,240,1)] py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-[746px] mx-auto">
+        <div className="max-w-[746px] mx-auto space-y-8">
           <div className="bg-white/80 backdrop-blur-sm rounded-[20px] shadow-lg p-8">
             <div className="flex flex-col md:flex-row md:gap-12">
               <div className="w-fit">
@@ -180,6 +355,32 @@ export const PublicProfile = () => {
                 lookingFor={profile.looking_for}
               />
             </div>
+          </div>
+
+          {currentUserId === profile?.id && (
+            <CreatePost userId={currentUserId} onPostCreated={handlePostCreated} />
+          )}
+
+          <div className="space-y-6">
+            {posts.map((post) => (
+              <Post
+                key={post.id}
+                id={post.id}
+                content={post.content}
+                imageUrl={post.image_url}
+                createdAt={post.created_at}
+                likesCount={post.likes_count}
+                author={{
+                  id: post.profiles.id,
+                  name: post.profiles.name,
+                  username: post.profiles.username,
+                  avatarUrl: post.profiles.avatar_url,
+                }}
+                currentUserId={currentUserId || ""}
+                isLiked={post.isLiked}
+                comments={post.comments}
+              />
+            ))}
           </div>
         </div>
       </div>
