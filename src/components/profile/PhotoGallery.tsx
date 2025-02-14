@@ -104,7 +104,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
       />
 
       <Dialog open={selectedPhotoIndex !== null} onOpenChange={() => setSelectedPhotoIndex(null)}>
-        <DialogContent className="max-w-4xl w-11/12 p-0 bg-white rounded-lg">
+        <DialogContent className="[&>button]:hidden max-w-4xl w-11/12 p-0 bg-white rounded-lg">
           {selectedPhotoIndex !== null && (
             <PhotoViewer
               photoUrl={photos[selectedPhotoIndex]}
