@@ -10,7 +10,6 @@ interface UserProfileProps {
   location: string;
   isOnline?: boolean;
   id?: string;
-  username?: string;
 }
 
 export const UserProfile: React.FC<UserProfileProps> = ({
@@ -20,7 +19,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({
   location,
   isOnline = false,
   id,
-  username,
 }) => {
   const Content = () => (
     <div className="transform transition-all duration-300 hover:scale-105 hover:shadow-lg rounded-[10px] p-2">
@@ -51,8 +49,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({
 
   return (
     <div className="self-stretch w-[180px] my-auto max-md:w-[140px] group">
-      {username ? (
-        <Link to={`/profile/${username}`} className="block">
+      {id ? (
+        <Link to={`/profile/${id}`} className="block">
           <Content />
         </Link>
       ) : (
