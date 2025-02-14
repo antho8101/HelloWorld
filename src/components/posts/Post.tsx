@@ -128,7 +128,7 @@ export const Post: React.FC<PostProps> = ({
   };
 
   return (
-    <div className="bg-[rgba(255,243,240,1)] rounded-[20px] p-6 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.08)] space-y-4">
+    <div className="bg-white/50 backdrop-blur-sm rounded-[20px] p-6 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] space-y-4">
       <PostHeader author={author} createdAt={createdAt} />
 
       {content && (
