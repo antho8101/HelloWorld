@@ -10,6 +10,7 @@ import { LanguagesSection } from "@/components/profile/LanguagesSection";
 import { InterestsSection } from "@/components/profile/InterestsSection";
 import { Header } from "@/components/landing/Header";
 import { Footer } from "@/components/layout/Footer";
+import { toast } from "sonner";
 
 interface Profile {
   username: string | null;
@@ -56,8 +57,6 @@ export const PublicProfile = () => {
       }
 
       try {
-        console.log("Fetching profile for ID:", profileId);
-
         const { data, error: fetchError } = await supabase
           .from("profiles")
           .select(`
@@ -75,19 +74,16 @@ export const PublicProfile = () => {
             bio
           `)
           .eq("id", profileId)
-          .maybeSingle();
-
-        console.log("Profile data received:", data);
-        console.log("Fetch error if any:", fetchError);
+          .single();
 
         if (fetchError) {
           console.error("Error fetching profile:", fetchError);
+          toast.error("Erreur lors du chargement du profil");
           setError(fetchError.message);
           return;
         }
 
         if (!data) {
-          console.log("No profile found for ID:", profileId);
           setError("Profile not found");
           return;
         }
