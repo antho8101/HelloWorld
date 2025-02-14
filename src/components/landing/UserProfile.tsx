@@ -1,8 +1,9 @@
 
 import React from "react";
 import { Circle } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { useSession } from "@/hooks/useSession";
 
 interface UserProfileProps {
   image: string;
@@ -20,6 +21,18 @@ export const UserProfile: React.FC<UserProfileProps> = ({
   id,
 }) => {
   const isOnline = useOnlineStatus(id || null);
+  const navigate = useNavigate();
+  const { currentUserId } = useSession();
+
+  const handleProfileClick = () => {
+    if (!currentUserId) {
+      navigate("/auth");
+      return;
+    }
+    if (id) {
+      navigate(`/profile/${id}`);
+    }
+  };
 
   const Content = () => (
     <div className="transform transition-all duration-300 hover:scale-105 hover:shadow-lg rounded-[10px] p-2">
@@ -49,14 +62,12 @@ export const UserProfile: React.FC<UserProfileProps> = ({
   );
 
   return (
-    <div className="self-stretch w-[180px] my-auto max-md:w-[140px] group">
-      {id ? (
-        <Link to={`/profile/${id}`} className="block">
-          <Content />
-        </Link>
-      ) : (
-        <Content />
-      )}
+    <div 
+      className="self-stretch w-[180px] my-auto max-md:w-[140px] group cursor-pointer" 
+      onClick={handleProfileClick}
+    >
+      <Content />
     </div>
   );
 };
+
