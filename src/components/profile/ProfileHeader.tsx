@@ -32,7 +32,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       <div className="text-center">
         <h1 className="text-2xl font-bold text-[#6153BD]">
           {name || "Anonymous"}
-          {age && <span className="ml-2">{age}</span>}
+          {age && <span className="ml-0">, {age}</span>}
         </h1>
 
         {username && (
