@@ -21,6 +21,14 @@ interface BasicInfoProps {
   onCountryChange: (country: string) => void;
   onCitySearch: (search: string) => void;
   onCitySelect: (city: string) => void;
+  errors?: {
+    username?: boolean;
+    name?: boolean;
+    age?: boolean;
+    gender?: boolean;
+    country?: boolean;
+    city?: boolean;
+  };
 }
 
 export const BasicInfo = ({
@@ -39,6 +47,7 @@ export const BasicInfo = ({
   onCountryChange,
   onCitySearch,
   onCitySelect,
+  errors,
 }: BasicInfoProps) => {
   return (
     <div className="flex-1 max-w-xl">
@@ -47,26 +56,30 @@ export const BasicInfo = ({
           label="Username"
           value={username}
           onChange={onUsernameChange}
+          error={errors?.username}
         />
         <FormInput
           label="Full Name"
           value={name}
           onChange={onNameChange}
+          error={errors?.name}
         />
         <div className="md:col-span-2 grid grid-cols-4 gap-4">
           <div className="col-span-3">
-            <BirthdateSelect onAgeChange={onAgeChange} />
+            <BirthdateSelect onAgeChange={onAgeChange} error={errors?.age} />
           </div>
           <div className="col-span-1">
             <GenderSelect
               value={gender}
               onChange={onGenderChange}
+              error={errors?.gender}
             />
           </div>
         </div>
         <CountrySelect
           value={country}
           onChange={onCountryChange}
+          error={errors?.country}
         />
         <CityInput
           searchValue={citySearch}
@@ -74,6 +87,7 @@ export const BasicInfo = ({
           onCitySelect={onCitySelect}
           cities={cities}
           disabled={!country}
+          error={errors?.city}
         />
       </div>
     </div>

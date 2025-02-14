@@ -3,6 +3,7 @@ import { type ProfileData } from "@/types/profile";
 import { ProfileAvatar } from "./ProfileAvatar";
 import { BasicInfo } from "./BasicInfo";
 import { LanguagesAndPreferences } from "./LanguagesAndPreferences";
+import { useState } from "react";
 
 interface ProfileFormProps {
   userId: string;
@@ -25,35 +26,33 @@ export const ProfileForm = ({
   onCitySelect,
   onSubmit,
 }: ProfileFormProps) => {
+  const [showErrors, setShowErrors] = useState(false);
+
+  const validations = {
+    username: !profile.username?.trim(),
+    name: !profile.name?.trim(),
+    age: profile.age <= 0,
+    gender: !profile.gender?.trim(),
+    country: !profile.country?.trim(),
+    city: !profile.city?.trim(),
+    nativeLanguages: profile.native_languages.length === 0 || 
+      !profile.native_languages.every(lang => lang.language?.trim()),
+    learningLanguages: profile.learning_languages.length === 0 || 
+      !profile.learning_languages.every(lang => lang.language?.trim() && lang.level?.trim()),
+    lookingFor: profile.looking_for.length === 0,
+    interestedIn: profile.interested_in.length === 0
+  };
+
   const isFormValid = () => {
-    // Check if all required basic info fields are filled
-    const basicInfoValid = 
-      profile.username?.trim() && 
-      profile.name?.trim() && 
-      profile.age > 0 && 
-      profile.gender?.trim() && 
-      profile.country?.trim() && 
-      profile.city?.trim();
+    return !Object.values(validations).some(invalid => invalid);
+  };
 
-    // Check if at least one native language is selected
-    const hasNativeLanguage = profile.native_languages.length > 0 && 
-      profile.native_languages.every(lang => lang.language?.trim());
-
-    // Check if at least one learning language is selected
-    const hasLearningLanguage = profile.learning_languages.length > 0 && 
-      profile.learning_languages.every(lang => lang.language?.trim() && lang.level?.trim());
-
-    // Check if at least one "looking for" option is selected
-    const hasLookingFor = profile.looking_for.length > 0;
-
-    // Check if "interested in" is selected
-    const hasInterestedIn = profile.interested_in.length > 0;
-
-    return basicInfoValid && 
-           hasNativeLanguage && 
-           hasLearningLanguage && 
-           hasLookingFor && 
-           hasInterestedIn;
+  const handleSubmit = () => {
+    if (!isFormValid()) {
+      setShowErrors(true);
+      return;
+    }
+    onSubmit();
   };
 
   return (
@@ -82,6 +81,14 @@ export const ProfileForm = ({
           onCountryChange={(country) => onProfileChange({ country })}
           onCitySearch={onCitySearch}
           onCitySelect={onCitySelect}
+          errors={showErrors ? {
+            username: validations.username,
+            name: validations.name,
+            age: validations.age,
+            gender: validations.gender,
+            country: validations.country,
+            city: validations.city
+          } : undefined}
         />
 
         <div className="flex-1">
@@ -94,14 +101,19 @@ export const ProfileForm = ({
             onLearningLanguagesChange={(learning_languages) => onProfileChange({ learning_languages })}
             onLookingForChange={(looking_for) => onProfileChange({ looking_for })}
             onInterestedInChange={(interested_in) => onProfileChange({ interested_in })}
+            errors={showErrors ? {
+              nativeLanguages: validations.nativeLanguages,
+              learningLanguages: validations.learningLanguages,
+              lookingFor: validations.lookingFor,
+              interestedIn: validations.interestedIn
+            } : undefined}
           />
         </div>
       </div>
 
       <button
-        onClick={onSubmit}
-        disabled={!isFormValid()}
-        className="w-full bg-[#6153BD] text-white py-3 px-4 rounded-xl font-bold hover:bg-[#6153BD]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#6153BD] transform transition-all duration-200 hover:scale-[1.02] mt-6 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:bg-[#6153BD]"
+        onClick={handleSubmit}
+        className="w-full bg-[#6153BD] text-white py-3 px-4 rounded-xl font-bold hover:bg-[#6153BD]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#6153BD] transform transition-all duration-200 hover:scale-[1.02] mt-6"
       >
         Continue to Bio
       </button>

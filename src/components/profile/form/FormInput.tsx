@@ -8,6 +8,7 @@ interface FormInputProps {
   max?: number;
   disabled?: boolean;
   placeholder?: string;
+  error?: boolean;
 }
 
 export const FormInput = ({
@@ -19,6 +20,7 @@ export const FormInput = ({
   max,
   disabled,
   placeholder,
+  error,
 }: FormInputProps) => {
   return (
     <div>
@@ -33,7 +35,7 @@ export const FormInput = ({
         max={max}
         disabled={disabled}
         placeholder={placeholder}
-        className="w-full border-2 border-[#6153BD]/20 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#6153BD] focus:border-transparent transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        className={`w-full border-2 ${error ? 'border-red-500 animate-[pulse_1s_ease-in-out_infinite] shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'border-[#6153BD]/20'} rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#6153BD] focus:border-transparent transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed`}
       />
     </div>
   );
