@@ -9,24 +9,37 @@ interface Profile {
   avatar_url: string | null;
 }
 
-interface Comment {
+interface PostComment {
   id: string;
   content: string;
   created_at: string;
-  likes_count: number;
-  profiles: Profile;
+  author: {
+    name: string | null;
+    username: string | null;
+    avatarUrl: string | null;
+  };
+  likesCount: number;
+  isLiked: boolean;
 }
 
 interface Post {
   id: string;
-  content: string;
+  content: string | null;
   created_at: string;
   user_id: string;
   likes_count: number;
   comments_count: number;
   profiles: Profile;
-  isLiked?: boolean;
-  comments?: Comment[];
+  isLiked: boolean;
+  comments: PostComment[];
+}
+
+interface RawComment {
+  id: string;
+  content: string;
+  created_at: string;
+  likes_count: number;
+  profiles: Profile;
 }
 
 export const usePosts = (profileId: string | null, currentUserId: string | null) => {
@@ -62,7 +75,7 @@ export const usePosts = (profileId: string | null, currentUserId: string | null)
         const likedPostIds = new Set(likedPosts?.map(like => like.post_id) || []);
 
         const postsWithLikes = await Promise.all(
-          postsData.map(async (post) => {
+          (postsData || []).map(async (post) => {
             const { data: comments } = await supabase
               .from("comments")
               .select(`
@@ -79,22 +92,32 @@ export const usePosts = (profileId: string | null, currentUserId: string | null)
               .eq("post_id", post.id)
               .order("created_at", { ascending: true });
 
-            return {
-              ...post,
+            const mappedComments = (comments || []).map((comment: RawComment) => ({
+              id: comment.id,
+              content: comment.content,
+              created_at: comment.created_at,
+              author: {
+                name: comment.profiles.name,
+                username: comment.profiles.username,
+                avatarUrl: comment.profiles.avatar_url,
+              },
+              likesCount: comment.likes_count,
+              isLiked: false,
+            }));
+
+            const mappedPost: Post = {
+              id: post.id,
+              content: post.content,
+              created_at: post.created_at,
+              user_id: post.user_id,
+              likes_count: post.likes_count,
+              comments_count: mappedComments.length,
+              profiles: post.profiles,
               isLiked: likedPostIds.has(post.id),
-              comments: comments?.map(comment => ({
-                id: comment.id,
-                content: comment.content,
-                createdAt: comment.created_at,
-                author: {
-                  name: comment.profiles.name,
-                  username: comment.profiles.username,
-                  avatarUrl: comment.profiles.avatar_url,
-                },
-                likesCount: comment.likes_count,
-                isLiked: false,
-              })) || [],
+              comments: mappedComments,
             };
+
+            return mappedPost;
           })
         );
 
