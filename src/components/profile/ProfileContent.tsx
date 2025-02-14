@@ -29,7 +29,7 @@ export const ProfileContent: React.FC<ProfileContentProps> = ({ profile }) => {
 
   return (
     <div className="flex gap-6">
-      <div className="flex-1 bg-white/80 backdrop-blur-sm rounded-[20px] shadow-lg p-8">
+      <div className="flex-[1.8] bg-white/80 backdrop-blur-sm rounded-[20px] shadow-lg p-8">
         <div className="flex flex-col md:flex-row md:gap-12">
           <div className="w-fit">
             <ProfileHeader
