@@ -10,13 +10,8 @@ export const usePosts = (profileId: string | null, currentUserId: string | null)
       const { data: postsData, error: postsError } = await supabase
         .from("posts")
         .select(`
-          id,
-          content,
-          image_url,
-          created_at,
-          likes_count,
-          user_id,
-          profiles!user_id (
+          *,
+          profiles (
             id,
             name,
             username,
@@ -48,7 +43,7 @@ export const usePosts = (profileId: string | null, currentUserId: string | null)
                 content,
                 created_at,
                 likes_count,
-                profiles!user_id (
+                profiles (
                   name,
                   username,
                   avatar_url
