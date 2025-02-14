@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User } from "@phosphor-icons/react";
+import { UserCircle } from "@phosphor-icons/react";
 import { format } from "date-fns";
 
 interface PostHeaderProps {
@@ -19,11 +19,11 @@ export const PostHeader: React.FC<PostHeaderProps> = ({ author, createdAt }) => 
       <Avatar>
         <AvatarImage src={author.avatarUrl || undefined} />
         <AvatarFallback>
-          <User size={24} />
+          <UserCircle size={24} weight="bold" className="text-[#6153BD]" />
         </AvatarFallback>
       </Avatar>
       <div>
-        <div className="font-semibold text-[#120071]">{author.name}</div>
+        <div className="font-semibold text-[#6153BD]">{author.name}</div>
         <div className="text-sm text-muted-foreground">
           @{author.username} • {format(new Date(createdAt), "MMM d, yyyy")}
         </div>
