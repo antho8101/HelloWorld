@@ -10,11 +10,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { GlobeIcon } from "lucide-react";
+import { UserCircle, ChatCircleDots, MagnifyingGlass, Gear } from "@phosphor-icons/react";
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [unreadMessages, setUnreadMessages] = useState(0); // Will be implemented later
 
   useEffect(() => {
     let mounted = true;
@@ -129,13 +131,56 @@ export const Header: React.FC = () => {
               </button>
             </>
           ) : (
-            <button 
-              onClick={handleLogout}
-              disabled={isTransitioning}
-              className="self-stretch bg-white gap-2.5 text-[#6153BD] whitespace-nowrap my-auto px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#6153BD] hover:text-white disabled:opacity-50"
-            >
-              Logout
-            </button>
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => navigate("/profile")}
+                className="flex items-center gap-2 text-[#6153BD] hover:text-[#4B3FA0] transition-colors"
+                title="My Profile"
+              >
+                <UserCircle size={24} weight="bold" />
+                <span className="hidden md:inline">My Profile</span>
+              </button>
+              
+              <button 
+                onClick={() => navigate("/messages")}
+                className="flex items-center gap-2 text-[#6153BD] hover:text-[#4B3FA0] transition-colors relative"
+                title="Messages"
+              >
+                <ChatCircleDots size={24} weight="bold" />
+                <span className="hidden md:inline">Messages</span>
+                {unreadMessages > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-[#FF6A48] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    +{unreadMessages}
+                  </span>
+                )}
+              </button>
+              
+              <button 
+                onClick={() => navigate("/search")}
+                className="flex items-center gap-2 text-[#6153BD] hover:text-[#4B3FA0] transition-colors"
+                title="Search"
+              >
+                <MagnifyingGlass size={24} weight="bold" />
+                <span className="hidden md:inline">Search</span>
+              </button>
+              
+              <button 
+                onClick={() => navigate("/settings")}
+                className="flex items-center gap-2 text-[#6153BD] hover:text-[#4B3FA0] transition-colors"
+                title="Settings"
+              >
+                <Gear size={24} weight="bold" />
+                <span className="hidden md:inline">Settings</span>
+              </button>
+
+              <button 
+                onClick={handleLogout}
+                disabled={isTransitioning}
+                className="self-stretch bg-white gap-2.5 text-[#6153BD] whitespace-nowrap my-auto px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#6153BD] hover:text-white disabled:opacity-50"
+              >
+                Logout
+              </button>
+            </div>
           )}
         </div>
       </nav>
