@@ -105,7 +105,7 @@ export const Header: React.FC = () => {
         {isLoggedIn && (
           <div className="flex items-center gap-4 ml-8">
             <button 
-              onClick={handleProfileClick}
+              onClick={() => navigate(`/profile/${userId}`)}
               className="flex items-center gap-2 text-[#6153BD] hover:text-[#4B3FA0] transition-colors"
               title="My Profile"
             >
@@ -166,7 +166,7 @@ export const Header: React.FC = () => {
         {!isLoggedIn ? (
           <>
             <button 
-              onClick={() => navigate("/auth?mode=signup")}
+              onClick={() => navigate("/signup")}
               disabled={isTransitioning}
               className="bg-[rgba(97,83,189,1)] flex items-center gap-2.5 text-white justify-center px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[rgba(97,83,189,0.9)] disabled:opacity-50"
             >
@@ -179,7 +179,7 @@ export const Header: React.FC = () => {
               />
             </button>
             <button 
-              onClick={() => navigate("/auth")}
+              onClick={() => navigate("/login")}
               disabled={isTransitioning}
               className="bg-white gap-2.5 text-[#6153BD] whitespace-nowrap px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#6153BD] hover:text-white disabled:opacity-50"
             >
