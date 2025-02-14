@@ -76,7 +76,7 @@ export const ProfileBio = () => {
         description: "Bio updated successfully",
       });
       
-      navigate(`/profile/${userId}`); // Redirect to public profile page
+      navigate(`/profile/${userId}`);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -99,7 +99,10 @@ export const ProfileBio = () => {
                 Bio <span className="text-[#FF6A48]">*</span>
               </label>
               <p className="text-sm text-gray-500 mb-2">
-                Minimum 50 characters. Current length: {bio.length}
+                Minimum 50 characters.{" "}
+                <span className={bio.length >= 50 ? "text-[#10b981]" : "text-[#ea384c]"}>
+                  Current length: {bio.length}
+                </span>
               </p>
               <Textarea
                 value={bio}
