@@ -36,13 +36,12 @@ export const usePosts = (profileId: string | null, currentUserId: string | null)
 
         const postsWithLikes = await Promise.all(
           postsData.map(async (post) => {
-            const { data: commentsData, error: commentsError } = await supabase
+            const { data: comments, error: commentsError } = await supabase
               .from("comments")
               .select(`
                 id,
                 content,
                 created_at,
-                user_id,
                 profiles (
                   name,
                   username,
@@ -64,7 +63,7 @@ export const usePosts = (profileId: string | null, currentUserId: string | null)
             return {
               ...post,
               isLiked: likedPostIds.has(post.id),
-              comments: commentsData?.map(comment => ({
+              comments: comments?.map(comment => ({
                 id: comment.id,
                 content: comment.content,
                 createdAt: comment.created_at,
