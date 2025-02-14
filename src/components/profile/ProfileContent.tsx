@@ -1,9 +1,11 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { LanguagesSection } from "@/components/profile/LanguagesSection";
 import { InterestsSection } from "@/components/profile/InterestsSection";
+import { FriendRequests } from "@/components/profile/FriendRequests";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { supabase } from "@/integrations/supabase/client";
 import type { LanguageWithLevel } from "@/components/LanguageSelector";
 
 interface ProfileContentProps {
@@ -25,9 +27,60 @@ interface ProfileContentProps {
 
 export const ProfileContent: React.FC<ProfileContentProps> = ({ profile }) => {
   const isOnline = useOnlineStatus(profile.id);
+  const [friendRequests, setFriendRequests] = useState<any[]>([]);
+
+  const loadFriendRequests = async () => {
+    if (!profile.id) return;
+
+    const { data, error } = await supabase
+      .from('friend_requests')
+      .select(`
+        id,
+        created_at,
+        sender:sender_id (
+          id,
+          name,
+          avatar_url
+        )
+      `)
+      .eq('receiver_id', profile.id)
+      .eq('status', 'pending');
+
+    if (!error && data) {
+      setFriendRequests(data);
+    }
+  };
+
+  useEffect(() => {
+    loadFriendRequests();
+
+    if (!profile.id) return;
+
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel('friend-requests-content')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'friend_requests',
+        filter: `receiver_id=eq.${profile.id}`,
+      }, () => {
+        loadFriendRequests();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profile.id]);
 
   return (
     <div className="bg-white/80 backdrop-blur-sm rounded-[20px] shadow-lg p-8">
+      <FriendRequests
+        requests={friendRequests}
+        onRequestHandled={loadFriendRequests}
+      />
+
       <div className="flex flex-col md:flex-row md:gap-12">
         <div className="w-fit">
           <ProfileHeader

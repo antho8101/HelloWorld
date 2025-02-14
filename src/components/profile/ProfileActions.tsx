@@ -2,16 +2,68 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ChatText, UserPlus } from "@phosphor-icons/react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProfileActionsProps {
   onMessage: () => void;
   onAddFriend: () => void;
+  profileId: string;
+  currentUserId: string | null;
 }
 
 export const ProfileActions: React.FC<ProfileActionsProps> = ({
   onMessage,
-  onAddFriend,
+  profileId,
+  currentUserId,
 }) => {
+  const { toast } = useToast();
+
+  const handleAddFriend = async () => {
+    if (!currentUserId) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "You must be logged in to add friends",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('friend_requests')
+        .insert({
+          sender_id: currentUserId,
+          receiver_id: profileId,
+        });
+
+      if (error) {
+        if (error.code === '23505') { // Unique constraint violation
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Friend request already sent",
+          });
+        } else {
+          throw error;
+        }
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: "Friend request sent successfully",
+      });
+    } catch (error) {
+      console.error('Error sending friend request:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to send friend request",
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col gap-3">
       <Button 
@@ -22,7 +74,7 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
         Send Message
       </Button>
       <Button 
-        onClick={onAddFriend}
+        onClick={handleAddFriend}
         className="bg-white gap-2.5 text-[#6153BD] whitespace-nowrap px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#6153BD] hover:text-white w-full"
       >
         <UserPlus size={20} weight="bold" />
