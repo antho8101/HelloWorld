@@ -135,9 +135,9 @@ export const Post: React.FC<PostProps> = ({
         <p className="text-foreground">{content}</p>
       )}
 
-      {imageUrl && (
+      {author.avatarUrl && (
         <img 
-          src={imageUrl} 
+          src={author.avatarUrl} 
           alt="Post" 
           loading="lazy"
           className="h-[200px] w-[180px] max-md:h-[160px] max-md:w-[140px] object-cover rounded-[10px] transition-transform duration-300"
