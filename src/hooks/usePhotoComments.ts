@@ -9,7 +9,7 @@ export const usePhotoComments = (currentUserId: string | null) => {
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const fetchComments = async (photoId: string) => {
+  const fetchComments = async (photoUrl: string) => {
     if (!currentUserId) return;
 
     try {
@@ -21,13 +21,14 @@ export const usePhotoComments = (currentUserId: string | null) => {
           created_at,
           user_id,
           photo_id,
-          profiles:user_id (
+          profiles (
             name,
             username,
             avatar_url
           )
         `)
-        .eq('photo_id', photoId);
+        .eq('photo_id', photoUrl)
+        .order('created_at', { ascending: true });
 
       if (commentsError) throw commentsError;
       setComments((commentsData || []).map(mapPhotoCommentToComment));
@@ -37,7 +38,7 @@ export const usePhotoComments = (currentUserId: string | null) => {
     }
   };
 
-  const addComment = async (photoId: string) => {
+  const addComment = async (photoUrl: string) => {
     if (!newComment.trim() || !currentUserId) return;
 
     setIsSubmitting(true);
@@ -47,7 +48,7 @@ export const usePhotoComments = (currentUserId: string | null) => {
         .insert({
           content: newComment.trim(),
           user_id: currentUserId,
-          photo_id: photoId
+          photo_id: photoUrl
         })
         .select(`
           id,
@@ -55,7 +56,7 @@ export const usePhotoComments = (currentUserId: string | null) => {
           created_at,
           user_id,
           photo_id,
-          profiles:user_id (
+          profiles (
             name,
             username,
             avatar_url
