@@ -39,7 +39,7 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
 }) => {
   return (
     <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center">
-      <div className="flex w-[95vw] h-[90vh] bg-white rounded-lg overflow-hidden">
+      <div className="flex w-[98vw] h-[85vh] bg-white rounded-lg overflow-hidden">
         <div className="relative flex-1 bg-black">
           <img
             src={photoUrl}
