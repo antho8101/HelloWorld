@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { User, Camera, UploadSimple } from "@phosphor-icons/react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import ReactCrop, { type Crop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 
 interface ProfileAvatarProps {
   userId: string;
@@ -17,8 +19,18 @@ interface ProfileAvatarProps {
 export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: ProfileAvatarProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const imgRef = useRef<HTMLImageElement | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isWebcamOpen, setIsWebcamOpen] = useState(false);
+  const [isCropOpen, setIsCropOpen] = useState(false);
+  const [cropImage, setCropImage] = useState<string>("");
+  const [crop, setCrop] = useState<Crop>({
+    unit: '%',
+    width: 90,
+    height: 90,
+    x: 5,
+    y: 5
+  });
   const { toast } = useToast();
 
   console.log("Current avatarUrl:", avatarUrl); // Debug log
@@ -76,7 +88,7 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
         .from('avatars')
         .getPublicUrl(filePath);
 
-      console.log("Generated public URL:", publicUrl); // Debug log
+      console.log("Generated public URL:", publicUrl);
       return publicUrl;
     } catch (error: any) {
       console.error("Error in uploadToSupabase:", error);
@@ -98,7 +110,7 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
 
     try {
       const publicUrl = await uploadToSupabase(blob, 'jpg');
-      console.log("Photo taken and uploaded, public URL:", publicUrl); // Debug log
+      console.log("Photo taken and uploaded, public URL:", publicUrl);
       onAvatarChange(publicUrl);
       setIsWebcamOpen(false);
       stopWebcam();
@@ -116,26 +128,70 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
     }
   };
 
+  const getCroppedImg = async () => {
+    if (!imgRef.current || !crop.width || !crop.height) return;
+
+    const canvas = document.createElement('canvas');
+    const image = imgRef.current;
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+
+    canvas.width = crop.width;
+    canvas.height = crop.height;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) return;
+
+    ctx.drawImage(
+      image,
+      crop.x * scaleX,
+      crop.y * scaleY,
+      crop.width * scaleX,
+      crop.height * scaleY,
+      0,
+      0,
+      crop.width,
+      crop.height
+    );
+
+    return new Promise<Blob>((resolve) => {
+      canvas.toBlob((blob) => {
+        if (blob) resolve(blob);
+      }, 'image/jpeg', 1);
+    });
+  };
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCropImage(reader.result as string);
+      setIsCropOpen(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCropSave = async () => {
     try {
-      const fileExt = file.name.split('.').pop() || '';
-      const publicUrl = await uploadToSupabase(file, fileExt);
-      console.log("File uploaded, public URL:", publicUrl); // Debug log
+      const croppedBlob = await getCroppedImg();
+      if (!croppedBlob) return;
+
+      const publicUrl = await uploadToSupabase(croppedBlob, 'jpg');
       onAvatarChange(publicUrl);
+      setIsCropOpen(false);
       resetFileInput();
       toast({
         title: "Success",
         description: "Avatar uploaded successfully",
       });
     } catch (error) {
-      console.error("File upload error:", error);
+      console.error("Crop save error:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Error uploading avatar",
+        description: "Error saving cropped image",
       });
     }
   };
@@ -177,6 +233,7 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
         />
       </div>
 
+      {/* Webcam Dialog */}
       <Dialog open={isWebcamOpen} onOpenChange={(open) => {
         if (!open) {
           stopWebcam();
@@ -211,6 +268,49 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
                 Cancel
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Crop Dialog */}
+      <Dialog open={isCropOpen} onOpenChange={setIsCropOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Crop Image</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4">
+            <div className="max-h-[500px] overflow-auto">
+              <ReactCrop
+                crop={crop}
+                onChange={c => setCrop(c)}
+                aspect={1}
+                circularCrop
+              >
+                <img
+                  ref={imgRef}
+                  src={cropImage}
+                  alt="Crop preview"
+                  className="max-w-full h-auto"
+                />
+              </ReactCrop>
+            </div>
+            <DialogFooter className="flex gap-2 w-full">
+              <Button
+                className="bg-[#6153BD] hover:bg-[#6153BD]/90 text-white border-2 border-[rgba(18,0,113,1)]"
+                onClick={handleCropSave}
+              >
+                Save
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsCropOpen(false);
+                  resetFileInput();
+                }}
+              >
+                Cancel
+              </Button>
+            </DialogFooter>
           </div>
         </DialogContent>
       </Dialog>
