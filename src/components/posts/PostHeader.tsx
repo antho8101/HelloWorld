@@ -23,7 +23,7 @@ export const PostHeader: React.FC<PostHeaderProps> = ({ author, createdAt }) => 
         </AvatarFallback>
       </Avatar>
       <div>
-        <div className="font-semibold">{author.name}</div>
+        <div className="font-semibold text-[#120071]">{author.name}</div>
         <div className="text-sm text-muted-foreground">
           @{author.username} • {format(new Date(createdAt), "MMM d, yyyy")}
         </div>
