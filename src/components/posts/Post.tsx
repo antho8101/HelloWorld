@@ -139,7 +139,8 @@ export const Post: React.FC<PostProps> = ({
         <img 
           src={imageUrl} 
           alt="Post" 
-          className="rounded-lg max-h-96 w-full object-cover"
+          loading="lazy"
+          className="h-[200px] w-[180px] max-md:h-[160px] max-md:w-[140px] object-cover rounded-[10px] transition-transform duration-300"
         />
       )}
 
