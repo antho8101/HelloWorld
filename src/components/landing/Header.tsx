@@ -71,27 +71,75 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <header className="flex w-full items-center gap-[40px_100px] justify-between flex-wrap px-5 py-2.5 max-md:max-w-full bg-[#FFF3F0]">
-      <div 
-        onClick={() => navigate("/")}
-        className="self-stretch flex min-w-60 items-center gap-2.5 my-auto cursor-pointer hover:opacity-80 transition-opacity"
-      >
-        <img
-          loading="lazy"
-          srcSet="https://cdn.builder.io/api/v1/image/assets/f97848ecf61542bea4ab8ab7f8d20ea9/fc1f6b1b3fc6ee87b690f1b6be44876cdf1e0e313d0c5d6607e5e53302011af2?placeholderIfAbsent=true&width=100 100w, https://cdn.builder.io/api/v1/image/assets/f97848ecf61542bea4ab8ab7f8d20ea9/fc1f6b1b3fc6ee87b690f1b6be44876cdf1e0e313d0c5d6607e5e53302011af2?placeholderIfAbsent=true&width=200 200w"
-          className="aspect-[1] object-contain w-[76px] self-stretch shrink-0 my-auto"
-          alt="HelloWorld! Logo"
-        />
-        <div className="self-stretch flex flex-col justify-center my-auto">
-          <div className="text-[rgba(97,83,189,1)] text-4xl font-black leading-none">
-            HelloWorld!
-          </div>
-          <div className="text-[rgba(255,106,72,1)] text-base font-bold">
-            The world in one place
+    <header className="flex w-full items-center justify-between flex-wrap px-5 py-2.5 max-md:max-w-full bg-[#FFF3F0]">
+      <div className="flex items-center gap-4">
+        <div 
+          onClick={() => navigate("/")}
+          className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity"
+        >
+          <img
+            loading="lazy"
+            srcSet="https://cdn.builder.io/api/v1/image/assets/f97848ecf61542bea4ab8ab7f8d20ea9/fc1f6b1b3fc6ee87b690f1b6be44876cdf1e0e313d0c5d6607e5e53302011af2?placeholderIfAbsent=true&width=100 100w, https://cdn.builder.io/api/v1/image/assets/f97848ecf61542bea4ab8ab7f8d20ea9/fc1f6b1b3fc6ee87b690f1b6be44876cdf1e0e313d0c5d6607e5e53302011af2?placeholderIfAbsent=true&width=200 200w"
+            className="aspect-[1] object-contain w-[76px] shrink-0"
+            alt="HelloWorld! Logo"
+          />
+          <div className="flex flex-col justify-center">
+            <div className="text-[rgba(97,83,189,1)] text-4xl font-black leading-none">
+              HelloWorld!
+            </div>
+            <div className="text-[rgba(255,106,72,1)] text-base font-bold">
+              The world in one place
+            </div>
           </div>
         </div>
+
+        {isLoggedIn && (
+          <div className="flex items-center gap-4 ml-8">
+            <button 
+              onClick={() => navigate("/profile")}
+              className="flex items-center gap-2 text-[#6153BD] hover:text-[#4B3FA0] transition-colors"
+              title="My Profile"
+            >
+              <UserCircle size={24} weight="bold" />
+              <span className="hidden md:inline">My Profile</span>
+            </button>
+            
+            <button 
+              onClick={() => navigate("/messages")}
+              className="flex items-center gap-2 text-[#6153BD] hover:text-[#4B3FA0] transition-colors relative"
+              title="Messages"
+            >
+              <ChatCircleDots size={24} weight="bold" />
+              <span className="hidden md:inline">Messages</span>
+              {unreadMessages > 0 && (
+                <span className="absolute -top-2 -right-2 bg-[#FF6A48] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  +{unreadMessages}
+                </span>
+              )}
+            </button>
+            
+            <button 
+              onClick={() => navigate("/search")}
+              className="flex items-center gap-2 text-[#6153BD] hover:text-[#4B3FA0] transition-colors"
+              title="Search"
+            >
+              <MagnifyingGlass size={24} weight="bold" />
+              <span className="hidden md:inline">Search</span>
+            </button>
+            
+            <button 
+              onClick={() => navigate("/settings")}
+              className="flex items-center gap-2 text-[#6153BD] hover:text-[#4B3FA0] transition-colors"
+              title="Settings"
+            >
+              <Gear size={24} weight="bold" />
+              <span className="hidden md:inline">Settings</span>
+            </button>
+          </div>
+        )}
       </div>
-      <nav className={`self-stretch flex min-w-60 items-center gap-5 text-base font-bold justify-center my-auto transition-opacity duration-200 ${isTransitioning ? 'opacity-50' : 'opacity-100'}`}>
+
+      <nav className={`flex items-center gap-5 text-base font-bold my-auto transition-opacity duration-200 ${isTransitioning ? 'opacity-50' : 'opacity-100'}`}>
         <Select defaultValue="en">
           <SelectTrigger className="w-[140px] h-[42px] text-[#FF6A48] border-2 border-[#FF6A48] font-medium flex items-center gap-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md rounded-[10px]">
             <GlobeIcon className="h-5 w-5" />
@@ -106,83 +154,38 @@ export const Header: React.FC = () => {
           </SelectContent>
         </Select>
         
-        <div className="flex items-center gap-5">
-          {!isLoggedIn ? (
-            <>
-              <button 
-                onClick={() => navigate("/auth?mode=signup")}
-                disabled={isTransitioning}
-                className="bg-[rgba(97,83,189,1)] self-stretch flex items-center gap-2.5 text-white justify-center my-auto px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[rgba(97,83,189,0.9)] disabled:opacity-50"
-              >
-                <span className="self-stretch my-auto">Get started</span>
-                <img
-                  loading="lazy"
-                  src="https://cdn.builder.io/api/v1/image/assets/f97848ecf61542bea4ab8ab7f8d20ea9/6f00598569306f4eed36007bf36924a551566ffaca4cf8d159b94c54cd033c0b?placeholderIfAbsent=true"
-                  className="aspect-[1] object-contain w-[21px] self-stretch shrink-0 my-auto"
-                  alt=""
-                />
-              </button>
-              <button 
-                onClick={() => navigate("/auth")}
-                disabled={isTransitioning}
-                className="self-stretch bg-white gap-2.5 text-[#6153BD] whitespace-nowrap my-auto px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#6153BD] hover:text-white disabled:opacity-50"
-              >
-                Login
-              </button>
-            </>
-          ) : (
-            <div className="flex items-center gap-4">
-              <button 
-                onClick={() => navigate("/profile")}
-                className="flex items-center gap-2 text-[#6153BD] hover:text-[#4B3FA0] transition-colors"
-                title="My Profile"
-              >
-                <UserCircle size={24} weight="bold" />
-                <span className="hidden md:inline">My Profile</span>
-              </button>
-              
-              <button 
-                onClick={() => navigate("/messages")}
-                className="flex items-center gap-2 text-[#6153BD] hover:text-[#4B3FA0] transition-colors relative"
-                title="Messages"
-              >
-                <ChatCircleDots size={24} weight="bold" />
-                <span className="hidden md:inline">Messages</span>
-                {unreadMessages > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-[#FF6A48] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                    +{unreadMessages}
-                  </span>
-                )}
-              </button>
-              
-              <button 
-                onClick={() => navigate("/search")}
-                className="flex items-center gap-2 text-[#6153BD] hover:text-[#4B3FA0] transition-colors"
-                title="Search"
-              >
-                <MagnifyingGlass size={24} weight="bold" />
-                <span className="hidden md:inline">Search</span>
-              </button>
-              
-              <button 
-                onClick={() => navigate("/settings")}
-                className="flex items-center gap-2 text-[#6153BD] hover:text-[#4B3FA0] transition-colors"
-                title="Settings"
-              >
-                <Gear size={24} weight="bold" />
-                <span className="hidden md:inline">Settings</span>
-              </button>
-
-              <button 
-                onClick={handleLogout}
-                disabled={isTransitioning}
-                className="self-stretch bg-white gap-2.5 text-[#6153BD] whitespace-nowrap my-auto px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#6153BD] hover:text-white disabled:opacity-50"
-              >
-                Logout
-              </button>
-            </div>
-          )}
-        </div>
+        {!isLoggedIn ? (
+          <>
+            <button 
+              onClick={() => navigate("/auth?mode=signup")}
+              disabled={isTransitioning}
+              className="bg-[rgba(97,83,189,1)] flex items-center gap-2.5 text-white justify-center px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[rgba(97,83,189,0.9)] disabled:opacity-50"
+            >
+              <span>Get started</span>
+              <img
+                loading="lazy"
+                src="https://cdn.builder.io/api/v1/image/assets/f97848ecf61542bea4ab8ab7f8d20ea9/6f00598569306f4eed36007bf36924a551566ffaca4cf8d159b94c54cd033c0b?placeholderIfAbsent=true"
+                className="aspect-[1] object-contain w-[21px]"
+                alt=""
+              />
+            </button>
+            <button 
+              onClick={() => navigate("/auth")}
+              disabled={isTransitioning}
+              className="bg-white gap-2.5 text-[#6153BD] whitespace-nowrap px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#6153BD] hover:text-white disabled:opacity-50"
+            >
+              Login
+            </button>
+          </>
+        ) : (
+          <button 
+            onClick={handleLogout}
+            disabled={isTransitioning}
+            className="bg-white gap-2.5 text-[#6153BD] whitespace-nowrap px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#6153BD] hover:text-white disabled:opacity-50"
+          >
+            Logout
+          </button>
+        )}
       </nav>
     </header>
   );
