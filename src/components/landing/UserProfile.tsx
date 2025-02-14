@@ -2,6 +2,8 @@
 import React from "react";
 import { Circle } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { User } from "@phosphor-icons/react";
 
 interface UserProfileProps {
   image: string;
@@ -22,12 +24,14 @@ export const UserProfile: React.FC<UserProfileProps> = ({
 }) => {
   const Content = () => (
     <div className="transform transition-all duration-300 hover:scale-105 hover:shadow-lg rounded-[10px] p-2">
-      <img
-        loading="lazy"
-        srcSet={image}
-        className="h-[200px] w-[180px] max-md:h-[160px] max-md:w-[140px] object-cover rounded-[10px] transition-transform duration-300"
-        alt={`${name}, ${age}`}
-      />
+      <div className="relative h-[200px] w-[180px] max-md:h-[160px] max-md:w-[140px]">
+        <Avatar className="h-full w-full rounded-[10px] transition-transform duration-300">
+          <AvatarImage src={image} alt={`${name}, ${age}`} className="object-cover" />
+          <AvatarFallback className="bg-[#FECFC4] text-white text-4xl">
+            <User className="w-16 h-16" weight="bold" />
+          </AvatarFallback>
+        </Avatar>
+      </div>
       <div className="w-full mt-2.5 px-1">
         <div className="text-xl max-md:text-lg font-bold flex items-center gap-2">
           <Circle
