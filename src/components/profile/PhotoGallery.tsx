@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { usePhotos } from "@/hooks/usePhotos";
@@ -44,6 +43,16 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
     setSelectedPhotoIndex(index);
     if (userId && currentUserId) {
       try {
+        // First get the photo id from the photos table
+        const { data: photoData, error: photoError } = await supabase
+          .from('photos')
+          .select('id')
+          .eq('photo_url', photos[index])
+          .single();
+
+        if (photoError) throw photoError;
+
+        // Then get comments using the photo id
         const { data: commentsData, error: commentsError } = await supabase
           .from('comments')
           .select(`
@@ -58,11 +67,12 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
               avatar_url
             )
           `)
-          .eq('post_id', photos[index]);
+          .eq('photo_id', photoData.id);
 
         if (commentsError) throw commentsError;
         setComments((commentsData || []).map(mapPhotoCommentToComment));
 
+        // Check if the current user has liked this photo
         const { data: likeData, error: likeError } = await supabase
           .from('photo_likes')
           .select('id')
@@ -73,6 +83,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
         if (likeError) throw likeError;
         setIsLiked(!!likeData);
 
+        // Get likes count
         const { count, error: countError } = await supabase
           .from('photo_likes')
           .select('*', { count: 'exact', head: true })
@@ -105,12 +116,22 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
 
     setIsSubmitting(true);
     try {
+      // First get the photo id
+      const { data: photoData, error: photoError } = await supabase
+        .from('photos')
+        .select('id')
+        .eq('photo_url', photos[selectedPhotoIndex])
+        .single();
+
+      if (photoError) throw photoError;
+
+      // Then create the comment
       const { data, error } = await supabase
         .from('comments')
         .insert({
           content: newComment.trim(),
           user_id: currentUserId,
-          post_id: photos[selectedPhotoIndex]
+          photo_id: photoData.id
         })
         .select(`
           id,
