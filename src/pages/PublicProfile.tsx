@@ -136,7 +136,7 @@ export const PublicProfile = () => {
 
   useEffect(() => {
     const fetchPosts = async () => {
-      if (profile?.username) {
+      if (profile?.id) {
         const { data: postsData, error: postsError } = await supabase
           .from("posts")
           .select(`
@@ -145,14 +145,15 @@ export const PublicProfile = () => {
             image_url,
             created_at,
             likes_count,
-            profiles!inner (
+            user_id,
+            profiles!user_id (
               id,
               name,
               username,
               avatar_url
             )
           `)
-          .eq("profiles.username", profile.username)
+          .eq("user_id", profile.id)
           .order("created_at", { ascending: false });
 
         if (postsError) {
@@ -177,7 +178,7 @@ export const PublicProfile = () => {
                   content,
                   created_at,
                   likes_count,
-                  profiles (
+                  profiles!user_id (
                     name,
                     username,
                     avatar_url
@@ -214,30 +215,6 @@ export const PublicProfile = () => {
       fetchPosts();
     }
   }, [profile, currentUserId]);
-
-  if (loading) {
-    return (
-      <>
-        <Header />
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#6153BD]"></div>
-        </div>
-        <Footer />
-      </>
-    );
-  }
-
-  if (error) {
-    return (
-      <>
-        <Header />
-        <ProfileError error={error} />
-        <Footer />
-      </>
-    );
-  }
-
-  if (!profile) return null;
 
   const handlePostCreated = () => {
     const fetchPosts = async () => {
