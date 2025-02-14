@@ -16,7 +16,8 @@ export const Header: React.FC = () => {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [unreadMessages, setUnreadMessages] = useState(0); // Will be implemented later
+  const [unreadMessages, setUnreadMessages] = useState(0);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -29,6 +30,7 @@ export const Header: React.FC = () => {
           setTimeout(() => {
             if (mounted) {
               setIsLoggedIn(!!session);
+              setUserId(session?.user?.id || null);
               setIsTransitioning(false);
             }
           }, 0);
@@ -46,6 +48,7 @@ export const Header: React.FC = () => {
         setTimeout(() => {
           if (mounted) {
             setIsLoggedIn(!!session);
+            setUserId(session?.user?.id || null);
             setIsTransitioning(false);
           }
         }, 0);
@@ -67,6 +70,12 @@ export const Header: React.FC = () => {
       console.error("Logout error:", error);
     } finally {
       setIsTransitioning(false);
+    }
+  };
+
+  const handleProfileClick = () => {
+    if (userId) {
+      navigate(`/profile/${userId}`);
     }
   };
 
@@ -96,7 +105,7 @@ export const Header: React.FC = () => {
         {isLoggedIn && (
           <div className="flex items-center gap-4 ml-8">
             <button 
-              onClick={() => navigate("/profile")}
+              onClick={handleProfileClick}
               className="flex items-center gap-2 text-[#6153BD] hover:text-[#4B3FA0] transition-colors"
               title="My Profile"
             >
