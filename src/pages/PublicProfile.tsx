@@ -137,13 +137,6 @@ export const PublicProfile = () => {
                   <UserPlus size={20} weight="bold" />
                   Add Friend
                 </Button>
-                <Button 
-                  onClick={() => setIsReportModalOpen(true)}
-                  className="bg-white gap-2.5 text-red-600 whitespace-nowrap px-5 py-2.5 rounded-[10px] border-red-600 border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-red-600 hover:text-white w-full"
-                >
-                  <Warning size={20} weight="bold" />
-                  Report User
-                </Button>
               </div>
             )}
             <PhotoGallery userId={profile.id} />
@@ -153,6 +146,18 @@ export const PublicProfile = () => {
                 No friends yet
               </div>
             </div>
+            {!isOwnProfile && (
+              <div className="flex justify-center">
+                <Button 
+                  onClick={() => setIsReportModalOpen(true)}
+                  variant="ghost"
+                  className="text-gray-500 hover:text-red-600 text-sm flex items-center gap-1.5 py-1.5"
+                >
+                  <Warning size={16} weight="bold" />
+                  Report inappropriate behavior
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
