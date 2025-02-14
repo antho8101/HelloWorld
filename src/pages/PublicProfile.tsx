@@ -56,6 +56,8 @@ export const PublicProfile = () => {
         return;
       }
 
+      console.log("Fetching profile with ID:", profileId);
+
       try {
         const { data, error: fetchError } = await supabase
           .from("profiles")
@@ -74,11 +76,13 @@ export const PublicProfile = () => {
             bio
           `)
           .eq("id", profileId)
-          .single();
+          .maybeSingle();
+
+        console.log("Profile data response:", { data, error: fetchError });
 
         if (fetchError) {
           console.error("Error fetching profile:", fetchError);
-          toast.error("Erreur lors du chargement du profil");
+          toast.error("Error loading profile");
           setError(fetchError.message);
           return;
         }
