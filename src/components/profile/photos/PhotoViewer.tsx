@@ -37,26 +37,26 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
   isSubmitting,
 }) => {
   return (
-    <div className="relative">
+    <div className="fixed inset-0 bg-black/90 z-50">
       <Button
         variant="ghost"
-        className="absolute top-2 right-2 text-white hover:bg-black/20 z-10"
+        className="absolute top-4 right-4 text-white hover:bg-black/20 z-10"
         onClick={onClose}
       >
         <X size={24} weight="bold" />
       </Button>
       
-      <div className="grid grid-cols-[1fr,400px]">
-        <div className="relative bg-black">
+      <div className="grid h-screen grid-cols-[1fr,400px]">
+        <div className="relative flex items-center justify-center">
           <img
             src={photoUrl}
             alt={`Photo ${photoIndex + 1}`}
-            className="w-full h-[600px] object-contain"
+            className="max-h-screen max-w-full object-contain"
           />
           
           <Button
             variant="ghost"
-            className="absolute left-2 top-1/2 -translate-y-1/2 text-white hover:bg-black/20"
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-black/20"
             onClick={onPrevious}
           >
             <ArrowLeft size={24} weight="bold" />
@@ -64,14 +64,14 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
           
           <Button
             variant="ghost"
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-white hover:bg-black/20"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-black/20"
             onClick={onNext}
           >
             <ArrowRight size={24} weight="bold" />
           </Button>
         </div>
 
-        <div className="p-4 flex flex-col h-[600px]">
+        <div className="p-6 bg-white h-screen overflow-y-auto">
           <LikeButton isLiked={isLiked} likesCount={likesCount} onClick={onLike} />
           <CommentSection
             comments={comments}
