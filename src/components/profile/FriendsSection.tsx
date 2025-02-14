@@ -104,7 +104,7 @@ export const FriendsSection: React.FC = () => {
           No friends yet
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           {friends.map((friend) => (
             <FriendCard key={friend.id} friend={friend} />
           ))}
