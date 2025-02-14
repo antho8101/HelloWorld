@@ -2,6 +2,7 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import type { LanguageWithLevel } from "@/components/LanguageSelector";
+import { GlobeHemisphereWest, Translate, Books } from "@phosphor-icons/react";
 
 const getLanguageFlag = (language: string): string => {
   const flags: { [key: string]: string } = {
@@ -46,7 +47,8 @@ export const LanguagesSection: React.FC<LanguagesSectionProps> = ({
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="space-y-4">
         <h2 className="text-lg font-bold text-[#6153BD] flex items-center gap-2">
-          🗣️ Native Languages
+          <Translate className="h-5 w-5" />
+          Native Languages
         </h2>
         <div className="flex flex-wrap gap-2">
           {nativeLanguages.map((lang) => (
@@ -60,7 +62,8 @@ export const LanguagesSection: React.FC<LanguagesSectionProps> = ({
 
       <div className="space-y-4">
         <h2 className="text-lg font-bold text-[#6153BD] flex items-center gap-2">
-          📚 Learning Languages
+          <Books className="h-5 w-5" />
+          Learning Languages
         </h2>
         <div className="flex flex-wrap gap-2">
           {learningLanguages.map((lang) => (
