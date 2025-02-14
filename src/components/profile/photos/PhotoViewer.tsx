@@ -39,14 +39,6 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
 }) => {
   return (
     <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
-      <Button
-        variant="ghost"
-        onClick={onClose}
-        className="absolute right-4 top-4 text-white hover:bg-black/20 z-50"
-      >
-        <X size={24} weight="bold" />
-      </Button>
-
       <div className="flex w-full max-w-[1400px] h-[85vh] bg-white rounded-lg overflow-hidden">
         <div className="relative flex-1 flex items-center justify-center bg-black/50">
           <img
@@ -72,7 +64,14 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
           </Button>
         </div>
 
-        <div className="w-[400px] bg-white h-full overflow-y-auto">
+        <div className="w-[400px] bg-white h-full overflow-y-auto relative">
+          <Button
+            variant="ghost"
+            onClick={onClose}
+            className="absolute right-2 top-2 hover:bg-gray-100"
+          >
+            <X size={24} weight="bold" />
+          </Button>
           <div className="p-6">
             <LikeButton isLiked={isLiked} likesCount={likesCount} onClick={onLike} />
             <CommentSection
