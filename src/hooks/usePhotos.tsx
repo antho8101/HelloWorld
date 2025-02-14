@@ -69,6 +69,7 @@ export const usePhotos = (userId: string | null) => {
   return {
     photos,
     loading,
-    uploadPhoto
+    uploadPhoto,
+    fetchPhotos
   };
 };
