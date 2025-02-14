@@ -1,12 +1,11 @@
 
 import React, { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { User, Heart, ChatText } from "@phosphor-icons/react";
-import { format } from "date-fns";
 import { toast } from "sonner";
+import { PostHeader } from "./PostHeader";
+import { PostActions } from "./PostActions";
+import { CommentList } from "./CommentList";
+import { CommentForm } from "./CommentForm";
 
 interface PostProps {
   id: string;
@@ -130,20 +129,7 @@ export const Post: React.FC<PostProps> = ({
 
   return (
     <div className="bg-card/80 backdrop-blur-sm border border-border rounded-lg p-6 shadow-md space-y-4">
-      <div className="flex items-center gap-3">
-        <Avatar>
-          <AvatarImage src={author.avatarUrl || undefined} />
-          <AvatarFallback>
-            <User size={24} />
-          </AvatarFallback>
-        </Avatar>
-        <div>
-          <div className="font-semibold">{author.name}</div>
-          <div className="text-sm text-muted-foreground">
-            @{author.username} • {format(new Date(createdAt), "MMM d, yyyy")}
-          </div>
-        </div>
-      </div>
+      <PostHeader author={author} createdAt={createdAt} />
 
       {content && (
         <p className="text-foreground">{content}</p>
@@ -157,64 +143,23 @@ export const Post: React.FC<PostProps> = ({
         />
       )}
 
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleLike}
-          className={`flex items-center gap-2 ${isLiked ? "text-red-500" : ""}`}
-        >
-          <Heart weight={isLiked ? "fill" : "regular"} size={20} />
-          {localLikesCount}
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setShowComments(!showComments)}
-          className="flex items-center gap-2"
-        >
-          <ChatText size={20} />
-          {comments.length}
-        </Button>
-      </div>
+      <PostActions
+        isLiked={isLiked}
+        likesCount={localLikesCount}
+        commentsCount={comments.length}
+        onLike={handleLike}
+        onCommentToggle={() => setShowComments(!showComments)}
+      />
 
       {showComments && (
         <div className="space-y-4">
-          {comments.map(comment => (
-            <div key={comment.id} className="pl-4 border-l-2 border-border">
-              <div className="flex items-center gap-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={comment.author.avatarUrl || undefined} />
-                  <AvatarFallback>
-                    <User size={16} />
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <div className="font-semibold text-sm">{comment.author.name}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {format(new Date(comment.createdAt), "MMM d, yyyy")}
-                  </div>
-                </div>
-              </div>
-              <p className="mt-2 text-sm text-foreground">{comment.content}</p>
-            </div>
-          ))}
-
-          <form onSubmit={handleComment} className="space-y-2">
-            <Textarea
-              placeholder="Add a comment..."
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              className="resize-none"
-            />
-            <Button
-              type="submit"
-              disabled={isSubmitting || !newComment.trim()}
-              className="bg-[#6153BD] hover:bg-[#6153BD]/90"
-            >
-              Post Comment
-            </Button>
-          </form>
+          <CommentList comments={comments} />
+          <CommentForm
+            value={newComment}
+            onChange={setNewComment}
+            onSubmit={handleComment}
+            isSubmitting={isSubmitting}
+          />
         </div>
       )}
     </div>
