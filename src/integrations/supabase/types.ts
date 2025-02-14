@@ -15,7 +15,7 @@ export type Database = {
           created_at: string
           id: string
           likes_count: number
-          photo_id: string | null
+          photo_url: string | null
           post_id: string | null
           user_id: string
         }
@@ -24,7 +24,7 @@ export type Database = {
           created_at?: string
           id?: string
           likes_count?: number
-          photo_id?: string | null
+          photo_url?: string | null
           post_id?: string | null
           user_id: string
         }
@@ -33,18 +33,11 @@ export type Database = {
           created_at?: string
           id?: string
           likes_count?: number
-          photo_id?: string | null
+          photo_url?: string | null
           post_id?: string | null
           user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "comments_photo_id_fkey"
-            columns: ["photo_id"]
-            isOneToOne: false
-            referencedRelation: "photos"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "comments_post_id_fkey"
             columns: ["post_id"]

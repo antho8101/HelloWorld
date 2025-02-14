@@ -20,14 +20,14 @@ export const usePhotoComments = (currentUserId: string | null) => {
           content,
           created_at,
           user_id,
-          photo_id,
+          photo_url,
           profiles (
             name,
             username,
             avatar_url
           )
         `)
-        .eq('photo_id', photoUrl)
+        .eq('photo_url', photoUrl)
         .order('created_at', { ascending: true });
 
       if (commentsError) throw commentsError;
@@ -48,14 +48,14 @@ export const usePhotoComments = (currentUserId: string | null) => {
         .insert({
           content: newComment.trim(),
           user_id: currentUserId,
-          photo_id: photoUrl
+          photo_url: photoUrl
         })
         .select(`
           id,
           content,
           created_at,
           user_id,
-          photo_id,
+          photo_url,
           profiles (
             name,
             username,
