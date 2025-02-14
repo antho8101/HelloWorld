@@ -19,7 +19,7 @@ export const usePosts = (profileId: string | null, currentUserId: string | null)
           )
         `)
         .eq("user_id", profileId)
-        .order("created_at", { ascending: true }); // Changed to true to show oldest first
+        .order("created_at", { ascending: false }); // Changed to false to show newest first
 
       if (postsError) {
         console.error("Error fetching posts:", postsError);
