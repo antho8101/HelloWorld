@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,7 +27,8 @@ export const Auth = () => {
 
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+        // Try to sign up the user
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -36,8 +36,8 @@ export const Auth = () => {
           }
         });
         
-        if (error) {
-          if (error.message === "Email signups are disabled") {
+        if (signUpError) {
+          if (signUpError.message === "Email signups are disabled") {
             toast({
               variant: "destructive",
               title: "Signup Error",
@@ -47,16 +47,42 @@ export const Auth = () => {
             toast({
               variant: "destructive",
               title: "Signup Error",
-              description: error.message,
+              description: signUpError.message,
             });
           }
           return;
         }
-        
-        toast({
-          title: "Sign up successful!",
-          description: "Please check your email to confirm your account.",
-        });
+
+        // If signup successful and user is created
+        if (signUpData.user) {
+          // Wait a bit to ensure the trigger has time to create the profile
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Check if profile exists
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', signUpData.user.id)
+            .single();
+
+          if (profileError) {
+            console.error('Profile creation error:', profileError);
+            toast({
+              variant: "destructive",
+              title: "Profile Creation Error",
+              description: "There was an issue creating your profile. Please try again.",
+            });
+            return;
+          }
+
+          if (profileData) {
+            toast({
+              title: "Account created successfully!",
+              description: "Welcome to HelloWorld! Let's set up your profile.",
+            });
+            navigate("/profile");
+          }
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -80,6 +106,10 @@ export const Auth = () => {
           return;
         }
         
+        toast({
+          title: "Welcome back!",
+          description: "Successfully logged in.",
+        });
         navigate("/profile");
       }
     } catch (error: any) {
