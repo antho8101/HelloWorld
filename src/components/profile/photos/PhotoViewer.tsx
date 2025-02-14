@@ -40,11 +40,11 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
   return (
     <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
       <div className="flex w-full max-w-[1400px] h-[85vh] bg-white rounded-lg overflow-hidden">
-        <div className="relative flex-1 flex items-center justify-center bg-black/50">
+        <div className="relative flex-1 flex items-stretch bg-black/50">
           <img
             src={photoUrl}
             alt={`Photo ${photoIndex + 1}`}
-            className="max-h-[85vh] max-w-full object-contain"
+            className="w-full h-full object-contain"
           />
           
           <Button
