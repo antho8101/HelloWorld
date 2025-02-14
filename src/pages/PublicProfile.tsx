@@ -121,11 +121,22 @@ export const PublicProfile = () => {
           
           <div className="space-y-6">
             {!isOwnProfile && !profile.is_banned && !profile.is_suspended && (
-              <ProfileActions
-                onMessage={handleMessage}
-                profileId={profile.id}
-                currentUserId={currentUserId}
-              />
+              <>
+                <ProfileActions
+                  onMessage={handleMessage}
+                  profileId={profile.id}
+                  currentUserId={currentUserId}
+                />
+                <ReportDialog
+                  isOpen={isReportModalOpen}
+                  onOpenChange={setIsReportModalOpen}
+                  reason={reportReason}
+                  onReasonChange={setReportReason}
+                  description={reportDescription}
+                  onDescriptionChange={(e) => setReportDescription(e.target.value)}
+                  onSubmit={handleReport}
+                />
+              </>
             )}
             <FriendsSection />
             <PhotoGallery userId={profile.id} />
@@ -136,16 +147,6 @@ export const PublicProfile = () => {
         </div>
       </div>
       <Footer />
-
-      <ReportDialog
-        isOpen={isReportModalOpen}
-        onOpenChange={setIsReportModalOpen}
-        reason={reportReason}
-        onReasonChange={setReportReason}
-        description={reportDescription}
-        onDescriptionChange={(e) => setReportDescription(e.target.value)}
-        onSubmit={handleReport}
-      />
     </>
   );
 };
