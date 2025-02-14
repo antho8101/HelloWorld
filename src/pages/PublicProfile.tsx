@@ -49,14 +49,14 @@ export const PublicProfile = () => {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const profileId = params.id;
-      if (!profileId) {
-        setError("No profile ID provided");
+      const username = params.id;
+      if (!username) {
+        setError("No username provided");
         setLoading(false);
         return;
       }
 
-      console.log("Fetching profile with ID:", profileId);
+      console.log("Fetching profile with username:", username);
 
       try {
         const { data, error: fetchError } = await supabase
@@ -75,7 +75,7 @@ export const PublicProfile = () => {
             looking_for,
             bio
           `)
-          .eq("id", profileId)
+          .eq("username", username)
           .maybeSingle();
 
         console.log("Profile data response:", { data, error: fetchError });
