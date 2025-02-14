@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Footer } from "@/components/layout/Footer";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileForm } from "@/components/profile/ProfileForm";
 import { useProfile } from "@/hooks/use-profile";
 import { RegisterHeader } from "@/components/profile/RegisterHeader";
@@ -104,14 +103,7 @@ export const Profile = () => {
 
       <div className="bg-[rgba(255,243,240,1)] py-12 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-[80%] mx-auto bg-white rounded-2xl shadow-lg p-8">
-          <ProfileHeader
-            name={profile.name}
-            username={profile.username}
-            avatarUrl={profile.avatar_url}
-            age={profile.age}
-            city={profile.city}
-            country={profile.country}
-          />
+          <h1 className="text-3xl font-black text-[#6153BD] mb-8">Create your profile</h1>
           
           <ProfileForm
             userId={userId || ""}
