@@ -2,8 +2,35 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+interface Profile {
+  id: string;
+  name: string | null;
+  username: string | null;
+  avatar_url: string | null;
+}
+
+interface Comment {
+  id: string;
+  content: string;
+  created_at: string;
+  likes_count: number;
+  profiles: Profile;
+}
+
+interface Post {
+  id: string;
+  content: string;
+  created_at: string;
+  user_id: string;
+  likes_count: number;
+  comments_count: number;
+  profiles: Profile;
+  isLiked?: boolean;
+  comments?: Comment[];
+}
+
 export const usePosts = (profileId: string | null, currentUserId: string | null) => {
-  const [posts, setPosts] = useState<any[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
 
   const fetchPosts = async () => {
     if (profileId) {
@@ -19,7 +46,7 @@ export const usePosts = (profileId: string | null, currentUserId: string | null)
           )
         `)
         .eq("user_id", profileId)
-        .order("created_at", { ascending: false }); // Changed to false to show newest first
+        .order("created_at", { ascending: false });
 
       if (postsError) {
         console.error("Error fetching posts:", postsError);

@@ -80,6 +80,13 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
     await toggleLike(photos[selectedPhotoIndex], currentUserId);
   };
 
+  const triggerFileInput = () => {
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    }
+  };
+
   return (
     <div className="bg-white/80 backdrop-blur-sm rounded-[20px] p-6 shadow-lg w-full">
       <PhotoHandler userId={userId} onPhotoUpload={fetchPhotos} />
@@ -88,7 +95,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
         photos={photos}
         isOwnProfile={isOwnProfile}
         onPhotoClick={handlePhotoClick}
-        onAddPhoto={() => document.querySelector('input[type="file"]')?.click()}
+        onAddPhoto={triggerFileInput}
       />
 
       <Dialog open={selectedPhotoIndex !== null} onOpenChange={() => setSelectedPhotoIndex(null)}>
