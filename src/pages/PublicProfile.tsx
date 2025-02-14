@@ -146,24 +146,30 @@ export const PublicProfile = () => {
     <>
       <Header />
       <div className="min-h-screen bg-[rgba(255,243,240,1)] py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <div className="bg-white/80 backdrop-blur-sm rounded-[20px] shadow-lg p-8">
-            <ProfileHeader
-              name={profile.name}
-              username={profile.username}
-              avatarUrl={profile.avatar_url}
-              age={profile.age}
-              city={profile.city}
-              country={profile.country}
-            />
-
-            <div className="w-full space-y-6 mt-6">
+            <div className="flex flex-col md:flex-row md:gap-8">
+              <div className="md:w-1/2">
+                <ProfileHeader
+                  name={profile.name}
+                  username={profile.username}
+                  avatarUrl={profile.avatar_url}
+                  age={profile.age}
+                  city={profile.city}
+                  country={profile.country}
+                />
+              </div>
+              
               {profile.bio && (
-                <div className="text-center text-gray-700 max-w-xl mx-auto">
-                  {profile.bio}
+                <div className="md:w-1/2 mt-6 md:mt-0 flex items-center">
+                  <div className="text-gray-700">
+                    {profile.bio}
+                  </div>
                 </div>
               )}
+            </div>
 
+            <div className="w-full space-y-6 mt-6">
               <LanguagesSection
                 nativeLanguages={profile.native_languages}
                 learningLanguages={profile.language_levels}
