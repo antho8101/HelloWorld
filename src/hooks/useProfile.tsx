@@ -19,6 +19,9 @@ interface Profile {
   looking_for: string[];
   bio: string | null;
   id: string | null;
+  is_banned: boolean | null;
+  is_suspended: boolean | null;
+  suspension_end_timestamp: string | null;
 }
 
 const transformLanguageLevels = (languageLevels: Json | null): LanguageWithLevel[] => {
@@ -65,7 +68,10 @@ export const useProfile = (profileId: string | undefined) => {
             language_levels,
             interested_in,
             looking_for,
-            bio
+            bio,
+            is_banned,
+            is_suspended,
+            suspension_end_timestamp
           `)
           .eq("id", profileId)
           .maybeSingle();
@@ -97,7 +103,10 @@ export const useProfile = (profileId: string | undefined) => {
           language_levels: transformLanguageLevels(data.language_levels),
           interested_in: Array.isArray(data.interested_in) ? data.interested_in : [],
           looking_for: Array.isArray(data.looking_for) ? data.looking_for : [],
-          bio: data.bio
+          bio: data.bio,
+          is_banned: data.is_banned,
+          is_suspended: data.is_suspended,
+          suspension_end_timestamp: data.suspension_end_timestamp
         });
         setError(null);
       } catch (err) {
