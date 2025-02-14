@@ -10,12 +10,24 @@ import { PhotoGallery } from "@/components/profile/PhotoGallery";
 import { useProfile } from "@/hooks/useProfile";
 import { usePosts } from "@/hooks/usePosts";
 import { useSession } from "@/hooks/useSession";
+import { Button } from "@/components/ui/button";
+import { ChatText, UserPlus } from "@phosphor-icons/react";
 
 export const PublicProfile = () => {
   const params = useParams();
   const { profile, loading, error } = useProfile(params.id);
   const { currentUserId } = useSession();
   const { posts, fetchPosts } = usePosts(profile?.id, currentUserId);
+  
+  const handleMessage = () => {
+    // TODO: Implement messaging functionality
+    console.log("Send message to:", profile?.id);
+  };
+
+  const handleAddFriend = () => {
+    // TODO: Implement add friend functionality
+    console.log("Add friend:", profile?.id);
+  };
 
   if (loading) {
     return (
@@ -41,6 +53,9 @@ export const PublicProfile = () => {
 
   if (!profile) return null;
 
+  // Don't show action buttons if viewing own profile
+  const isOwnProfile = currentUserId === profile.id;
+
   return (
     <>
       <Header />
@@ -57,6 +72,25 @@ export const PublicProfile = () => {
           </div>
           
           <div className="space-y-6">
+            {!isOwnProfile && (
+              <div className="flex flex-col gap-3">
+                <Button 
+                  onClick={handleMessage}
+                  className="w-full bg-[#6153BD] text-white hover:bg-[#6153BD]/90"
+                >
+                  <ChatText size={20} weight="bold" />
+                  Send Message
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={handleAddFriend}
+                  className="w-full border-[#6153BD] text-[#6153BD] hover:bg-[#6153BD]/10"
+                >
+                  <UserPlus size={20} weight="bold" />
+                  Add Friend
+                </Button>
+              </div>
+            )}
             <PhotoGallery userId={profile.id} />
             <div className="bg-white/80 backdrop-blur-sm rounded-[20px] p-6 shadow-lg">
               <h3 className="text-lg font-semibold mb-4 text-[#6153BD]">Friends</h3>
