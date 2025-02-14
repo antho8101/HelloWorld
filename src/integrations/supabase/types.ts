@@ -51,6 +51,41 @@ export type Database = {
           },
         ]
       }
+      moderation_actions: {
+        Row: {
+          action_type: string
+          created_at: string
+          duration_hours: number | null
+          id: string
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          duration_hours?: number | null
+          id?: string
+          reason: string
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          duration_hours?: number | null
+          id?: string
+          reason?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moderation_actions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_likes: {
         Row: {
           created_at: string
@@ -133,10 +168,15 @@ export type Database = {
           gender: string | null
           id: string
           interested_in: string[] | null
+          is_banned: boolean | null
+          is_suspended: boolean | null
           language_levels: Json | null
           looking_for: string[] | null
           name: string | null
           native_languages: string[] | null
+          report_count: number | null
+          suspension_count: number | null
+          suspension_end_timestamp: string | null
           updated_at: string | null
           username: string | null
         }
@@ -150,10 +190,15 @@ export type Database = {
           gender?: string | null
           id: string
           interested_in?: string[] | null
+          is_banned?: boolean | null
+          is_suspended?: boolean | null
           language_levels?: Json | null
           looking_for?: string[] | null
           name?: string | null
           native_languages?: string[] | null
+          report_count?: number | null
+          suspension_count?: number | null
+          suspension_end_timestamp?: string | null
           updated_at?: string | null
           username?: string | null
         }
@@ -167,10 +212,15 @@ export type Database = {
           gender?: string | null
           id?: string
           interested_in?: string[] | null
+          is_banned?: boolean | null
+          is_suspended?: boolean | null
           language_levels?: Json | null
           looking_for?: string[] | null
           name?: string | null
           native_languages?: string[] | null
+          report_count?: number | null
+          suspension_count?: number | null
+          suspension_end_timestamp?: string | null
           updated_at?: string | null
           username?: string | null
         }
