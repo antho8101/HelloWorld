@@ -12,16 +12,18 @@ export const CommunityGrid: React.FC = () => {
 
   useEffect(() => {
     const fetchProfiles = async () => {
+      console.log("Fetching profiles...");
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, name, age, location, city, country, image, avatar_url, gender")
-        .limit(21);
+        .select("id, name, age, location, city, country, image, avatar_url, gender");
 
       if (error) {
         console.error("Error fetching profiles:", error);
         toast.error("Error loading community profiles");
         return;
       }
+
+      console.log("Profiles data:", data);
 
       if (data) {
         const mappedProfiles = data.map(profile => ({
@@ -30,10 +32,11 @@ export const CommunityGrid: React.FC = () => {
           name: profile.name || "Anonymous",
           age: profile.age || 25,
           location: profile.city && profile.country ? `${profile.city}, ${profile.country}` : profile.location || "Unknown",
-          gender: "female" as const,  // Default value since we don't use it much
+          gender: "female" as const,
           messages: 0,
           isOnline: false
         }));
+        console.log("Mapped profiles:", mappedProfiles);
         setProfiles(mappedProfiles);
       }
       setLoading(false);
