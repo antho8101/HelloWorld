@@ -37,7 +37,7 @@ export const ProfileContent: React.FC<ProfileContentProps> = ({ profile }) => {
         </div>
         
         {profile.bio && (
-          <div className="flex-1 mt-6 md:mt-0">
+          <div className="flex-1 mt-6 md:mt-0 p-5">
             <div className="text-gray-700">
               {profile.bio}
             </div>
