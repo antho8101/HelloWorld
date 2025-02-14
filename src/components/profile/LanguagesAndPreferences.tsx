@@ -19,6 +19,12 @@ interface LanguagesAndPreferencesProps {
   onLearningLanguagesChange: (languages: LanguageWithLevel[]) => void;
   onLookingForChange: (lookingFor: string[]) => void;
   onInterestedInChange: (interestedIn: string[]) => void;
+  errors?: {
+    nativeLanguages?: boolean;
+    learningLanguages?: boolean;
+    lookingFor?: boolean;
+    interestedIn?: boolean;
+  };
 }
 
 export const LanguagesAndPreferences = ({
@@ -30,6 +36,7 @@ export const LanguagesAndPreferences = ({
   onLearningLanguagesChange,
   onLookingForChange,
   onInterestedInChange,
+  errors,
 }: LanguagesAndPreferencesProps) => {
   return (
     <div className="space-y-6 h-fit">
@@ -37,21 +44,25 @@ export const LanguagesAndPreferences = ({
         <label className="block text-sm font-bold text-[#6153BD] mb-2">
           Native Languages
         </label>
-        <LanguageSelector
-          languages={nativeLanguages}
-          onChange={onNativeLanguagesChange}
-          showLevel={false}
-        />
+        <div className={errors?.nativeLanguages ? 'animate-[pulse_1s_ease-in-out_infinite] shadow-[0_0_10px_rgba(239,68,68,0.5)]' : ''}>
+          <LanguageSelector
+            languages={nativeLanguages}
+            onChange={onNativeLanguagesChange}
+            showLevel={false}
+          />
+        </div>
       </div>
 
       <div>
         <label className="block text-sm font-bold text-[#6153BD] mb-2">
           Learning Languages
         </label>
-        <LanguageSelector
-          languages={learningLanguages}
-          onChange={onLearningLanguagesChange}
-        />
+        <div className={errors?.learningLanguages ? 'animate-[pulse_1s_ease-in-out_infinite] shadow-[0_0_10px_rgba(239,68,68,0.5)]' : ''}>
+          <LanguageSelector
+            languages={learningLanguages}
+            onChange={onLearningLanguagesChange}
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -63,7 +74,7 @@ export const LanguagesAndPreferences = ({
             value={interestedIn[0] || ""}
             onValueChange={(value) => onInterestedInChange([value])}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className={errors?.interestedIn ? 'border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' : ''}>
               <SelectValue placeholder="Select who you want to meet" />
             </SelectTrigger>
             <SelectContent>
@@ -78,7 +89,7 @@ export const LanguagesAndPreferences = ({
           <label className="block text-sm font-bold text-[#6153BD] mb-2">
             I'm Looking For
           </label>
-          <div className="space-y-2">
+          <div className={`space-y-2 ${errors?.lookingFor ? 'animate-[pulse_1s_ease-in-out_infinite] shadow-[0_0_10px_rgba(239,68,68,0.5)] p-2 rounded-md' : ''}`}>
             {['friends', 'postal_exchange', 'in_person_meetings', 'flirting'].map((option) => (
               <div key={option} className="flex items-center space-x-2">
                 <Checkbox

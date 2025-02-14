@@ -5,6 +5,7 @@ interface CityInputProps {
   onCitySelect: (city: string) => void;
   cities: string[];
   disabled: boolean;
+  error?: boolean;
 }
 
 export const CityInput = ({
@@ -13,6 +14,7 @@ export const CityInput = ({
   onCitySelect,
   cities,
   disabled,
+  error,
 }: CityInputProps) => {
   return (
     <div>
@@ -25,7 +27,7 @@ export const CityInput = ({
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
           disabled={disabled}
-          className="w-full border-2 border-[#6153BD]/20 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#6153BD] focus:border-transparent transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          className={`w-full border-2 ${error ? 'border-red-500 animate-[pulse_1s_ease-in-out_infinite] shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'border-[#6153BD]/20'} rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#6153BD] focus:border-transparent transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed`}
           placeholder={disabled ? "Please select a country first" : "Start typing your city..."}
         />
         {cities.length > 0 && (
