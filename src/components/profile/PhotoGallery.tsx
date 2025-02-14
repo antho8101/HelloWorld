@@ -1,12 +1,13 @@
 
 import React, { useRef, useState } from "react";
-import { PhotoList } from "./photos/PhotoList";
-import { PhotoViewer } from "./photos/PhotoViewer";
-import { PhotoUploader } from "./photos/PhotoUploader";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { usePhotos } from "@/hooks/usePhotos";
 import { useSession } from "@/hooks/useSession";
 import { usePhotoComments } from "@/hooks/usePhotoComments";
 import { usePhotoLikes } from "@/hooks/usePhotoLikes";
+import { PhotoList } from "./photos/PhotoList";
+import { PhotoViewer } from "./photos/PhotoViewer";
+import { PhotoUploader } from "./photos/PhotoUploader";
 
 interface PhotoGalleryProps {
   userId: string | null;
@@ -102,23 +103,27 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
         onAddPhoto={handleAddPhoto}
       />
 
-      {selectedPhotoIndex !== null && (
-        <PhotoViewer
-          photoUrl={photos[selectedPhotoIndex]}
-          photoIndex={selectedPhotoIndex}
-          onClose={() => setSelectedPhotoIndex(null)}
-          onPrevious={handlePrevious}
-          onNext={handleNext}
-          isLiked={isLiked}
-          likesCount={likesCount}
-          onLike={handleLike}
-          comments={comments}
-          newComment={newComment}
-          onCommentChange={setNewComment}
-          onCommentSubmit={handleComment}
-          isSubmitting={isSubmitting}
-        />
-      )}
+      <Dialog open={selectedPhotoIndex !== null} onOpenChange={() => setSelectedPhotoIndex(null)}>
+        <DialogContent className="[&>button]:hidden max-w-4xl w-11/12 p-0 bg-white rounded-lg">
+          {selectedPhotoIndex !== null && (
+            <PhotoViewer
+              photoUrl={photos[selectedPhotoIndex]}
+              photoIndex={selectedPhotoIndex}
+              onClose={() => setSelectedPhotoIndex(null)}
+              onPrevious={handlePrevious}
+              onNext={handleNext}
+              isLiked={isLiked}
+              likesCount={likesCount}
+              onLike={handleLike}
+              comments={comments}
+              newComment={newComment}
+              onCommentChange={setNewComment}
+              onCommentSubmit={handleComment}
+              isSubmitting={isSubmitting}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
