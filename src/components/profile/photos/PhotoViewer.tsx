@@ -40,16 +40,16 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
   return (
     <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center">
       <div className="flex w-[90vw] h-[85vh] bg-white rounded-lg overflow-hidden">
-        <div className="relative flex-1 flex items-stretch bg-black/50">
+        <div className="relative flex-1 bg-black">
           <img
             src={photoUrl}
             alt={`Photo ${photoIndex + 1}`}
-            className="w-full h-full object-contain"
+            className="absolute inset-0 w-full h-full object-contain"
           />
           
           <Button
             variant="ghost"
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-black/20"
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-black/20 z-10"
             onClick={onPrevious}
           >
             <ArrowLeft size={24} weight="bold" />
@@ -57,7 +57,7 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
           
           <Button
             variant="ghost"
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-black/20"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-black/20 z-10"
             onClick={onNext}
           >
             <ArrowRight size={24} weight="bold" />
