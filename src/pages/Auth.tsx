@@ -1,5 +1,5 @@
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,8 @@ import { RegisterHeader } from "@/components/profile/RegisterHeader";
 
 export const Auth = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isSignUp = location.state?.mode === 'signup';
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -83,10 +85,12 @@ export const Auth = () => {
         <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-[20px] shadow-lg">
           <div>
             <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              Welcome back
+              {isSignUp ? "Create your account" : "Welcome back"}
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
-              Sign in to your account or create a new one
+              {isSignUp 
+                ? "Join our community and start your language learning journey" 
+                : "Sign in to your account or create a new one"}
             </p>
           </div>
           <form className="mt-8 space-y-6">
@@ -120,21 +124,43 @@ export const Auth = () => {
             </div>
 
             <div className="flex flex-col gap-4">
-              <Button
-                onClick={handleLogin}
-                disabled={loading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#6153BD] hover:bg-[#4e4494] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#6153BD]"
-              >
-                {loading ? "Loading..." : "Sign in"}
-              </Button>
-              <Button
-                onClick={handleSignUp}
-                disabled={loading}
-                variant="outline"
-                className="group relative w-full flex justify-center py-2 px-4 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#6153BD]"
-              >
-                {loading ? "Loading..." : "Sign up"}
-              </Button>
+              {isSignUp ? (
+                <>
+                  <Button
+                    onClick={handleSignUp}
+                    disabled={loading}
+                    className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#6153BD] hover:bg-[#4e4494] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#6153BD]"
+                  >
+                    {loading ? "Loading..." : "Sign up"}
+                  </Button>
+                  <Button
+                    onClick={handleLogin}
+                    disabled={loading}
+                    variant="outline"
+                    className="group relative w-full flex justify-center py-2 px-4 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#6153BD]"
+                  >
+                    {loading ? "Loading..." : "Sign in"}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    onClick={handleLogin}
+                    disabled={loading}
+                    className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#6153BD] hover:bg-[#4e4494] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#6153BD]"
+                  >
+                    {loading ? "Loading..." : "Sign in"}
+                  </Button>
+                  <Button
+                    onClick={handleSignUp}
+                    disabled={loading}
+                    variant="outline"
+                    className="group relative w-full flex justify-center py-2 px-4 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#6153BD]"
+                  >
+                    {loading ? "Loading..." : "Sign up"}
+                  </Button>
+                </>
+              )}
             </div>
           </form>
         </div>
