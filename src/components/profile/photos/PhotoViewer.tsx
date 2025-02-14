@@ -38,7 +38,7 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
   isSubmitting,
 }) => {
   return (
-    <div className="fixed inset-0 bg-black/90 z-50">
+    <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
       <Button
         variant="ghost"
         onClick={onClose}
@@ -47,43 +47,41 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
         <X size={24} weight="bold" />
       </Button>
 
-      <div className="flex h-screen items-center justify-center">
-        <div className="flex max-w-[1400px] h-[90vh] bg-white rounded-lg overflow-hidden">
-          <div className="relative flex-1 flex items-center justify-center bg-black/50">
-            <img
-              src={photoUrl}
-              alt={`Photo ${photoIndex + 1}`}
-              className="max-h-[90vh] max-w-full object-contain"
-            />
-            
-            <Button
-              variant="ghost"
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-black/20"
-              onClick={onPrevious}
-            >
-              <ArrowLeft size={24} weight="bold" />
-            </Button>
-            
-            <Button
-              variant="ghost"
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-black/20"
-              onClick={onNext}
-            >
-              <ArrowRight size={24} weight="bold" />
-            </Button>
-          </div>
+      <div className="flex w-full max-w-[1400px] h-[85vh] bg-white rounded-lg overflow-hidden">
+        <div className="relative flex-1 flex items-center justify-center bg-black/50">
+          <img
+            src={photoUrl}
+            alt={`Photo ${photoIndex + 1}`}
+            className="max-h-[85vh] max-w-full object-contain"
+          />
+          
+          <Button
+            variant="ghost"
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-black/20"
+            onClick={onPrevious}
+          >
+            <ArrowLeft size={24} weight="bold" />
+          </Button>
+          
+          <Button
+            variant="ghost"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-black/20"
+            onClick={onNext}
+          >
+            <ArrowRight size={24} weight="bold" />
+          </Button>
+        </div>
 
-          <div className="w-[400px] bg-white h-full overflow-y-auto">
-            <div className="p-6">
-              <LikeButton isLiked={isLiked} likesCount={likesCount} onClick={onLike} />
-              <CommentSection
-                comments={comments}
-                newComment={newComment}
-                onCommentChange={onCommentChange}
-                onCommentSubmit={onCommentSubmit}
-                isSubmitting={isSubmitting}
-              />
-            </div>
+        <div className="w-[400px] bg-white h-full overflow-y-auto">
+          <div className="p-6">
+            <LikeButton isLiked={isLiked} likesCount={likesCount} onClick={onLike} />
+            <CommentSection
+              comments={comments}
+              newComment={newComment}
+              onCommentChange={onCommentChange}
+              onCommentSubmit={onCommentSubmit}
+              isSubmitting={isSubmitting}
+            />
           </div>
         </div>
       </div>
