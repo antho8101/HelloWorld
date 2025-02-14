@@ -25,7 +25,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
       <img
         loading="lazy"
         srcSet={image}
-        className="h-48 w-48 max-md:h-[160px] max-md:w-[140px] object-cover rounded-[10px] transition-transform duration-300"
+        className="h-[200px] w-[180px] max-md:h-[160px] max-md:w-[140px] object-cover rounded-[10px] transition-transform duration-300"
         alt={`${name}, ${age}`}
       />
       <div className="w-full mt-2.5 px-1">
@@ -48,7 +48,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
   );
 
   return (
-    <div className="self-stretch w-48 my-auto max-md:w-[140px] group">
+    <div className="self-stretch w-[180px] my-auto max-md:w-[140px] group">
       {id ? (
         <Link to={`/profile/${id}`} className="block">
           <Content />
