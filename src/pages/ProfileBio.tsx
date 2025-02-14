@@ -76,7 +76,7 @@ export const ProfileBio = () => {
         description: "Bio updated successfully",
       });
       
-      navigate("/profile");
+      navigate(`/profile/${userId}`); // Redirect to public profile page
     } catch (error: any) {
       toast({
         variant: "destructive",
