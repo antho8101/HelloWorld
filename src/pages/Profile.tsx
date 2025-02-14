@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +6,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileForm } from "@/components/profile/ProfileForm";
 import { useProfile } from "@/hooks/use-profile";
-import { ArrowLeft } from "@phosphor-icons/react";
+import { Header } from "@/components/landing/Header";
 
 export const Profile = () => {
   const navigate = useNavigate();
@@ -100,23 +99,7 @@ export const Profile = () => {
 
   return (
     <main className="min-h-screen select-none">
-      <div className="bg-[rgba(255,243,240,1)] flex w-full flex-col items-stretch p-5 max-md:max-w-full">
-        <div className="flex justify-between items-center">
-          <img
-            loading="lazy"
-            srcSet="https://cdn.builder.io/api/v1/image/assets/f97848ecf61542bea4ab8ab7f8d20ea9/fc1f6b1b3fc6ee87b690f1b6be44876cdf1e0e313d0c5d6607e5e53302011af2?placeholderIfAbsent=true&width=100 100w, https://cdn.builder.io/api/v1/image/assets/f97848ecf61542bea4ab8ab7f8d20ea9/fc1f6b1b3fc6ee87b690f1b6be44876cdf1e0e313d0c5d6607e5e53302011af2?placeholderIfAbsent=true&width=200 200w"
-            className="aspect-[1] object-contain w-[76px]"
-            alt="HelloWorld! Logo"
-          />
-          <button
-            onClick={() => navigate("/")}
-            className="flex items-center gap-2 text-[#6153BD] font-bold hover:text-[#6153BD]/90 transition-colors"
-          >
-            <ArrowLeft size={20} weight="bold" />
-            Back to Homepage
-          </button>
-        </div>
-      </div>
+      <Header />
 
       <div className="bg-[rgba(255,243,240,1)] py-12 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-[80%] mx-auto bg-white rounded-2xl shadow-lg p-8">
