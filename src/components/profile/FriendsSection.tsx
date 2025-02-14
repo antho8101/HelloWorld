@@ -5,6 +5,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 
 export const FriendsSection: React.FC = () => {
   const [friends, setFriends] = useState<any[]>([]);
@@ -66,6 +67,35 @@ export const FriendsSection: React.FC = () => {
     };
   }, [params.id]);
 
+  const FriendCard = ({ friend }: { friend: any }) => {
+    const isOnline = useOnlineStatus(friend.id);
+    
+    return (
+      <Link
+        key={friend.id}
+        to={`/profile/${friend.id}`}
+        className="flex flex-col items-center p-2 hover:bg-gray-50 rounded-lg transition-colors"
+      >
+        <div className="relative">
+          <Avatar className="h-16 w-16">
+            <AvatarImage src={friend.avatar_url || undefined} />
+            <AvatarFallback>
+              <User className="w-6 h-6" />
+            </AvatarFallback>
+          </Avatar>
+          <div 
+            className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
+              isOnline ? 'bg-green-500' : 'bg-gray-400'
+            }`}
+          />
+        </div>
+        <p className="mt-2 text-sm font-medium text-gray-900 text-center">
+          {friend.name || "Anonymous"}
+        </p>
+      </Link>
+    );
+  };
+
   return (
     <div className="bg-white/80 backdrop-blur-sm rounded-[20px] p-6 shadow-lg">
       <h3 className="text-lg font-semibold mb-4 text-[#6153BD]">Friends</h3>
@@ -74,23 +104,9 @@ export const FriendsSection: React.FC = () => {
           No friends yet
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-2">
           {friends.map((friend) => (
-            <Link
-              key={friend.id}
-              to={`/profile/${friend.id}`}
-              className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors"
-            >
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={friend.avatar_url || undefined} />
-                <AvatarFallback>
-                  <User className="w-4 h-4" />
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <p className="font-medium text-gray-900">{friend.name || "Anonymous"}</p>
-              </div>
-            </Link>
+            <FriendCard key={friend.id} friend={friend} />
           ))}
         </div>
       )}
