@@ -80,7 +80,7 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <header className="flex w-full items-center justify-between flex-wrap px-5 py-2.5 max-md:max-w-full bg-[#FFF3F0]">
+    <header className="flex w-full items-center justify-between flex-wrap p-10 max-md:max-w-full bg-[#FFF3F0]">
       <div className="flex items-center gap-4">
         <div 
           onClick={() => navigate("/")}
