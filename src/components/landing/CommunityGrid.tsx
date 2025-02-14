@@ -13,33 +13,40 @@ export const CommunityGrid: React.FC = () => {
   useEffect(() => {
     const fetchProfiles = async () => {
       console.log("Fetching profiles...");
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, name, age, location, city, country, image, avatar_url, gender");
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("id, name, age, city, country")
+          .limit(20);
 
-      if (error) {
-        console.error("Error fetching profiles:", error);
-        toast.error("Error loading community profiles");
-        return;
+        if (error) {
+          console.error("Error fetching profiles:", error);
+          toast.error("Error loading community profiles");
+          return;
+        }
+
+        console.log("Raw profiles data:", data);
+
+        if (data) {
+          const mappedProfiles = data.map(profile => ({
+            id: profile.id,
+            image: `https://i.pravatar.cc/150?u=${profile.id}`,
+            name: profile.name || "Anonymous",
+            age: profile.age || 25,
+            location: profile.city && profile.country ? `${profile.city}, ${profile.country}` : "Unknown",
+            gender: "female" as const,
+            messages: 0,
+            isOnline: false
+          }));
+          console.log("Mapped profiles:", mappedProfiles);
+          setProfiles(mappedProfiles);
+        }
+      } catch (err) {
+        console.error("Unexpected error:", err);
+        toast.error("An unexpected error occurred");
+      } finally {
+        setLoading(false);
       }
-
-      console.log("Profiles data:", data);
-
-      if (data) {
-        const mappedProfiles = data.map(profile => ({
-          id: profile.id,
-          image: profile.avatar_url || profile.image || `https://i.pravatar.cc/150?u=${profile.id}`,
-          name: profile.name || "Anonymous",
-          age: profile.age || 25,
-          location: profile.city && profile.country ? `${profile.city}, ${profile.country}` : profile.location || "Unknown",
-          gender: "female" as const,
-          messages: 0,
-          isOnline: false
-        }));
-        console.log("Mapped profiles:", mappedProfiles);
-        setProfiles(mappedProfiles);
-      }
-      setLoading(false);
     };
 
     fetchProfiles();
