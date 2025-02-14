@@ -36,13 +36,15 @@ export const usePosts = (profileId: string | null, currentUserId: string | null)
 
         const postsWithLikes = await Promise.all(
           postsData.map(async (post) => {
-            const { data: comments } = await supabase
+            // Modifié ici pour utiliser la bonne syntaxe de requête
+            const { data: commentsData, error: commentsError } = await supabase
               .from("comments")
               .select(`
                 id,
                 content,
                 created_at,
-                profiles (
+                user_id,
+                profiles!comments_user_id_fkey (
                   name,
                   username,
                   avatar_url
@@ -51,10 +53,19 @@ export const usePosts = (profileId: string | null, currentUserId: string | null)
               .eq("post_id", post.id)
               .order("created_at", { ascending: true });
 
+            if (commentsError) {
+              console.error("Error fetching comments:", commentsError);
+              return {
+                ...post,
+                isLiked: likedPostIds.has(post.id),
+                comments: [],
+              };
+            }
+
             return {
               ...post,
               isLiked: likedPostIds.has(post.id),
-              comments: comments?.map(comment => ({
+              comments: commentsData?.map(comment => ({
                 id: comment.id,
                 content: comment.content,
                 createdAt: comment.created_at,
