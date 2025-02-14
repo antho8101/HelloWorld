@@ -47,13 +47,13 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
         <X size={24} weight="bold" />
       </Button>
 
-      <div className="grid h-screen grid-cols-[1fr_400px]">
-        <div className="relative flex items-center justify-center">
-          <div className="relative w-full h-full flex items-center justify-center p-8">
+      <div className="flex h-screen items-center justify-center">
+        <div className="flex max-w-[1400px] h-[90vh] bg-white rounded-lg overflow-hidden">
+          <div className="relative flex-1 flex items-center justify-center bg-black/50">
             <img
               src={photoUrl}
               alt={`Photo ${photoIndex + 1}`}
-              className="max-h-[calc(100vh-64px)] max-w-[calc(100%-64px)] object-contain"
+              className="max-h-[90vh] max-w-full object-contain"
             />
             
             <Button
@@ -72,18 +72,18 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
               <ArrowRight size={24} weight="bold" />
             </Button>
           </div>
-        </div>
 
-        <div className="bg-white h-screen overflow-y-auto">
-          <div className="p-6">
-            <LikeButton isLiked={isLiked} likesCount={likesCount} onClick={onLike} />
-            <CommentSection
-              comments={comments}
-              newComment={newComment}
-              onCommentChange={onCommentChange}
-              onCommentSubmit={onCommentSubmit}
-              isSubmitting={isSubmitting}
-            />
+          <div className="w-[400px] bg-white h-full overflow-y-auto">
+            <div className="p-6">
+              <LikeButton isLiked={isLiked} likesCount={likesCount} onClick={onLike} />
+              <CommentSection
+                comments={comments}
+                newComment={newComment}
+                onCommentChange={onCommentChange}
+                onCommentSubmit={onCommentSubmit}
+                isSubmitting={isSubmitting}
+              />
+            </div>
           </div>
         </div>
       </div>
