@@ -32,7 +32,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       <div className="text-center space-y-2">
         <h1 className="text-3xl font-bold text-[#6153BD]">
           {name || username || "Create a Profile"}
-          {age && age > 0 && <span className="ml-2">{age}</span>}
+          {age !== null && age > 0 && <span className="ml-2">{age}</span>}
         </h1>
         {username && name && (
           <p className="text-xl text-gray-600">@{username}</p>
