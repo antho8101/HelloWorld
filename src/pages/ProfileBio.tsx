@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Footer } from "@/components/layout/Footer";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { RegisterHeader } from "@/components/profile/RegisterHeader";
 
 export const ProfileBio = () => {
   const navigate = useNavigate();
@@ -87,6 +88,7 @@ export const ProfileBio = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <RegisterHeader />
       <div className="flex-grow bg-[rgba(255,243,240,1)] py-12 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-[80%] mx-auto bg-white rounded-2xl shadow-lg p-8">
           <h1 className="text-3xl font-black text-[#6153BD] mb-8">Tell us about yourself</h1>
