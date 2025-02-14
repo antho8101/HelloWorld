@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from "react";
 import { Plus, ArrowLeft, ArrowRight, Heart, X } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
@@ -8,9 +7,21 @@ import { useSession } from "@/hooks/useSession";
 import { CommentForm } from "@/components/posts/CommentForm";
 import { CommentList } from "@/components/posts/CommentList";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface PhotoGalleryProps {
   userId: string | null;
+}
+
+interface PhotoComment {
+  id: string;
+  content: string;
+  created_at: string;
+  profiles: {
+    name: string | null;
+    username: string | null;
+    avatar_url: string | null;
+  };
 }
 
 export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
@@ -19,7 +30,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
   const { currentUserId } = useSession();
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
   const [newComment, setNewComment] = useState("");
-  const [comments, setComments] = useState<any[]>([]);
+  const [comments, setComments] = useState<PhotoComment[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
@@ -42,42 +53,49 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
 
   const handlePhotoClick = async (index: number) => {
     setSelectedPhotoIndex(index);
-    if (userId) {
-      // Load comments for the selected photo
-      const { data: commentsData } = await supabase
-        .from('comments')
-        .select(`
-          id,
-          content,
-          created_at,
-          profiles:user_id (
-            name,
-            username,
-            avatar_url
-          )
-        `)
-        .eq('photo_url', photos[index])
-        .order('created_at', { ascending: true });
+    if (userId && currentUserId) {
+      try {
+        // Load comments for the selected photo
+        const { data: commentsData, error: commentsError } = await supabase
+          .from('comments')
+          .select(`
+            id,
+            content,
+            created_at,
+            profiles:user_id (
+              name,
+              username,
+              avatar_url
+            )
+          `)
+          .eq('photo_url', photos[index]);
 
-      setComments(commentsData || []);
+        if (commentsError) throw commentsError;
+        setComments(commentsData || []);
 
-      // Check if the current user has liked this photo
-      const { data: likeData } = await supabase
-        .from('photo_likes')
-        .select('id')
-        .eq('photo_url', photos[index])
-        .eq('user_id', currentUserId)
-        .single();
+        // Check if the current user has liked this photo
+        const { data: likeData, error: likeError } = await supabase
+          .from('photo_likes')
+          .select('id')
+          .eq('photo_url', photos[index])
+          .eq('user_id', currentUserId)
+          .maybeSingle();
 
-      setIsLiked(!!likeData);
+        if (likeError) throw likeError;
+        setIsLiked(!!likeData);
 
-      // Get likes count
-      const { count } = await supabase
-        .from('photo_likes')
-        .select('id', { count: 'exact' })
-        .eq('photo_url', photos[index]);
+        // Get likes count
+        const { count, error: countError } = await supabase
+          .from('photo_likes')
+          .select('*', { count: 'exact', head: true })
+          .eq('photo_url', photos[index]);
 
-      setLikesCount(count || 0);
+        if (countError) throw countError;
+        setLikesCount(count || 0);
+      } catch (error) {
+        console.error('Error loading photo data:', error);
+        toast.error('Failed to load photo data');
+      }
     }
   };
 
@@ -124,6 +142,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
       setNewComment("");
     } catch (error) {
       console.error('Error adding comment:', error);
+      toast.error('Failed to add comment');
     } finally {
       setIsSubmitting(false);
     }
@@ -134,24 +153,29 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
 
     try {
       if (isLiked) {
-        await supabase
+        const { error } = await supabase
           .from('photo_likes')
           .delete()
           .eq('photo_url', photos[selectedPhotoIndex])
           .eq('user_id', currentUserId);
+
+        if (error) throw error;
         setLikesCount(prev => prev - 1);
       } else {
-        await supabase
+        const { error } = await supabase
           .from('photo_likes')
           .insert({
             photo_url: photos[selectedPhotoIndex],
             user_id: currentUserId
           });
+
+        if (error) throw error;
         setLikesCount(prev => prev + 1);
       }
       setIsLiked(!isLiked);
     } catch (error) {
       console.error('Error toggling like:', error);
+      toast.error('Failed to update like');
     }
   };
 
