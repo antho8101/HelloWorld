@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { PhotoList } from "./photos/PhotoList";
 import { PhotoViewer } from "./photos/PhotoViewer";
-import { PhotoComment, Comment, mapPhotoCommentToComment } from "@/types/photo";
+import { PhotoComment, PhotoCommentView, mapPhotoCommentToComment } from "@/types/photo";
 
 interface PhotoGalleryProps {
   userId: string | null;
@@ -19,7 +19,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
   const { currentUserId } = useSession();
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
   const [newComment, setNewComment] = useState("");
-  const [comments, setComments] = useState<Comment[]>([]);
+  const [comments, setComments] = useState<PhotoCommentView[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
