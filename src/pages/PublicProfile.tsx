@@ -34,11 +34,6 @@ export const PublicProfile = () => {
     console.log("Send message to:", profile?.id);
   };
 
-  const handleAddFriend = () => {
-    // TODO: Implement add friend functionality
-    console.log("Add friend:", profile?.id);
-  };
-
   const handleReport = async () => {
     if (!reportReason) {
       toast({
@@ -128,7 +123,8 @@ export const PublicProfile = () => {
             {!isOwnProfile && !profile.is_banned && !profile.is_suspended && (
               <ProfileActions
                 onMessage={handleMessage}
-                onAddFriend={handleAddFriend}
+                profileId={profile.id}
+                currentUserId={currentUserId}
               />
             )}
             <PhotoGallery userId={profile.id} />
