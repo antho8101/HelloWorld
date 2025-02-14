@@ -12,7 +12,6 @@ import { FriendsSection } from "@/components/profile/FriendsSection";
 import { ReportButton } from "@/components/profile/ReportButton";
 import { ReportDialog } from "@/components/profile/ReportDialog";
 import { AccountStatusAlerts } from "@/components/profile/AccountStatusAlerts";
-import { FriendRequests } from "@/components/profile/FriendRequests";
 import { useProfile } from "@/hooks/useProfile";
 import { usePosts } from "@/hooks/usePosts";
 import { useSession } from "@/hooks/useSession";
@@ -25,40 +24,10 @@ export const PublicProfile = () => {
   const { currentUserId } = useSession();
   const { posts, fetchPosts } = usePosts(profile?.id, currentUserId);
   const { toast } = useToast();
-  const [friendRequests, setFriendRequests] = useState([]);
   
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const [reportDescription, setReportDescription] = useState("");
-
-  useEffect(() => {
-    if (currentUserId) {
-      fetchFriendRequests();
-    }
-  }, [currentUserId]);
-
-  const fetchFriendRequests = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('friend_requests')
-        .select(`
-          id,
-          created_at,
-          sender:sender_id (
-            id,
-            name,
-            avatar_url
-          )
-        `)
-        .eq('receiver_id', currentUserId)
-        .eq('status', 'pending');
-
-      if (error) throw error;
-      setFriendRequests(data || []);
-    } catch (error) {
-      console.error('Error fetching friend requests:', error);
-    }
-  };
 
   const handleMessage = () => {
     // TODO: Implement messaging functionality
@@ -156,12 +125,6 @@ export const PublicProfile = () => {
                 onMessage={handleMessage}
                 profileId={profile.id}
                 currentUserId={currentUserId}
-              />
-            )}
-            {isOwnProfile && (
-              <FriendRequests
-                requests={friendRequests}
-                onRequestHandled={fetchFriendRequests}
               />
             )}
             <FriendsSection />
