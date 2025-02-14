@@ -20,7 +20,7 @@ export const Hero: React.FC = () => {
         </div>
         <div className="flex gap-5 text-base font-bold mt-[60px] max-md:mt-10">
           <button 
-            onClick={() => navigate("/auth", { state: { mode: 'signup' } })}
+            onClick={() => navigate("/signup")}
             className="bg-[rgba(97,83,189,1)] flex items-center gap-2.5 text-white justify-center px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[rgba(97,83,189,0.9)]"
           >
             <span className="self-stretch my-auto">
@@ -34,7 +34,7 @@ export const Hero: React.FC = () => {
             />
           </button>
           <button 
-            onClick={() => navigate("/auth")}
+            onClick={() => navigate("/login")}
             className="self-stretch bg-white gap-2.5 text-[#6153BD] whitespace-nowrap px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#6153BD] hover:text-white"
           >
             Login
