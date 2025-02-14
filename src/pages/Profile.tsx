@@ -7,8 +7,6 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileForm } from "@/components/profile/ProfileForm";
 import { useProfile } from "@/hooks/use-profile";
-import { CreatePost } from "@/components/status/CreatePost";
-import { PostFeed } from "@/components/status/PostFeed";
 
 export const Profile = () => {
   const navigate = useNavigate();
@@ -103,7 +101,7 @@ export const Profile = () => {
     <div className="min-h-screen flex flex-col">
       <div className="flex-grow bg-[rgba(255,243,240,1)] py-12 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-[80%] mx-auto">
-          <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+          <div className="bg-white rounded-2xl shadow-lg p-8">
             <ProfileHeader
               name={profile.name}
               username={profile.username}
@@ -127,11 +125,6 @@ export const Profile = () => {
               }}
               onSubmit={handleSubmit}
             />
-          </div>
-
-          <div className="space-y-6">
-            <CreatePost />
-            <PostFeed />
           </div>
         </div>
       </div>
