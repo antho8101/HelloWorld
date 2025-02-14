@@ -2,13 +2,13 @@
 import React from "react";
 import { Circle } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 
 interface UserProfileProps {
   image: string;
   name: string;
   age: number;
   location: string;
-  isOnline?: boolean;
   id?: string;
 }
 
@@ -17,9 +17,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({
   name,
   age,
   location,
-  isOnline = false,
   id,
 }) => {
+  const isOnline = useOnlineStatus(id || null);
+
   const Content = () => (
     <div className="transform transition-all duration-300 hover:scale-105 hover:shadow-lg rounded-[10px] p-2">
       <img
