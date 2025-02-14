@@ -21,7 +21,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   country,
 }) => {
   return (
-    <div className="flex flex-col items-center pb-6 border-b border-gray-200">
+    <div className="flex flex-col items-center pb-6 border-b border-gray-200 w-fit">
       <Avatar className="h-48 w-48 mb-4">
         <AvatarImage src={avatarUrl || undefined} />
         <AvatarFallback>
