@@ -18,19 +18,6 @@ export const PhotoList: React.FC<PhotoListProps> = ({
 }) => {
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-[#6153BD]">Photos</h2>
-        {isOwnProfile && (
-          <Button
-            onClick={onAddPhoto}
-            variant="ghost"
-            className="text-[#6153BD] hover:text-[#6153BD]/80 hover:bg-[#6153BD]/10"
-          >
-            <Plus size={24} weight="bold" />
-          </Button>
-        )}
-      </div>
-      
       {photos.length > 0 ? (
         <div className="grid grid-cols-2 gap-2">
           {photos.map((photo, index) => (
