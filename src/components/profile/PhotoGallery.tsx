@@ -3,6 +3,7 @@ import React, { useRef } from "react";
 import { Plus } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { usePhotos } from "@/hooks/usePhotos";
+import { useSession } from "@/hooks/useSession";
 
 interface PhotoGalleryProps {
   userId: string | null;
@@ -13,6 +14,9 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { photos, uploadPhoto } = usePhotos(userId);
+  const { currentUserId } = useSession();
+  
+  const isOwnProfile = currentUserId === userId;
 
   const handleAddPhoto = () => {
     fileInputRef.current?.click();
@@ -33,13 +37,15 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
     <div className="bg-white/80 backdrop-blur-sm rounded-[20px] p-6 shadow-lg w-full">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold text-[#6153BD]">Photos</h2>
-        <Button
-          onClick={handleAddPhoto}
-          variant="ghost"
-          className="text-[#6153BD] hover:text-[#6153BD]/80 hover:bg-[#6153BD]/10"
-        >
-          <Plus size={24} weight="bold" />
-        </Button>
+        {isOwnProfile && (
+          <Button
+            onClick={handleAddPhoto}
+            variant="ghost"
+            className="text-[#6153BD] hover:text-[#6153BD]/80 hover:bg-[#6153BD]/10"
+          >
+            <Plus size={24} weight="bold" />
+          </Button>
+        )}
       </div>
       
       <input

@@ -11,9 +11,11 @@ interface PostsListProps {
 }
 
 export const PostsList: React.FC<PostsListProps> = ({ posts, currentUserId, profileId, onPostCreated }) => {
+  const isOwnProfile = currentUserId === profileId;
+
   return (
     <div className="space-y-8">
-      {currentUserId === profileId && (
+      {isOwnProfile && (
         <CreatePost userId={currentUserId} onPostCreated={onPostCreated} />
       )}
 
