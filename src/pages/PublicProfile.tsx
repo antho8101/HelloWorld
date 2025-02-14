@@ -48,27 +48,40 @@ export const PublicProfile = () => {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      // Log full params object to debug
-      console.log("URL Parameters:", params);
-      
       const profileId = params.id;
       if (!profileId) {
-        console.error("No profile ID in URL parameters");
         setError("No profile ID provided");
+        setLoading(false);
         return;
       }
 
       try {
-        console.log("Attempting to fetch profile with ID:", profileId);
+        console.log("Fetching profile for ID:", profileId);
 
         const { data, error: fetchError } = await supabase
           .from("profiles")
-          .select("*")
+          .select(`
+            username,
+            name,
+            avatar_url,
+            age,
+            city,
+            country,
+            gender,
+            native_languages,
+            language_levels,
+            interested_in,
+            looking_for,
+            bio
+          `)
           .eq("id", profileId)
           .maybeSingle();
 
+        console.log("Profile data received:", data);
+        console.log("Fetch error if any:", fetchError);
+
         if (fetchError) {
-          console.error("Supabase fetch error:", fetchError);
+          console.error("Error fetching profile:", fetchError);
           setError(fetchError.message);
           return;
         }
@@ -78,8 +91,6 @@ export const PublicProfile = () => {
           setError("Profile not found");
           return;
         }
-
-        console.log("Successfully fetched profile data:", data);
 
         setProfile({
           username: data.username,
