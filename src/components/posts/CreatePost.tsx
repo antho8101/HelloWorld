@@ -77,12 +77,12 @@ export const CreatePost: React.FC<CreatePostProps> = ({ userId, onPostCreated })
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-lg p-4 shadow-md space-y-4">
+    <form onSubmit={handleSubmit} className="bg-white/80 backdrop-blur-sm rounded-[20px] shadow-lg p-8 space-y-4">
       <Textarea
         placeholder="Share something with the community..."
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        className="w-full min-h-[100px] resize-none"
+        className="w-full min-h-[100px] resize-none border-2 border-[#6153BD]/20 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6153BD] focus:border-transparent transition-all duration-200"
       />
       
       <div className="flex justify-between items-center">
@@ -98,7 +98,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({ userId, onPostCreated })
             type="button"
             variant="outline"
             onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 border-2 border-[#6153BD]/20 hover:bg-[#6153BD]/5"
           >
             <ImageIcon size={20} />
             {file ? "Change Image" : "Add Image"}
@@ -113,9 +113,9 @@ export const CreatePost: React.FC<CreatePostProps> = ({ userId, onPostCreated })
         <Button 
           type="submit" 
           disabled={isSubmitting || (!content && !file)}
-          className="bg-[#6153BD] hover:bg-[#6153BD]/90"
+          className="bg-[#6153BD] hover:bg-[#6153BD]/90 text-white font-semibold px-6 py-2 rounded-xl transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <PaperPlaneRight size={20} className="mr-2" />
+          <PaperPlaneRight size={20} />
           Post
         </Button>
       </div>
