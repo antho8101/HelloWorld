@@ -4,7 +4,7 @@ export interface PhotoComment {
   content: string;
   created_at: string;
   user_id: string;
-  post_id: string;
+  photo_id: string;
   profiles: {
     name: string | null;
     username: string | null;
