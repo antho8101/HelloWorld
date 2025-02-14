@@ -25,11 +25,11 @@ export const PublicProfile = () => {
   const { currentUserId } = useSession();
   const { posts, fetchPosts } = usePosts(profile?.id, currentUserId);
   const { toast } = useToast();
-  const [friendRequests, setFriendRequests] = useState([]);
   
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const [reportDescription, setReportDescription] = useState("");
+  const [friendRequests, setFriendRequests] = useState([]);
 
   useEffect(() => {
     if (currentUserId) {
@@ -61,7 +61,6 @@ export const PublicProfile = () => {
   };
 
   const handleMessage = () => {
-    // TODO: Implement messaging functionality
     console.log("Send message to:", profile?.id);
   };
 
