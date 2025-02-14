@@ -1,3 +1,4 @@
+
 import React, { useRef, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { usePhotos } from "@/hooks/usePhotos";
@@ -60,7 +61,6 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
             content,
             created_at,
             user_id,
-            post_id,
             profiles:user_id (
               name,
               username,
@@ -138,7 +138,6 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
           content,
           created_at,
           user_id,
-          post_id,
           profiles:user_id (
             name,
             username,
