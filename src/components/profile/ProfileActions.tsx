@@ -22,8 +22,8 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
     if (!currentUserId) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "You must be logged in to add friends",
+        title: "Cannot Send Friend Request",
+        description: "You must be logged in to add friends. Please sign in and try again.",
       });
       return;
     }
@@ -40,8 +40,8 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
         if (error.code === '23505') { // Unique constraint violation
           toast({
             variant: "destructive",
-            title: "Error",
-            description: "Friend request already sent",
+            title: "Friend Request Already Sent",
+            description: "You have already sent a friend request to this user. Please wait for their response.",
           });
         } else {
           throw error;
@@ -50,15 +50,15 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
       }
 
       toast({
-        title: "Success",
-        description: "Friend request sent successfully",
+        title: "Friend Request Sent! 🎉",
+        description: "Your friend request has been sent successfully. You'll be notified when they respond.",
       });
     } catch (error) {
       console.error('Error sending friend request:', error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to send friend request",
+        title: "Failed to Send Friend Request",
+        description: "There was an error sending your friend request. Please try again later.",
       });
     }
   };
