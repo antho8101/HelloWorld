@@ -10,8 +10,6 @@ import { LanguagesSection } from "@/components/profile/LanguagesSection";
 import { InterestsSection } from "@/components/profile/InterestsSection";
 import { Header } from "@/components/landing/Header";
 import { Footer } from "@/components/layout/Footer";
-import { CreatePost } from "@/components/status/CreatePost";
-import { PostFeed } from "@/components/status/PostFeed";
 
 interface Profile {
   username: string | null;
@@ -50,6 +48,7 @@ export const PublicProfile = () => {
 
   useEffect(() => {
     const fetchProfile = async () => {
+      // Log full params object to debug
       console.log("URL Parameters:", params);
       
       const profileId = params.id;
@@ -164,11 +163,6 @@ export const PublicProfile = () => {
                 lookingFor={profile.looking_for}
               />
             </div>
-          </div>
-
-          <div className="space-y-6 mt-8">
-            <CreatePost />
-            <PostFeed />
           </div>
         </div>
       </div>
