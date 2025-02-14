@@ -26,7 +26,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
 
   const handleProfileClick = () => {
     if (!currentUserId) {
-      navigate("/auth");
+      navigate("/signup");
       return;
     }
     if (id) {
@@ -70,4 +70,3 @@ export const UserProfile: React.FC<UserProfileProps> = ({
     </div>
   );
 };
-
