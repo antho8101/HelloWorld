@@ -132,12 +132,12 @@ export const Post: React.FC<PostProps> = ({
       <PostHeader author={author} createdAt={createdAt} />
 
       {content && (
-        <p className="text-foreground font-medium">{content}</p>
+        <p className="text-foreground">{content}</p>
       )}
 
-      {author.avatarUrl && (
+      {imageUrl && (
         <img 
-          src={author.avatarUrl} 
+          src={imageUrl} 
           alt="Post" 
           loading="lazy"
           className="h-[200px] w-[180px] max-md:h-[160px] max-md:w-[140px] object-cover rounded-[10px] transition-transform duration-300"
