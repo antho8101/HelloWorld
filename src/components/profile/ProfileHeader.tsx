@@ -24,7 +24,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     <>
       <Avatar className="h-32 w-32 ring-4 ring-[#FECFC4]/20">
         <AvatarImage src={avatarUrl || undefined} />
-        <AvatarFallback className="bg-[#FECFC4]">
+        <AvatarFallback>
           <User size={48} weight="bold" />
         </AvatarFallback>
       </Avatar>
