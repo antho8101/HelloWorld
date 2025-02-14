@@ -65,7 +65,7 @@ export const ProfileContent: React.FC<ProfileContentProps> = ({ profile }) => {
         </div>
       </div>
 
-      <PhotoGallery photos={[]} />
+      <PhotoGallery userId={profile.id} />
     </div>
   );
 };

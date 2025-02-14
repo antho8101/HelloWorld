@@ -1,29 +1,54 @@
 
-import React from "react";
+import React, { useRef } from "react";
 import { Plus } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
+import { usePhotos } from "@/hooks/usePhotos";
 
 interface PhotoGalleryProps {
-  photos?: string[];
-  onAddPhoto?: () => void;
+  userId: string | null;
 }
 
 export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
-  photos = [],
-  onAddPhoto = () => {},
+  userId
 }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { photos, uploadPhoto } = usePhotos(userId);
+
+  const handleAddPhoto = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      await uploadPhoto(file);
+    }
+    // Reset the input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   return (
     <div className="bg-white/80 backdrop-blur-sm rounded-[20px] p-6 shadow-lg w-[300px]">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold text-[#6153BD]">Photos</h2>
         <Button
-          onClick={onAddPhoto}
+          onClick={handleAddPhoto}
           variant="ghost"
           className="text-[#6153BD] hover:text-[#6153BD]/80 hover:bg-[#6153BD]/10"
         >
           <Plus size={24} weight="bold" />
         </Button>
       </div>
+      
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept="image/*"
+        className="hidden"
+      />
       
       {photos.length > 0 ? (
         <div className="grid grid-cols-2 gap-2">
@@ -38,7 +63,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
         </div>
       ) : (
         <div className="text-center text-gray-500 py-8">
-          Aucune photo pour le moment
+          No photos yet
         </div>
       )}
     </div>
