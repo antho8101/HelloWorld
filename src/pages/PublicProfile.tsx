@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { Header } from "@/components/landing/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -11,14 +11,24 @@ import { useProfile } from "@/hooks/useProfile";
 import { usePosts } from "@/hooks/usePosts";
 import { useSession } from "@/hooks/useSession";
 import { Button } from "@/components/ui/button";
-import { ChatText, UserPlus } from "@phosphor-icons/react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { ChatText, UserPlus, Warning } from "@phosphor-icons/react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export const PublicProfile = () => {
   const params = useParams();
   const { profile, loading, error } = useProfile(params.id);
   const { currentUserId } = useSession();
   const { posts, fetchPosts } = usePosts(profile?.id, currentUserId);
+  const { toast } = useToast();
   
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [reportDescription, setReportDescription] = useState("");
+
   const handleMessage = () => {
     // TODO: Implement messaging functionality
     console.log("Send message to:", profile?.id);
@@ -27,6 +37,45 @@ export const PublicProfile = () => {
   const handleAddFriend = () => {
     // TODO: Implement add friend functionality
     console.log("Add friend:", profile?.id);
+  };
+
+  const handleReport = async () => {
+    if (!reportReason) {
+      toast({
+        title: "Error",
+        description: "Please select a reason for reporting",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error: reportError } = await supabase
+        .from("reports")
+        .insert({
+          reporter_id: currentUserId,
+          reported_user_id: profile?.id,
+          reason: reportReason,
+          description: reportDescription,
+        });
+
+      if (reportError) throw reportError;
+
+      toast({
+        title: "Report Submitted",
+        description: "Thank you for helping keep our community safe.",
+      });
+      
+      setIsReportModalOpen(false);
+      setReportReason("");
+      setReportDescription("");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to submit report. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (loading) {
@@ -88,6 +137,13 @@ export const PublicProfile = () => {
                   <UserPlus size={20} weight="bold" />
                   Add Friend
                 </Button>
+                <Button 
+                  onClick={() => setIsReportModalOpen(true)}
+                  className="bg-white gap-2.5 text-red-600 whitespace-nowrap px-5 py-2.5 rounded-[10px] border-red-600 border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-red-600 hover:text-white w-full"
+                >
+                  <Warning size={20} weight="bold" />
+                  Report User
+                </Button>
               </div>
             )}
             <PhotoGallery userId={profile.id} />
@@ -101,6 +157,55 @@ export const PublicProfile = () => {
         </div>
       </div>
       <Footer />
+
+      <Dialog open={isReportModalOpen} onOpenChange={setIsReportModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-center text-lg font-semibold text-[#6153BD]">Report User</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Reason</label>
+              <Select value={reportReason} onValueChange={setReportReason}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a reason" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="harassment">Harassment</SelectItem>
+                  <SelectItem value="inappropriate_content">Inappropriate Content</SelectItem>
+                  <SelectItem value="spam">Spam</SelectItem>
+                  <SelectItem value="fake_profile">Fake Profile</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Description</label>
+              <Textarea
+                value={reportDescription}
+                onChange={(e) => setReportDescription(e.target.value)}
+                placeholder="Please provide more details about the issue..."
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setIsReportModalOpen(false)}
+              className="flex-1 sm:flex-none"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleReport}
+              className="bg-red-600 text-white hover:bg-red-700 flex-1 sm:flex-none"
+            >
+              Submit Report
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
