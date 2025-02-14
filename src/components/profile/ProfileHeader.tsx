@@ -22,12 +22,15 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
 }) => {
   return (
     <div className="flex flex-col items-center pb-6 w-fit">
-      <Avatar className="h-48 w-48 mb-4">
-        <AvatarImage src={avatarUrl || undefined} />
-        <AvatarFallback>
-          <User className="w-16 h-16 text-gray-400" />
-        </AvatarFallback>
-      </Avatar>
+      <div className="relative">
+        <Avatar className="h-48 w-48 mb-4">
+          <AvatarImage src={avatarUrl || undefined} />
+          <AvatarFallback>
+            <User className="w-16 h-16 text-gray-400" />
+          </AvatarFallback>
+        </Avatar>
+        <div className="absolute bottom-5 right-2 w-4 h-4 rounded-full bg-green-500 border-2 border-white" />
+      </div>
 
       <div className="text-center">
         <h1 className="text-2xl font-bold text-[#6153BD]">
