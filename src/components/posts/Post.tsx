@@ -132,7 +132,7 @@ export const Post: React.FC<PostProps> = ({
       <PostHeader author={author} createdAt={createdAt} />
 
       {content && (
-        <p className="text-foreground">{content}</p>
+        <p className="text-foreground font-medium">{content}</p>
       )}
 
       {author.avatarUrl && (
