@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/Footer";
 import { ProfileError } from "@/components/profile/ProfileError";
 import { ProfileContent } from "@/components/profile/ProfileContent";
 import { PostsList } from "@/components/profile/PostsList";
+import { PhotoGallery } from "@/components/profile/PhotoGallery";
 import { useProfile } from "@/hooks/useProfile";
 import { usePosts } from "@/hooks/usePosts";
 import { useSession } from "@/hooks/useSession";
