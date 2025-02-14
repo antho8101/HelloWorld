@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ChatText, UserPlus } from "@phosphor-icons/react";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +17,31 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
   currentUserId,
 }) => {
   const { toast } = useToast();
+  const [attemptsCount, setAttemptsCount] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (currentUserId) {
+      checkAttemptsCount();
+    }
+  }, [currentUserId, profileId]);
+
+  const checkAttemptsCount = async () => {
+    try {
+      const { data, error } = await supabase
+        .rpc('check_friend_request_attempts', {
+          sender: currentUserId,
+          receiver: profileId
+        });
+
+      if (error) throw error;
+      setAttemptsCount(data || 0);
+    } catch (error) {
+      console.error('Error checking friend request attempts:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleAddFriend = async () => {
     if (!currentUserId) {
@@ -28,30 +53,46 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
       return;
     }
 
+    if (attemptsCount >= 3) {
+      toast({
+        variant: "destructive",
+        title: "Maximum Attempts Reached",
+        description: "You have reached the maximum number of friend request attempts for this user.",
+      });
+      return;
+    }
+
     try {
+      // First check the latest status of any existing request
+      const { data: existingRequest } = await supabase
+        .from('friend_requests')
+        .select('status, attempt_count')
+        .eq('sender_id', currentUserId)
+        .eq('receiver_id', profileId)
+        .maybeSingle();
+
+      const newAttemptCount = (existingRequest?.attempt_count || 0) + 1;
+
       const { error } = await supabase
         .from('friend_requests')
-        .insert({
+        .upsert({
           sender_id: currentUserId,
           receiver_id: profileId,
+          status: 'pending',
+          attempt_count: newAttemptCount
+        }, {
+          onConflict: 'sender_id,receiver_id'
         });
 
       if (error) {
-        if (error.code === '23505') { // Unique constraint violation
-          toast({
-            variant: "destructive",
-            title: "Friend Request Already Sent",
-            description: "You have already sent a friend request to this user. Please wait for their response.",
-          });
-        } else {
-          throw error;
-        }
-        return;
+        throw error;
       }
 
+      setAttemptsCount(newAttemptCount);
+      
       toast({
         title: "Friend Request Sent! 🎉",
-        description: "Your friend request has been sent successfully. You'll be notified when they respond.",
+        description: `Your friend request has been sent successfully. You have ${3 - newAttemptCount} attempts remaining.`,
       });
     } catch (error) {
       console.error('Error sending friend request:', error);
@@ -74,10 +115,11 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
       </Button>
       <Button 
         onClick={handleAddFriend}
-        className="bg-white gap-2.5 text-[#6153BD] whitespace-nowrap px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#6153BD] hover:text-white w-full"
+        disabled={isLoading || attemptsCount >= 3}
+        className="bg-white gap-2.5 text-[#6153BD] whitespace-nowrap px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#6153BD] hover:text-white w-full disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <UserPlus size={20} weight="bold" />
-        Add Friend
+        {attemptsCount >= 3 ? 'Maximum Attempts Reached' : 'Add Friend'}
       </Button>
     </div>
   );

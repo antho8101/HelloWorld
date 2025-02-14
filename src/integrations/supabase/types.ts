@@ -53,6 +53,7 @@ export type Database = {
       }
       friend_requests: {
         Row: {
+          attempt_count: number | null
           created_at: string
           id: string
           receiver_id: string
@@ -61,6 +62,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          attempt_count?: number | null
           created_at?: string
           id?: string
           receiver_id: string
@@ -69,6 +71,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          attempt_count?: number | null
           created_at?: string
           id?: string
           receiver_id?: string
@@ -399,7 +402,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_friend_request_attempts: {
+        Args: {
+          sender: string
+          receiver: string
+        }
+        Returns: number
+      }
     }
     Enums: {
       gender_type: "male" | "female" | "other"
