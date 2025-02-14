@@ -5,8 +5,10 @@ import { Logo } from "./Logo";
 import { UserNavigation } from "./UserNavigation";
 import { AuthButtons } from "./AuthButtons";
 import { LanguageSelector } from "./LanguageSelector";
+import { useNavigate } from "react-router-dom";
 
 export const Header: React.FC = () => {
+  const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [unreadMessages, setUnreadMessages] = useState(0);
@@ -58,6 +60,7 @@ export const Header: React.FC = () => {
     try {
       setIsTransitioning(true);
       await supabase.auth.signOut();
+      navigate("/");
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
