@@ -84,15 +84,15 @@ export const Post: React.FC<PostProps> = ({
       const { data, error } = await supabase
         .from("comments")
         .insert({
-          post_id: id,
-          user_id: currentUserId,
           content: newComment.trim(),
+          user_id: currentUserId,
+          photo_id: null,
+          post_id: id
         })
         .select(`
           id,
           content,
           created_at,
-          likes_count,
           profiles:user_id (
             name,
             username,

@@ -19,7 +19,7 @@ export const usePosts = (profileId: string | null, currentUserId: string | null)
           )
         `)
         .eq("user_id", profileId)
-        .order("created_at", { ascending: false }); // Changed to false to show newest first
+        .order("created_at", { ascending: false });
 
       if (postsError) {
         console.error("Error fetching posts:", postsError);
@@ -42,7 +42,6 @@ export const usePosts = (profileId: string | null, currentUserId: string | null)
                 id,
                 content,
                 created_at,
-                likes_count,
                 profiles (
                   name,
                   username,
@@ -64,7 +63,7 @@ export const usePosts = (profileId: string | null, currentUserId: string | null)
                   username: comment.profiles.username,
                   avatarUrl: comment.profiles.avatar_url,
                 },
-                likesCount: comment.likes_count,
+                likesCount: 0,
                 isLiked: false,
               })) || [],
             };
