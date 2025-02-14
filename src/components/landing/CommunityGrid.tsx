@@ -13,10 +13,9 @@ export const CommunityGrid: React.FC = () => {
   useEffect(() => {
     const fetchProfiles = async () => {
       try {
-        // Simplified query without any joins or complex conditions
         const { data, error } = await supabase
           .from("profiles")
-          .select("id, name, age, city, country")
+          .select("id, name, age, city, country, avatar_url")
           .limit(20);
 
         if (error) throw error;
@@ -24,7 +23,7 @@ export const CommunityGrid: React.FC = () => {
         if (data) {
           const mappedProfiles = data.map(profile => ({
             id: profile.id,
-            image: `https://i.pravatar.cc/150?u=${profile.id}`,
+            image: profile.avatar_url || `https://i.pravatar.cc/150?u=${profile.id}`, // Fallback to pravatar if no avatar_url
             name: profile.name || "Anonymous",
             age: profile.age || 25,
             location: profile.city && profile.country ? `${profile.city}, ${profile.country}` : "Unknown",
