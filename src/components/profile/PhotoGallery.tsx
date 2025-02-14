@@ -51,14 +51,14 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
             content,
             created_at,
             user_id,
-            post_id,
+            photo_id,
             profiles:user_id (
               name,
               username,
               avatar_url
             )
           `)
-          .eq('post_id', photos[index]);
+          .eq('photo_id', photos[index]);
 
         if (commentsError) throw commentsError;
         setComments((commentsData || []).map(mapPhotoCommentToComment));
@@ -110,14 +110,14 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
         .insert({
           content: newComment.trim(),
           user_id: currentUserId,
-          post_id: photos[selectedPhotoIndex]
+          photo_id: photos[selectedPhotoIndex]
         })
         .select(`
           id,
           content,
           created_at,
           user_id,
-          post_id,
+          photo_id,
           profiles:user_id (
             name,
             username,
