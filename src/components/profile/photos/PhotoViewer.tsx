@@ -4,7 +4,6 @@ import { ArrowLeft, ArrowRight, X } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { LikeButton } from "./LikeButton";
 import { CommentSection } from "./CommentSection";
-import { PhotoCommentView } from "@/types/photo";
 
 interface PhotoViewerProps {
   photoUrl: string;
@@ -15,7 +14,7 @@ interface PhotoViewerProps {
   isLiked: boolean;
   likesCount: number;
   onLike: () => void;
-  comments: PhotoCommentView[];
+  comments: Comment[];
   newComment: string;
   onCommentChange: (value: string) => void;
   onCommentSubmit: (e: React.FormEvent) => void;

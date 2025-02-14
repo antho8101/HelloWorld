@@ -1,50 +1,41 @@
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-
-interface PhotoData {
-  id: string;
-  photo_url: string;
-}
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const usePhotos = (userId: string | null) => {
-  const [photos, setPhotos] = useState<PhotoData[]>([]);
+  const [photos, setPhotos] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchPhotos = async () => {
     if (!userId) return;
-    
+
     try {
       const { data, error } = await supabase
-        .from('photos')
-        .select('id, photo_url')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+        .from("user_photos")
+        .select("photo_url")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setPhotos(data || []);
-    } catch (error) {
-      console.error('Error fetching photos:', error);
-      toast.error('Failed to load photos');
+
+      setPhotos(data.map(photo => photo.photo_url));
+    } catch (error: any) {
+      console.error("Error fetching photos:", error);
+      toast.error("Error loading photos");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (userId) {
-      fetchPhotos();
-    }
-  }, [userId]);
-
   const uploadPhoto = async (file: File) => {
+    if (!userId) return;
+
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${crypto.randomUUID()}.${fileExt}`;
-      const filePath = `${userId}/${fileName}`;
+      const filePath = `${userId}/${crypto.randomUUID()}.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError, data } = await supabase.storage
         .from('user_photos')
         .upload(filePath, file);
 
@@ -55,7 +46,7 @@ export const usePhotos = (userId: string | null) => {
         .getPublicUrl(filePath);
 
       const { error: dbError } = await supabase
-        .from('photos')
+        .from('user_photos')
         .insert({
           user_id: userId,
           photo_url: publicUrl
@@ -64,12 +55,21 @@ export const usePhotos = (userId: string | null) => {
       if (dbError) throw dbError;
 
       await fetchPhotos();
-      toast.success('Photo uploaded successfully');
-    } catch (error) {
-      console.error('Error uploading photo:', error);
-      toast.error('Failed to upload photo');
+      toast.success("Photo uploaded successfully");
+    } catch (error: any) {
+      console.error("Error uploading photo:", error);
+      toast.error("Error uploading photo");
     }
   };
 
-  return { photos: photos.map(p => p.photo_url), uploadPhoto, loading, fetchPhotos };
+  useEffect(() => {
+    fetchPhotos();
+  }, [userId]);
+
+  return {
+    photos,
+    loading,
+    uploadPhoto,
+    fetchPhotos
+  };
 };
