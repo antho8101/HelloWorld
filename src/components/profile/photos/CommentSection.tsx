@@ -1,10 +1,10 @@
 
 import React from "react";
-import { CommentForm } from "@/components/posts/CommentForm";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User } from "@phosphor-icons/react";
 import { format } from "date-fns";
 import { PhotoCommentView } from "@/types/photo";
+import { PhotoCommentForm } from "./PhotoCommentForm";
 
 interface CommentSectionProps {
   comments: PhotoCommentView[];
@@ -45,7 +45,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
         ))}
       </div>
 
-      <CommentForm
+      <PhotoCommentForm
         value={newComment}
         onChange={onCommentChange}
         onSubmit={onCommentSubmit}
