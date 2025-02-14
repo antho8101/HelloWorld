@@ -14,9 +14,10 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ChatText, UserPlus, Warning } from "@phosphor-icons/react";
+import { ChatText, UserPlus, Warning, X } from "@phosphor-icons/react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export const PublicProfile = () => {
   const params = useParams();
@@ -111,6 +112,23 @@ export const PublicProfile = () => {
       <div className="min-h-screen bg-[rgba(255,243,240,1)] py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-[900px] mx-auto grid grid-cols-[1fr,300px] gap-6">
           <div className="space-y-6">
+            {profile.is_banned && (
+              <Alert variant="destructive">
+                <X className="h-4 w-4" />
+                <AlertDescription>
+                  This account has been banned for violating our community guidelines.
+                </AlertDescription>
+              </Alert>
+            )}
+            {profile.is_suspended && (
+              <Alert variant="warning">
+                <Warning className="h-4 w-4" />
+                <AlertDescription>
+                  This account is temporarily suspended until{" "}
+                  {new Date(profile.suspension_end_timestamp || "").toLocaleDateString()}.
+                </AlertDescription>
+              </Alert>
+            )}
             <ProfileContent profile={profile} />
             <PostsList
               posts={posts}
@@ -121,7 +139,7 @@ export const PublicProfile = () => {
           </div>
           
           <div className="space-y-6">
-            {!isOwnProfile && (
+            {!isOwnProfile && !profile.is_banned && !profile.is_suspended && (
               <div className="flex flex-col gap-3">
                 <Button 
                   onClick={handleMessage}
@@ -146,7 +164,7 @@ export const PublicProfile = () => {
                 No friends yet
               </div>
             </div>
-            {!isOwnProfile && (
+            {!isOwnProfile && !profile.is_banned && (
               <div className="flex justify-center">
                 <Button 
                   onClick={() => setIsReportModalOpen(true)}

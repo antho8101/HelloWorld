@@ -15,4 +15,7 @@ export interface ProfileData {
   interested_in: string[];
   looking_for: string[];
   language_levels: LanguageWithLevel[];
+  is_suspended?: boolean;
+  is_banned?: boolean;
+  suspension_end_timestamp?: string | null;
 }
