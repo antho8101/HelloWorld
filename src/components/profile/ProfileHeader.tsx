@@ -20,5 +20,9 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   city,
   country,
 }) => {
-  return null;
+  return (
+    <>
+      <h2 className="text-2xl font-black text-[#6153BD] mb-8 text-center">Create a Profile</h2>
+    </>
+  );
 };
