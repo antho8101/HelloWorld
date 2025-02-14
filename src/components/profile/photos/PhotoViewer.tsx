@@ -64,7 +64,7 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
           </Button>
         </div>
 
-        <div className="w-[400px] bg-white h-full overflow-y-auto relative">
+        <div className="w-[320px] bg-white h-full overflow-y-auto relative">
           <Button
             variant="ghost"
             onClick={onClose}
