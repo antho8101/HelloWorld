@@ -1,5 +1,6 @@
 
 import React from "react";
+import { GlobeHemisphereWest } from "@phosphor-icons/react";
 
 interface InterestsSectionProps {
   interestedIn: string[];
@@ -13,7 +14,10 @@ export const InterestsSection: React.FC<InterestsSectionProps> = ({
     <div className="grid grid-cols-1 gap-6 border-t pt-6">
       {lookingFor.length > 0 && (
         <div>
-          <h2 className="text-lg font-bold text-[#6153BD] mb-2">Interested In</h2>
+          <h2 className="text-lg font-bold text-[#6153BD] mb-2 flex items-center gap-2">
+            <GlobeHemisphereWest className="h-5 w-5" />
+            Interested In
+          </h2>
           <div className="space-y-1">
             {lookingFor.map((interest) => (
               <div key={interest} className="text-gray-700 capitalize">
