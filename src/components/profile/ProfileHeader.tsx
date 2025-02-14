@@ -30,9 +30,6 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       </Avatar>
 
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-[#6153BD]">
-          Create a Profile
-        </h1>
         {username && name && (
           <p className="text-xl text-gray-600">@{username}</p>
         )}
