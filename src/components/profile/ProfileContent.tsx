@@ -45,7 +45,7 @@ export const ProfileContent: React.FC<ProfileContentProps> = ({ profile }) => {
         )}
       </div>
 
-      <div className="w-full space-y-6 mt-6">
+      <div className="w-full space-y-6 mt-6 border-t pt-6">
         <LanguagesSection
           nativeLanguages={profile.native_languages}
           learningLanguages={profile.language_levels}
