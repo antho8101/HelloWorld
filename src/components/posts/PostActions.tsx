@@ -19,7 +19,7 @@ export const PostActions: React.FC<PostActionsProps> = ({
   onCommentToggle,
 }) => {
   return (
-    <div className="flex items-center gap-4">
+    <div className="bg-white rounded-[20px] p-6 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.08)] flex items-center gap-4">
       <Button
         variant="ghost"
         size="sm"

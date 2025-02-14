@@ -15,7 +15,7 @@ interface PostHeaderProps {
 
 export const PostHeader: React.FC<PostHeaderProps> = ({ author, createdAt }) => {
   return (
-    <div className="flex items-center gap-3">
+    <div className="bg-white rounded-[20px] p-6 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.08)] flex items-center gap-3">
       <Avatar>
         <AvatarImage src={author.avatarUrl || undefined} />
         <AvatarFallback>
