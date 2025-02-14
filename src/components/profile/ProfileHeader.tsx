@@ -10,6 +10,7 @@ interface ProfileHeaderProps {
   age: number | null;
   city: string | null;
   country: string | null;
+  isOnline?: boolean;
 }
 
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
@@ -19,6 +20,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   age,
   city,
   country,
+  isOnline = false,
 }) => {
   return (
     <div className="flex flex-col items-center pb-6 w-fit">
@@ -29,7 +31,11 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             <User className="w-16 h-16 text-gray-400" />
           </AvatarFallback>
         </Avatar>
-        <div className="absolute bottom-5 right-2 w-4 h-4 rounded-full bg-green-500 border-2 border-white" />
+        <div 
+          className={`absolute bottom-5 right-2 w-4 h-4 rounded-full border-2 border-white transition-colors duration-300 ${
+            isOnline ? 'bg-green-500' : 'bg-red-500'
+          }`} 
+        />
       </div>
 
       <div className="text-center">
