@@ -9,152 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      post_comments: {
-        Row: {
-          content: string
-          created_at: string
-          id: string
-          post_id: string | null
-          user_id: string | null
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          id?: string
-          post_id?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          id?: string
-          post_id?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "post_comments_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "post_comments_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      post_likes: {
-        Row: {
-          created_at: string
-          id: string
-          post_id: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          post_id?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          post_id?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "post_likes_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "post_likes_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      posts: {
-        Row: {
-          content: string | null
-          created_at: string
-          id: string
-          image_url: string | null
-          user_id: string | null
-        }
-        Insert: {
-          content?: string | null
-          created_at?: string
-          id?: string
-          image_url?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          content?: string | null
-          created_at?: string
-          id?: string
-          image_url?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "posts_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      private_messages: {
-        Row: {
-          content: string
-          created_at: string
-          id: string
-          receiver_id: string
-          sender_id: string
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          id?: string
-          receiver_id: string
-          sender_id: string
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          id?: string
-          receiver_id?: string
-          sender_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "private_messages_receiver_id_fkey"
-            columns: ["receiver_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "private_messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
           age: number | null
@@ -165,11 +19,8 @@ export type Database = {
           created_at: string
           gender: string | null
           id: string
-          image: string | null
           interested_in: string[] | null
           language_levels: Json | null
-          learning_languages: string[] | null
-          location: string | null
           looking_for: string[] | null
           name: string | null
           native_languages: string[] | null
@@ -185,11 +36,8 @@ export type Database = {
           created_at?: string
           gender?: string | null
           id: string
-          image?: string | null
           interested_in?: string[] | null
           language_levels?: Json | null
-          learning_languages?: string[] | null
-          location?: string | null
           looking_for?: string[] | null
           name?: string | null
           native_languages?: string[] | null
@@ -205,11 +53,8 @@ export type Database = {
           created_at?: string
           gender?: string | null
           id?: string
-          image?: string | null
           interested_in?: string[] | null
           language_levels?: Json | null
-          learning_languages?: string[] | null
-          location?: string | null
           looking_for?: string[] | null
           name?: string | null
           native_languages?: string[] | null
@@ -217,53 +62,6 @@ export type Database = {
           username?: string | null
         }
         Relationships: []
-      }
-      secrets: {
-        Row: {
-          created_at: string | null
-          id: string
-          name: string
-          value: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          name: string
-          value: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          name?: string
-          value?: string
-        }
-        Relationships: []
-      }
-      user_status: {
-        Row: {
-          is_online: boolean | null
-          last_seen: string
-          profile_id: string
-        }
-        Insert: {
-          is_online?: boolean | null
-          last_seen?: string
-          profile_id: string
-        }
-        Update: {
-          is_online?: boolean | null
-          last_seen?: string
-          profile_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_status_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: true
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
       }
     }
     Views: {
