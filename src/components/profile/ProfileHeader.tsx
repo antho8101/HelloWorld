@@ -21,7 +21,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   country,
 }) => {
   return (
-    <div className="flex flex-col items-center space-y-6">
+    <>
       <Avatar className="h-32 w-32 ring-4 ring-[#FECFC4]/20">
         <AvatarImage src={avatarUrl || undefined} />
         <AvatarFallback className="bg-[#FECFC4]">
@@ -43,6 +43,6 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           </p>
         )}
       </div>
-    </div>
+    </>
   );
 };
