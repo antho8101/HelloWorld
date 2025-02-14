@@ -10,11 +10,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { GlobeIcon } from "lucide-react";
+import { UserCircle, ChatCircleDots, MagnifyingGlass, Gear } from "@phosphor-icons/react";
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [unreadMessages, setUnreadMessages] = useState(0);
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -71,26 +73,79 @@ export const Header: React.FC = () => {
     }
   };
 
+  const handleProfileClick = () => {
+    if (userId) {
+      navigate(`/profile/${userId}`);
+    }
+  };
+
   return (
     <header className="flex w-full items-center justify-between flex-wrap px-5 py-2.5 max-md:max-w-full bg-[#FFF3F0]">
-      <div 
-        onClick={() => navigate("/")}
-        className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity"
-      >
-        <img
-          loading="lazy"
-          srcSet="https://cdn.builder.io/api/v1/image/assets/f97848ecf61542bea4ab8ab7f8d20ea9/fc1f6b1b3fc6ee87b690f1b6be44876cdf1e0e313d0c5d6607e5e53302011af2?placeholderIfAbsent=true&width=100 100w, https://cdn.builder.io/api/v1/image/assets/f97848ecf61542bea4ab8ab7f8d20ea9/fc1f6b1b3fc6ee87b690f1b6be44876cdf1e0e313d0c5d6607e5e53302011af2?placeholderIfAbsent=true&width=200 200w"
-          className="aspect-[1] object-contain w-[76px] shrink-0"
-          alt="HelloWorld! Logo"
-        />
-        <div className="flex flex-col justify-center">
-          <div className="text-[rgba(97,83,189,1)] text-4xl font-black leading-none">
-            HelloWorld!
-          </div>
-          <div className="text-[rgba(255,106,72,1)] text-base font-bold">
-            The world in one place
+      <div className="flex items-center gap-4">
+        <div 
+          onClick={() => navigate("/")}
+          className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity"
+        >
+          <img
+            loading="lazy"
+            srcSet="https://cdn.builder.io/api/v1/image/assets/f97848ecf61542bea4ab8ab7f8d20ea9/fc1f6b1b3fc6ee87b690f1b6be44876cdf1e0e313d0c5d6607e5e53302011af2?placeholderIfAbsent=true&width=100 100w, https://cdn.builder.io/api/v1/image/assets/f97848ecf61542bea4ab8ab7f8d20ea9/fc1f6b1b3fc6ee87b690f1b6be44876cdf1e0e313d0c5d6607e5e53302011af2?placeholderIfAbsent=true&width=200 200w"
+            className="aspect-[1] object-contain w-[76px] shrink-0"
+            alt="HelloWorld! Logo"
+          />
+          <div className="flex flex-col justify-center">
+            <div className="text-[rgba(97,83,189,1)] text-4xl font-black leading-none">
+              HelloWorld!
+            </div>
+            <div className="text-[rgba(255,106,72,1)] text-base font-bold">
+              The world in one place
+            </div>
           </div>
         </div>
+
+        {isLoggedIn && (
+          <div className="flex items-center gap-4 ml-8">
+            <button 
+              onClick={handleProfileClick}
+              className="flex items-center gap-2 text-[#6153BD] hover:text-[#4B3FA0] transition-colors"
+              title="My Profile"
+            >
+              <UserCircle size={24} weight="bold" />
+              <span className="hidden md:inline">My Profile</span>
+            </button>
+            
+            <button 
+              onClick={() => navigate("/messages")}
+              className="flex items-center gap-2 text-[#6153BD] hover:text-[#4B3FA0] transition-colors relative"
+              title="Messages"
+            >
+              <ChatCircleDots size={24} weight="bold" />
+              <span className="hidden md:inline">Messages</span>
+              {unreadMessages > 0 && (
+                <span className="absolute -top-2 -right-2 bg-[#FF6A48] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  +{unreadMessages}
+                </span>
+              )}
+            </button>
+            
+            <button 
+              onClick={() => navigate("/search")}
+              className="flex items-center gap-2 text-[#6153BD] hover:text-[#4B3FA0] transition-colors"
+              title="Search"
+            >
+              <MagnifyingGlass size={24} weight="bold" />
+              <span className="hidden md:inline">Search</span>
+            </button>
+            
+            <button 
+              onClick={() => navigate("/settings")}
+              className="flex items-center gap-2 text-[#6153BD] hover:text-[#4B3FA0] transition-colors"
+              title="Settings"
+            >
+              <Gear size={24} weight="bold" />
+              <span className="hidden md:inline">Settings</span>
+            </button>
+          </div>
+        )}
       </div>
 
       <nav className={`flex items-center gap-5 text-base font-bold my-auto transition-opacity duration-200 ${isTransitioning ? 'opacity-50' : 'opacity-100'}`}>
