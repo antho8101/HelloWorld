@@ -3,11 +3,11 @@ import React, { useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { User, Camera, UploadSimple } from "@phosphor-icons/react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import ReactCrop, { type Crop } from 'react-image-crop';
-import 'react-image-crop/dist/ReactCrop.css';
+import type { Crop } from 'react-image-crop';
+import { WebcamDialog } from "./avatar/WebcamDialog";
+import { CropDialog } from "./avatar/CropDialog";
+import { uploadToSupabase, getCroppedImg } from "./avatar/imageUtils";
 
 interface ProfileAvatarProps {
   userId: string;
@@ -19,7 +19,7 @@ interface ProfileAvatarProps {
 export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: ProfileAvatarProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const imgRef = useRef<HTMLImageElement | null>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isWebcamOpen, setIsWebcamOpen] = useState(false);
   const [isCropOpen, setIsCropOpen] = useState(false);
@@ -32,8 +32,6 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
     y: 5
   });
   const { toast } = useToast();
-
-  console.log("Current avatarUrl:", avatarUrl); // Debug log
 
   const startWebcam = async () => {
     try {
@@ -65,37 +63,6 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
     }
   };
 
-  const uploadToSupabase = async (file: File | Blob, fileExt: string) => {
-    try {
-      const filePath = `${userId}/${crypto.randomUUID()}.${fileExt}`;
-      console.log("Uploading to path:", filePath);
-
-      const { error: uploadError, data } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (uploadError) {
-        console.error("Upload error:", uploadError);
-        throw uploadError;
-      }
-
-      console.log("Upload successful:", data);
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
-      console.log("Generated public URL:", publicUrl);
-      return publicUrl;
-    } catch (error: any) {
-      console.error("Error in uploadToSupabase:", error);
-      throw new Error("Error uploading avatar");
-    }
-  };
-
   const takePhoto = async () => {
     if (!videoRef.current) return;
 
@@ -109,8 +76,7 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
     );
 
     try {
-      const publicUrl = await uploadToSupabase(blob, 'jpg');
-      console.log("Photo taken and uploaded, public URL:", publicUrl);
+      const publicUrl = await uploadToSupabase(blob, userId, 'jpg');
       onAvatarChange(publicUrl);
       setIsWebcamOpen(false);
       stopWebcam();
@@ -128,39 +94,6 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
     }
   };
 
-  const getCroppedImg = async () => {
-    if (!imgRef.current || !crop.width || !crop.height) return;
-
-    const canvas = document.createElement('canvas');
-    const image = imgRef.current;
-    const scaleX = image.naturalWidth / image.width;
-    const scaleY = image.naturalHeight / image.height;
-
-    canvas.width = crop.width;
-    canvas.height = crop.height;
-    const ctx = canvas.getContext('2d');
-
-    if (!ctx) return;
-
-    ctx.drawImage(
-      image,
-      crop.x * scaleX,
-      crop.y * scaleY,
-      crop.width * scaleX,
-      crop.height * scaleY,
-      0,
-      0,
-      crop.width,
-      crop.height
-    );
-
-    return new Promise<Blob>((resolve) => {
-      canvas.toBlob((blob) => {
-        if (blob) resolve(blob);
-      }, 'image/jpeg', 1);
-    });
-  };
-
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -175,10 +108,11 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
 
   const handleCropSave = async () => {
     try {
-      const croppedBlob = await getCroppedImg();
+      if (!imgRef.current) return;
+      const croppedBlob = await getCroppedImg(imgRef.current, crop);
       if (!croppedBlob) return;
 
-      const publicUrl = await uploadToSupabase(croppedBlob, 'jpg');
+      const publicUrl = await uploadToSupabase(croppedBlob, userId, 'jpg');
       onAvatarChange(publicUrl);
       setIsCropOpen(false);
       resetFileInput();
@@ -233,87 +167,35 @@ export const ProfileAvatar = ({ userId, username, avatarUrl, onAvatarChange }: P
         />
       </div>
 
-      {/* Webcam Dialog */}
-      <Dialog open={isWebcamOpen} onOpenChange={(open) => {
-        if (!open) {
+      <WebcamDialog
+        isOpen={isWebcamOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            stopWebcam();
+          }
+          setIsWebcamOpen(open);
+        }}
+        videoRef={videoRef}
+        onTakePhoto={takePhoto}
+        onClose={() => {
+          setIsWebcamOpen(false);
           stopWebcam();
-        }
-        setIsWebcamOpen(open);
-      }}>
-        <DialogContent className="sm:max-w-xl">
-          <DialogHeader>
-            <DialogTitle>Take a Photo</DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col items-center gap-4">
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              className="w-full rounded-lg bg-muted"
-            />
-            <div className="flex gap-2">
-              <Button 
-                onClick={takePhoto}
-                className="bg-[#6153BD] hover:bg-[#6153BD]/90 text-white border-2 border-[rgba(18,0,113,1)]"
-              >
-                Take Photo
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setIsWebcamOpen(false);
-                  stopWebcam();
-                }}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+        }}
+      />
 
-      {/* Crop Dialog */}
-      <Dialog open={isCropOpen} onOpenChange={setIsCropOpen}>
-        <DialogContent className="sm:max-w-xl">
-          <DialogHeader>
-            <DialogTitle>Crop Image</DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col items-center gap-4">
-            <div className="max-h-[500px] overflow-auto">
-              <ReactCrop
-                crop={crop}
-                onChange={c => setCrop(c)}
-                aspect={1}
-                circularCrop
-              >
-                <img
-                  ref={imgRef}
-                  src={cropImage}
-                  alt="Crop preview"
-                  className="max-w-full h-auto"
-                />
-              </ReactCrop>
-            </div>
-            <DialogFooter className="flex gap-2 w-full">
-              <Button
-                className="bg-[#6153BD] hover:bg-[#6153BD]/90 text-white border-2 border-[rgba(18,0,113,1)]"
-                onClick={handleCropSave}
-              >
-                Save
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setIsCropOpen(false);
-                  resetFileInput();
-                }}
-              >
-                Cancel
-              </Button>
-            </DialogFooter>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <CropDialog
+        isOpen={isCropOpen}
+        onOpenChange={setIsCropOpen}
+        cropImage={cropImage}
+        crop={crop}
+        onCropChange={setCrop}
+        imgRef={imgRef}
+        onSave={handleCropSave}
+        onCancel={() => {
+          setIsCropOpen(false);
+          resetFileInput();
+        }}
+      />
     </div>
   );
 };
