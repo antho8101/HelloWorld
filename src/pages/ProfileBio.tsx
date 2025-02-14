@@ -123,7 +123,8 @@ export const ProfileBio = () => {
               </Button>
               <Button
                 onClick={updateBio}
-                className="flex-1 bg-[#6153BD] text-white hover:bg-[#6153BD]/90"
+                disabled={bio.length < 50}
+                className="flex-1 bg-[#6153BD] text-white hover:bg-[#6153BD]/90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Save Bio
               </Button>
