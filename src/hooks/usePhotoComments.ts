@@ -21,7 +21,7 @@ export const usePhotoComments = (currentUserId: string | null) => {
           created_at,
           user_id,
           photo_id,
-          profiles (
+          profiles:user_id (
             name,
             username,
             avatar_url
@@ -56,7 +56,7 @@ export const usePhotoComments = (currentUserId: string | null) => {
           created_at,
           user_id,
           photo_id,
-          profiles (
+          profiles:user_id (
             name,
             username,
             avatar_url
