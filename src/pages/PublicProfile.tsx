@@ -44,7 +44,7 @@ export const PublicProfile = () => {
     <>
       <Header />
       <div className="min-h-screen bg-[rgba(255,243,240,1)] py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-[746px] mx-auto space-y-8">
+        <div className="max-w-[1800px] mx-auto space-y-8">
           <ProfileContent profile={profile} />
           <PostsList
             posts={posts}
