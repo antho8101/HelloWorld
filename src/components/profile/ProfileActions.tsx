@@ -7,7 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 
 interface ProfileActionsProps {
   onMessage: () => void;
-  onAddFriend: () => void;
   profileId: string;
   currentUserId: string | null;
 }
