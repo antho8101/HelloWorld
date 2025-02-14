@@ -38,13 +38,13 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
   isSubmitting,
 }) => {
   return (
-    <div className="fixed inset-0 bg-black/90 z-50">
-      <div className="grid h-screen grid-cols-[1fr,400px]">
-        <div className="relative flex items-center justify-center">
+    <div className="fixed inset-0 bg-black/90 z-50 flex">
+      <div className="flex w-full h-full">
+        <div className="relative flex-1 flex items-center justify-center p-4">
           <img
             src={photoUrl}
             alt={`Photo ${photoIndex + 1}`}
-            className="max-h-screen max-w-full object-contain"
+            className="max-h-[90vh] w-auto object-contain mx-auto"
           />
           
           <Button
@@ -64,7 +64,7 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
           </Button>
         </div>
 
-        <div className="p-6 bg-white h-screen overflow-y-auto">
+        <div className="w-[400px] bg-white h-full overflow-y-auto p-6">
           <LikeButton isLiked={isLiked} likesCount={likesCount} onClick={onLike} />
           <CommentSection
             comments={comments}
