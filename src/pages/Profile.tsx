@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +7,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileForm } from "@/components/profile/ProfileForm";
 import { useProfile } from "@/hooks/use-profile";
-import { Header } from "@/components/landing/Header";
+import { RegisterHeader } from "@/components/profile/RegisterHeader";
 
 export const Profile = () => {
   const navigate = useNavigate();
@@ -99,7 +100,7 @@ export const Profile = () => {
 
   return (
     <main className="min-h-screen select-none">
-      <Header />
+      <RegisterHeader />
 
       <div className="bg-[rgba(255,243,240,1)] py-12 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-[80%] mx-auto bg-white rounded-2xl shadow-lg p-8">
