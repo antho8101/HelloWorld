@@ -1,6 +1,6 @@
 
 import React from "react";
-import { ArrowLeft, ArrowRight, X } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { LikeButton } from "./LikeButton";
 import { CommentSection } from "./CommentSection";
@@ -39,14 +39,6 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
 }) => {
   return (
     <div className="fixed inset-0 bg-black/90 z-50">
-      <Button
-        variant="ghost"
-        className="absolute top-4 right-4 text-white hover:bg-black/20 z-10"
-        onClick={onClose}
-      >
-        <X size={24} weight="bold" />
-      </Button>
-      
       <div className="grid h-screen grid-cols-[1fr,400px]">
         <div className="relative flex items-center justify-center">
           <img
