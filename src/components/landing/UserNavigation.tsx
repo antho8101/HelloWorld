@@ -48,23 +48,38 @@ export const UserNavigation: React.FC<UserNavigationProps> = ({ userId, unreadMe
     };
   }, [userId]);
 
-  const handleNavigation = (path: string) => {
-    if (!userId) {
-      navigate("/login");
-      return;
-    }
+  const handleNavigation = (route: string) => {
+    try {
+      if (!userId) {
+        navigate("/login");
+        return;
+      }
 
-    if (path === "/profile") {
-      navigate(`/profile/${userId}`);
-    } else {
-      navigate(path);
+      switch (route) {
+        case "profile":
+          navigate(`/profile/${encodeURIComponent(userId)}`);
+          break;
+        case "messages":
+          navigate("/messages");
+          break;
+        case "search":
+          navigate("/search");
+          break;
+        case "settings":
+          navigate("/settings");
+          break;
+        default:
+          console.error("Invalid route");
+      }
+    } catch (error) {
+      console.error("Navigation error:", error);
     }
   };
   
   return (
     <div className="flex items-center gap-4 ml-8">
       <button 
-        onClick={() => handleNavigation("/profile")}
+        onClick={() => handleNavigation("profile")}
         className="flex items-center gap-2 text-[#6153BD] hover:text-[#4B3FA0] transition-colors relative"
         title="My Profile"
       >
@@ -78,7 +93,7 @@ export const UserNavigation: React.FC<UserNavigationProps> = ({ userId, unreadMe
       </button>
       
       <button 
-        onClick={() => handleNavigation("/messages")}
+        onClick={() => handleNavigation("messages")}
         className="flex items-center gap-2 text-[#6153BD] hover:text-[#4B3FA0] transition-colors relative"
         title="Messages"
       >
@@ -92,7 +107,7 @@ export const UserNavigation: React.FC<UserNavigationProps> = ({ userId, unreadMe
       </button>
       
       <button 
-        onClick={() => handleNavigation("/search")}
+        onClick={() => handleNavigation("search")}
         className="flex items-center gap-2 text-[#6153BD] hover:text-[#4B3FA0] transition-colors"
         title="Search"
       >
@@ -101,7 +116,7 @@ export const UserNavigation: React.FC<UserNavigationProps> = ({ userId, unreadMe
       </button>
       
       <button 
-        onClick={() => handleNavigation("/settings")}
+        onClick={() => handleNavigation("settings")}
         className="flex items-center gap-2 text-[#6153BD] hover:text-[#4B3FA0] transition-colors"
         title="Settings"
       >
