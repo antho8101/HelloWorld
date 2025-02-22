@@ -1,5 +1,6 @@
 
 import React, { useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { usePhotos } from "@/hooks/usePhotos";
 import { useSession } from "@/hooks/useSession";
 import { usePhotoComments } from "@/hooks/usePhotoComments";
@@ -84,25 +85,27 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-[20px] p-6 shadow-lg w-full">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-[#6153BD]">Photos</h2>
-        <PhotoUploader
-          fileInputRef={fileInputRef}
-          onFileChange={handleFileChange}
-          onAddPhoto={handleAddPhoto}
+    <>
+      <div className="bg-white/80 backdrop-blur-sm rounded-[20px] p-6 shadow-lg w-full">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-[#6153BD]">Photos</h2>
+          <PhotoUploader
+            fileInputRef={fileInputRef}
+            onFileChange={handleFileChange}
+            onAddPhoto={handleAddPhoto}
+            isOwnProfile={isOwnProfile}
+          />
+        </div>
+        
+        <PhotoList
+          photos={photos}
           isOwnProfile={isOwnProfile}
+          onPhotoClick={handlePhotoClick}
+          onAddPhoto={handleAddPhoto}
         />
       </div>
-      
-      <PhotoList
-        photos={photos}
-        isOwnProfile={isOwnProfile}
-        onPhotoClick={handlePhotoClick}
-        onAddPhoto={handleAddPhoto}
-      />
 
-      {selectedPhotoIndex !== null && (
+      {selectedPhotoIndex !== null && createPortal(
         <PhotoViewer
           photoUrl={photos[selectedPhotoIndex]}
           photoIndex={selectedPhotoIndex}
@@ -117,8 +120,9 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
           onCommentChange={setNewComment}
           onCommentSubmit={handleComment}
           isSubmitting={isSubmitting}
-        />
+        />,
+        document.body
       )}
-    </div>
+    </>
   );
 };
