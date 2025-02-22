@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserCircle, ChatCircleDots, MagnifyingGlass, Gear } from "@phosphor-icons/react";
@@ -50,7 +51,13 @@ export const UserNavigation: React.FC<UserNavigationProps> = ({ userId, unreadMe
   return (
     <div className="flex items-center gap-4 ml-8">
       <button 
-        onClick={() => navigate(`/profile/${userId}`)}
+        onClick={() => {
+          if (userId) {
+            navigate(`/profile/${userId}`);
+          } else {
+            navigate("/login");
+          }
+        }}
         className="flex items-center gap-2 text-[#6153BD] hover:text-[#4B3FA0] transition-colors relative"
         title="My Profile"
       >
@@ -64,7 +71,13 @@ export const UserNavigation: React.FC<UserNavigationProps> = ({ userId, unreadMe
       </button>
       
       <button 
-        onClick={() => navigate("/messages")}
+        onClick={() => {
+          if (userId) {
+            navigate("/messages");
+          } else {
+            navigate("/login");
+          }
+        }}
         className="flex items-center gap-2 text-[#6153BD] hover:text-[#4B3FA0] transition-colors relative"
         title="Messages"
       >
@@ -78,7 +91,13 @@ export const UserNavigation: React.FC<UserNavigationProps> = ({ userId, unreadMe
       </button>
       
       <button 
-        onClick={() => navigate("/search")}
+        onClick={() => {
+          if (userId) {
+            navigate("/search");
+          } else {
+            navigate("/login");
+          }
+        }}
         className="flex items-center gap-2 text-[#6153BD] hover:text-[#4B3FA0] transition-colors"
         title="Search"
       >
@@ -87,7 +106,13 @@ export const UserNavigation: React.FC<UserNavigationProps> = ({ userId, unreadMe
       </button>
       
       <button 
-        onClick={() => navigate("/settings")}
+        onClick={() => {
+          if (userId) {
+            navigate("/settings");
+          } else {
+            navigate("/login");
+          }
+        }}
         className="flex items-center gap-2 text-[#6153BD] hover:text-[#4B3FA0] transition-colors"
         title="Settings"
       >
