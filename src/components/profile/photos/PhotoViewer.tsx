@@ -38,14 +38,14 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
   isSubmitting,
 }) => {
   return (
-    <div className="fixed inset-0 w-screen h-screen bg-black z-[100] overflow-hidden">
-      <div className="absolute inset-0 flex">
+    <div className="fixed inset-0 w-screen h-screen bg-black/95 z-[100] p-5">
+      <div className="absolute inset-5 flex bg-black rounded-lg overflow-hidden">
         {/* Left side - Photo */}
-        <div className="relative flex-1 bg-black flex items-center justify-center">
+        <div className="relative flex-1 flex items-center justify-center">
           <img
             src={photoUrl}
             alt={`Photo ${photoIndex + 1}`}
-            className="max-h-screen max-w-[calc(100vw-400px)] w-auto h-auto object-contain"
+            className="max-h-[calc(100vh-40px)] max-w-[calc(100vw-440px)] w-auto h-auto object-contain"
           />
           
           <Button
@@ -66,7 +66,7 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
         </div>
 
         {/* Right side - Comments & Actions */}
-        <div className="w-[400px] bg-white h-full overflow-hidden flex flex-col">
+        <div className="w-[400px] bg-white h-full overflow-hidden flex flex-col rounded-r-lg">
           <Button
             variant="ghost"
             onClick={onClose}
