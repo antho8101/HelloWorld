@@ -1,6 +1,5 @@
 
 import React, { useRef, useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { usePhotos } from "@/hooks/usePhotos";
 import { useSession } from "@/hooks/useSession";
 import { usePhotoComments } from "@/hooks/usePhotoComments";
@@ -103,27 +102,23 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
         onAddPhoto={handleAddPhoto}
       />
 
-      <Dialog open={selectedPhotoIndex !== null} onOpenChange={() => setSelectedPhotoIndex(null)}>
-        <DialogContent className="[&>button]:hidden max-w-4xl w-11/12 p-0 bg-white rounded-lg">
-          {selectedPhotoIndex !== null && (
-            <PhotoViewer
-              photoUrl={photos[selectedPhotoIndex]}
-              photoIndex={selectedPhotoIndex}
-              onClose={() => setSelectedPhotoIndex(null)}
-              onPrevious={handlePrevious}
-              onNext={handleNext}
-              isLiked={isLiked}
-              likesCount={likesCount}
-              onLike={handleLike}
-              comments={comments}
-              newComment={newComment}
-              onCommentChange={setNewComment}
-              onCommentSubmit={handleComment}
-              isSubmitting={isSubmitting}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      {selectedPhotoIndex !== null && (
+        <PhotoViewer
+          photoUrl={photos[selectedPhotoIndex]}
+          photoIndex={selectedPhotoIndex}
+          onClose={() => setSelectedPhotoIndex(null)}
+          onPrevious={handlePrevious}
+          onNext={handleNext}
+          isLiked={isLiked}
+          likesCount={likesCount}
+          onLike={handleLike}
+          comments={comments}
+          newComment={newComment}
+          onCommentChange={setNewComment}
+          onCommentSubmit={handleComment}
+          isSubmitting={isSubmitting}
+        />
+      )}
     </div>
   );
 };
