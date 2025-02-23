@@ -98,7 +98,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({ userId, onPostCreated })
             type="button"
             variant="outline"
             onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-2 border-2 border-[#6153BD]/20 hover:bg-[#6153BD]/5"
+            className="flex items-center gap-2 bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors shadow-sm"
           >
             <ImageIcon size={20} />
             {file ? "Change Image" : "Add Image"}
