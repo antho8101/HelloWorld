@@ -7,6 +7,7 @@ import { Signup } from "@/pages/Signup";
 import { Profile } from "@/pages/Profile";
 import { ProfileBio } from "@/pages/ProfileBio";
 import { PublicProfile } from "@/pages/PublicProfile";
+import { ProfileEdit } from "@/pages/ProfileEdit";
 import { Toaster } from "@/components/ui/sonner";
 
 const router = createBrowserRouter([
@@ -25,6 +26,10 @@ const router = createBrowserRouter([
   {
     path: "/profile",
     element: <Profile />,
+  },
+  {
+    path: "/profile/edit",
+    element: <ProfileEdit />,
   },
   {
     path: "/profile/bio",
