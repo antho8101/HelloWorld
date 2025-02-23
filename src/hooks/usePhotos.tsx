@@ -62,6 +62,37 @@ export const usePhotos = (userId: string | null) => {
     }
   };
 
+  const deletePhoto = async (photoUrl: string) => {
+    if (!userId) return;
+
+    try {
+      // Delete from database first
+      const { error: dbError } = await supabase
+        .from('user_photos')
+        .delete()
+        .eq('photo_url', photoUrl);
+
+      if (dbError) throw dbError;
+
+      // Extract file path from public URL
+      const filePath = photoUrl.split('/').slice(-2).join('/');
+
+      // Delete from storage
+      const { error: storageError } = await supabase.storage
+        .from('user_photos')
+        .remove([filePath]);
+
+      if (storageError) throw storageError;
+
+      // Update local state
+      setPhotos(photos.filter(photo => photo !== photoUrl));
+      toast.success("Photo deleted successfully");
+    } catch (error: any) {
+      console.error("Error deleting photo:", error);
+      toast.error("Error deleting photo");
+    }
+  };
+
   useEffect(() => {
     fetchPhotos();
   }, [userId]);
@@ -70,6 +101,7 @@ export const usePhotos = (userId: string | null) => {
     photos,
     loading,
     uploadPhoto,
+    deletePhoto,
     fetchPhotos
   };
 };

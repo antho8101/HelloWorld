@@ -15,7 +15,7 @@ interface PhotoGalleryProps {
 
 export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { photos, uploadPhoto } = usePhotos(userId);
+  const { photos, uploadPhoto, deletePhoto } = usePhotos(userId);
   const { currentUserId } = useSession();
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
   
@@ -102,6 +102,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {
           isOwnProfile={isOwnProfile}
           onPhotoClick={handlePhotoClick}
           onAddPhoto={handleAddPhoto}
+          onDeletePhoto={isOwnProfile ? deletePhoto : undefined}
         />
       </div>
 
