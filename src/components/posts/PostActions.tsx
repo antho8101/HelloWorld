@@ -21,19 +21,21 @@ export const PostActions: React.FC<PostActionsProps> = ({
   return (
     <div className="flex items-center gap-4">
       <Button
-        variant="ghost"
+        variant="outline"
         size="sm"
         onClick={onLike}
-        className={`flex items-center gap-2 ${isLiked ? "text-red-500" : ""}`}
+        className={`bg-white gap-2.5 text-[#6153BD] whitespace-nowrap px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#6153BD] hover:text-white ${
+          isLiked ? "bg-[#6153BD] text-white" : ""
+        }`}
       >
         <Heart weight={isLiked ? "fill" : "regular"} size={20} />
         {likesCount}
       </Button>
       <Button
-        variant="ghost"
+        variant="outline"
         size="sm"
         onClick={onCommentToggle}
-        className="flex items-center gap-2"
+        className="bg-white gap-2.5 text-[#6153BD] whitespace-nowrap px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#6153BD] hover:text-white"
       >
         <ChatText size={20} />
         {commentsCount}
