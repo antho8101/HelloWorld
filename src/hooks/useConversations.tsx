@@ -48,25 +48,18 @@ export const useConversations = (userId: string | null) => {
       const conversationsWithParticipants = await Promise.all(
         conversationsData.map(async (conv) => {
           const { data: participants, error: participantsError } = await supabase
-            .from("conversation_participants")
-            .select(`
-              profiles:user_id (
-                id,
-                name,
-                avatar_url
-              )
-            `)
-            .eq("conversation_id", conv.id);
+            .from("profiles")
+            .select("id, name, avatar_url")
+            .in(
+              "id",
+              conv.conversation_participants.map((p: { user_id: string }) => p.user_id)
+            );
 
           if (participantsError) throw participantsError;
 
           return {
             ...conv,
-            participants: participants.map((p) => ({
-              id: p.profiles.id,
-              name: p.profiles.name,
-              avatar_url: p.profiles.avatar_url,
-            })),
+            participants: participants || [],
             last_message: conv.messages[conv.messages.length - 1],
           };
         })
