@@ -7,6 +7,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { ProfileForm } from "@/components/profile/ProfileForm";
 import { toast } from "sonner";
 import type { ProfileData } from "@/types/profile";
+import type { Json } from "@/integrations/supabase/types";
 
 export const ProfileEdit = () => {
   const navigate = useNavigate();
@@ -44,7 +45,34 @@ export const ProfileEdit = () => {
         return;
       }
 
-      setProfile(data as ProfileData);
+      // Transform the data to match ProfileData type
+      const profileData: ProfileData = {
+        username: data.username || "",
+        name: data.name || "",
+        age: data.age || 0,
+        avatar_url: data.avatar_url || "",
+        native_languages: Array.isArray(data.native_languages) 
+          ? data.native_languages.map(lang => ({ language: lang }))
+          : [],
+        learning_languages: Array.isArray(data.language_levels) 
+          ? (data.language_levels as any[]).map(lang => ({
+              language: lang.language || "",
+              level: lang.level || "beginner"
+            }))
+          : [],
+        country: data.country || "",
+        city: data.city || "",
+        bio: data.bio || "",
+        gender: data.gender || "",
+        interested_in: data.interested_in || [],
+        looking_for: data.looking_for || [],
+        language_levels: data.language_levels || [],
+        is_suspended: data.is_suspended || false,
+        is_banned: data.is_banned || false,
+        suspension_end_timestamp: data.suspension_end_timestamp || null,
+      };
+
+      setProfile(profileData);
     } catch (error) {
       console.error("Error fetching profile:", error);
       toast.error("Failed to load profile");
@@ -106,9 +134,16 @@ export const ProfileEdit = () => {
 
   const handleProfileUpdate = async (updates: Partial<ProfileData>) => {
     try {
+      // Transform the updates to match the database schema
+      const dbUpdates: any = {
+        ...updates,
+        native_languages: updates.native_languages?.map(lang => lang.language),
+        language_levels: updates.learning_languages || [],
+      };
+
       const { error } = await supabase
         .from("profiles")
-        .update(updates)
+        .update(dbUpdates)
         .eq("id", userId);
 
       if (error) throw error;
@@ -147,6 +182,7 @@ export const ProfileEdit = () => {
               setCitySearch(city);
               setCities([]);
             }}
+            onSubmit={() => navigate(`/profile/${userId}`)}
           />
         </div>
       </div>
