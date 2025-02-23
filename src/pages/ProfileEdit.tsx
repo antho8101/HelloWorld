@@ -48,7 +48,10 @@ export const ProfileEdit = () => {
 
       // Transform the data to match ProfileData type
       const languageLevels = Array.isArray(data.language_levels) 
-        ? data.language_levels as LanguageWithLevel[]
+        ? (data.language_levels as any[]).map(lang => ({
+            language: typeof lang.language === 'string' ? lang.language : '',
+            level: typeof lang.level === 'string' ? lang.level : 'beginner'
+          }))
         : [];
 
       const profileData: ProfileData = {
@@ -60,7 +63,10 @@ export const ProfileEdit = () => {
           ? data.native_languages.map(lang => ({ language: lang }))
           : [],
         learning_languages: Array.isArray(data.language_levels) 
-          ? (data.language_levels as LanguageWithLevel[])
+          ? (data.language_levels as any[]).map(lang => ({
+              language: typeof lang.language === 'string' ? lang.language : '',
+              level: typeof lang.level === 'string' ? lang.level : 'beginner'
+            }))
           : [],
         country: data.country || "",
         city: data.city || "",
