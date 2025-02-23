@@ -8,6 +8,7 @@ import { ProfileForm } from "@/components/profile/ProfileForm";
 import { toast } from "sonner";
 import type { ProfileData } from "@/types/profile";
 import type { Json } from "@/integrations/supabase/types";
+import type { LanguageWithLevel } from "@/components/LanguageSelector";
 
 export const ProfileEdit = () => {
   const navigate = useNavigate();
@@ -46,6 +47,10 @@ export const ProfileEdit = () => {
       }
 
       // Transform the data to match ProfileData type
+      const languageLevels = Array.isArray(data.language_levels) 
+        ? data.language_levels as LanguageWithLevel[]
+        : [];
+
       const profileData: ProfileData = {
         username: data.username || "",
         name: data.name || "",
@@ -55,10 +60,7 @@ export const ProfileEdit = () => {
           ? data.native_languages.map(lang => ({ language: lang }))
           : [],
         learning_languages: Array.isArray(data.language_levels) 
-          ? (data.language_levels as any[]).map(lang => ({
-              language: lang.language || "",
-              level: lang.level || "beginner"
-            }))
+          ? (data.language_levels as LanguageWithLevel[])
           : [],
         country: data.country || "",
         city: data.city || "",
@@ -66,7 +68,7 @@ export const ProfileEdit = () => {
         gender: data.gender || "",
         interested_in: data.interested_in || [],
         looking_for: data.looking_for || [],
-        language_levels: data.language_levels || [],
+        language_levels: languageLevels,
         is_suspended: data.is_suspended || false,
         is_banned: data.is_banned || false,
         suspension_end_timestamp: data.suspension_end_timestamp || null,
