@@ -1,11 +1,11 @@
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Index from "@/pages/Index";
-import Login from "@/pages/Login";
-import Signup from "@/pages/Signup";
-import Profile from "@/pages/Profile";
-import Messages from "@/pages/Messages";
-import Auth from "@/pages/Auth";
+import { Login } from "@/pages/Login";
+import { Signup } from "@/pages/Signup";
+import { Profile } from "@/pages/Profile";
+import { Messages } from "@/pages/Messages";
+import { Auth } from "@/pages/Auth";
 import NotFound from "@/pages/NotFound";
 import "./App.css";
 

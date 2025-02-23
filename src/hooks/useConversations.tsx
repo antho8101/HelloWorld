@@ -50,8 +50,7 @@ export const useConversations = (userId: string | null) => {
           const { data: participants, error: participantsError } = await supabase
             .from("conversation_participants")
             .select(`
-              user_id,
-              profiles!inner(
+              profiles:user_id (
                 id,
                 name,
                 avatar_url
