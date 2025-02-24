@@ -9,11 +9,22 @@ import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { useSession } from "@/hooks/useSession";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
 export const FriendsSection: React.FC = () => {
   const [friends, setFriends] = useState<any[]>([]);
   const [showAllFriends, setShowAllFriends] = useState(false);
+  const [friendToDelete, setFriendToDelete] = useState<string | null>(null);
   const params = useParams();
   const { currentUserId } = useSession();
   const isOwnProfile = currentUserId === params.id;
@@ -65,6 +76,8 @@ export const FriendsSection: React.FC = () => {
     } catch (error) {
       console.error('Error removing friend:', error);
       toast.error("Failed to remove friend");
+    } finally {
+      setFriendToDelete(null);
     }
   };
 
@@ -120,7 +133,7 @@ export const FriendsSection: React.FC = () => {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              handleRemoveFriend(friend.id);
+              setFriendToDelete(friend.id);
             }}
             variant="ghost"
             size="icon"
@@ -171,6 +184,26 @@ export const FriendsSection: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!friendToDelete} onOpenChange={() => setFriendToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Friend</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove this friend? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => friendToDelete && handleRemoveFriend(friendToDelete)}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Yes, remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
