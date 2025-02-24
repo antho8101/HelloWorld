@@ -98,7 +98,7 @@ export const Login = () => {
               <Button
                 type="submit"
                 disabled={loading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#6153BD] hover:bg-[#4e4494] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#6153BD]"
+                className="bg-[#6153BD] gap-2.5 text-white whitespace-nowrap px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#4e4494] w-full"
               >
                 {loading ? "Loading..." : "Sign in"}
               </Button>
@@ -106,7 +106,7 @@ export const Login = () => {
                 type="button"
                 onClick={() => navigate("/signup")}
                 variant="outline"
-                className="group relative w-full flex justify-center py-2 px-4 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#6153BD]"
+                className="bg-white gap-2.5 text-[#6153BD] whitespace-nowrap px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#6153BD] hover:text-white w-full"
               >
                 Create an account
               </Button>
