@@ -186,18 +186,22 @@ export const FriendsSection: React.FC = () => {
       </Dialog>
 
       <AlertDialog open={!!friendToDelete} onOpenChange={() => setFriendToDelete(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-white rounded-[20px] border-2 border-[#6153BD] shadow-lg">
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove Friend</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-xl font-semibold text-[#6153BD]">
+              Remove Friend
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600">
               Are you sure you want to remove this friend? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="bg-white gap-2.5 text-[#6153BD] whitespace-nowrap px-5 py-2.5 rounded-[10px] border-[#6153BD] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#6153BD] hover:text-white">
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => friendToDelete && handleRemoveFriend(friendToDelete)}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-[#ea384c] gap-2.5 text-white whitespace-nowrap px-5 py-2.5 rounded-[10px] border-[#ea384c] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#d61f33]"
             >
               Yes, remove
             </AlertDialogAction>
