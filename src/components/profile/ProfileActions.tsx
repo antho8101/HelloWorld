@@ -19,12 +19,29 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
   const { toast } = useToast();
   const [attemptsCount, setAttemptsCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFriend, setIsFriend] = useState(false);
 
   useEffect(() => {
     if (currentUserId) {
       checkAttemptsCount();
+      checkFriendshipStatus();
     }
   }, [currentUserId, profileId]);
+
+  const checkFriendshipStatus = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('friends')
+        .select()
+        .or(`user_id1.eq.${currentUserId}.and.user_id2.eq.${profileId},user_id1.eq.${profileId}.and.user_id2.eq.${currentUserId}`)
+        .maybeSingle();
+
+      if (error) throw error;
+      setIsFriend(!!data);
+    } catch (error) {
+      console.error('Error checking friendship status:', error);
+    }
+  };
 
   const checkAttemptsCount = async () => {
     try {
@@ -63,7 +80,6 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
     }
 
     try {
-      // First check the latest status of any existing request
       const { data: existingRequest } = await supabase
         .from('friend_requests')
         .select('status, attempt_count')
@@ -113,14 +129,16 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
         <ChatText size={20} weight="bold" />
         Send Message
       </Button>
-      <Button 
-        onClick={handleAddFriend}
-        disabled={isLoading || attemptsCount >= 3}
-        className="bg-white gap-2.5 text-[#6153BD] whitespace-nowrap px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#6153BD] hover:text-white w-full disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        <UserPlus size={20} weight="bold" />
-        {attemptsCount >= 3 ? 'Maximum Attempts Reached' : 'Add Friend'}
-      </Button>
+      {!isFriend && (
+        <Button 
+          onClick={handleAddFriend}
+          disabled={isLoading || attemptsCount >= 3}
+          className="bg-white gap-2.5 text-[#6153BD] whitespace-nowrap px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#6153BD] hover:text-white w-full disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <UserPlus size={20} weight="bold" />
+          {attemptsCount >= 3 ? 'Maximum Attempts Reached' : 'Add Friend'}
+        </Button>
+      )}
     </div>
   );
 };
