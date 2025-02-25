@@ -1,56 +1,30 @@
 
-import { RouterProvider, createBrowserRouter } from "react-router-dom";
-import Index from "@/pages/Index";
-import NotFound from "@/pages/NotFound";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Toaster } from "@/components/ui/toaster";
+import { Index } from "@/pages/Index";
 import { Login } from "@/pages/Login";
 import { Signup } from "@/pages/Signup";
+import { Messages } from "@/pages/Messages";
 import { Profile } from "@/pages/Profile";
-import { ProfileBio } from "@/pages/ProfileBio";
-import { PublicProfile } from "@/pages/PublicProfile";
 import { ProfileEdit } from "@/pages/ProfileEdit";
-import { Toaster } from "@/components/ui/sonner";
-
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <Index />,
-  },
-  {
-    path: "/login",
-    element: <Login />,
-  },
-  {
-    path: "/signup",
-    element: <Signup />,
-  },
-  {
-    path: "/profile",
-    element: <Profile />,
-  },
-  {
-    path: "/profile/edit",
-    element: <ProfileEdit />,
-  },
-  {
-    path: "/profile/bio",
-    element: <ProfileBio />,
-  },
-  {
-    path: "/profile/:id",
-    element: <PublicProfile />,
-  },
-  {
-    path: "*",
-    element: <NotFound />,
-  },
-]);
+import { PublicProfile } from "@/pages/PublicProfile";
+import { NotFound } from "@/pages/NotFound";
 
 function App() {
   return (
-    <>
-      <RouterProvider router={router} />
+    <Router>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/messages" element={<Messages />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/profile/edit" element={<ProfileEdit />} />
+        <Route path="/profile/:id" element={<PublicProfile />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
       <Toaster />
-    </>
+    </Router>
   );
 }
 
