@@ -29,17 +29,27 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
   }, [currentUserId, profileId]);
 
   const checkFriendshipStatus = async () => {
+    if (!currentUserId || !profileId) return;
+    
     try {
       const { data, error } = await supabase
         .from('friends')
-        .select()
-        .or(`user_id1.eq.${currentUserId}.and.user_id2.eq.${profileId},user_id1.eq.${profileId}.and.user_id2.eq.${currentUserId}`)
-        .maybeSingle();
+        .select('*')
+        .or(`user_id1.eq.${currentUserId},user_id2.eq.${currentUserId}`)
+        .or(`user_id1.eq.${profileId},user_id2.eq.${profileId}`);
 
       if (error) throw error;
-      setIsFriend(!!data);
+
+      const isFriendFound = data?.some(friendship => 
+        (friendship.user_id1 === currentUserId && friendship.user_id2 === profileId) ||
+        (friendship.user_id1 === profileId && friendship.user_id2 === currentUserId)
+      );
+
+      setIsFriend(isFriendFound);
+      setIsLoading(false);
     } catch (error) {
       console.error('Error checking friendship status:', error);
+      setIsLoading(false);
     }
   };
 
@@ -55,8 +65,6 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
       setAttemptsCount(data || 0);
     } catch (error) {
       console.error('Error checking friend request attempts:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -129,10 +137,10 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
         <ChatText size={20} weight="bold" />
         Send Message
       </Button>
-      {!isFriend && (
+      {!isFriend && !isLoading && (
         <Button 
           onClick={handleAddFriend}
-          disabled={isLoading || attemptsCount >= 3}
+          disabled={attemptsCount >= 3}
           className="bg-white gap-2.5 text-[#6153BD] whitespace-nowrap px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[#6153BD] hover:text-white w-full disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <UserPlus size={20} weight="bold" />
