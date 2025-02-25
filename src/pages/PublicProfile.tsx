@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/landing/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ProfileError } from "@/components/profile/ProfileError";
@@ -18,9 +18,12 @@ import { usePosts } from "@/hooks/usePosts";
 import { useSession } from "@/hooks/useSession";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { PencilSimple } from "@phosphor-icons/react";
 
 export const PublicProfile = () => {
   const params = useParams();
+  const navigate = useNavigate();
   const { profile, loading, error } = useProfile(params.id);
   const { currentUserId } = useSession();
   const { posts, fetchPosts } = usePosts(profile?.id, currentUserId);
@@ -158,12 +161,23 @@ export const PublicProfile = () => {
               />
             )}
             {isOwnProfile && (
-              <FriendRequests
-                requests={friendRequests}
-                onRequestHandled={fetchFriendRequests}
-              />
+              <>
+                <Button 
+                  onClick={() => navigate('/profile/edit')}
+                  className="bg-[rgba(97,83,189,1)] hover:bg-[rgba(97,83,189,0.9)] text-white flex items-center gap-2 w-full justify-center"
+                >
+                  <PencilSimple size={20} weight="bold" />
+                  Edit Profile
+                </Button>
+                <FriendRequests
+                  requests={friendRequests}
+                  onRequestHandled={fetchFriendRequests}
+                />
+              </>
             )}
-            <FriendsSection />
+            <div>
+              <FriendsSection />
+            </div>
             <PhotoGallery userId={profile.id} />
             {!isOwnProfile && !profile.is_banned && (
               <ReportButton onClick={() => setIsReportModalOpen(true)} />
