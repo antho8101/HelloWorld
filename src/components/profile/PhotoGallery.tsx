@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePhotos } from "@/hooks/usePhotos";
@@ -10,7 +9,7 @@ import { PhotoViewer } from "./photos/PhotoViewer";
 import { PhotoUploader } from "./photos/PhotoUploader";
 
 interface PhotoGalleryProps {
-  userId: string | null;
+  userId: string;
 }
 
 export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ userId }) => {

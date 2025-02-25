@@ -16,11 +16,11 @@ import { useNavigate } from "react-router-dom";
 
 export const PublicProfile: FC = () => {
   const { id } = useParams();
+  const { currentUserId } = useSession();
   const { profile, loading, error } = useProfile(id);
-  const { session } = useSession();
   const isOnline = useOnlineStatus(id);
   const navigate = useNavigate();
-  const isOwnProfile = session?.user?.id === id;
+  const isOwnProfile = currentUserId === id;
 
   if (loading) {
     return <LoadingSpinner />;
@@ -38,14 +38,14 @@ export const PublicProfile: FC = () => {
             <AccountStatusAlerts
               isBanned={profile.is_banned}
               isSuspended={false}
-              suspensionEnd={null}
+              suspensionEndTimestamp={null}
             />
           )}
           {!profile.is_banned && profile.is_suspended && (
             <AccountStatusAlerts
               isBanned={false}
               isSuspended={profile.is_suspended}
-              suspensionEnd={profile.suspension_end_timestamp}
+              suspensionEndTimestamp={profile.suspension_end_timestamp}
             />
           )}
 
@@ -73,8 +73,8 @@ export const PublicProfile: FC = () => {
                 </Button>
               </div>
             )}
-            <FriendsSection userId={id} currentUserId={session?.user?.id ?? null} />
-            <PhotoGallery userId={id} currentUserId={session?.user?.id ?? null} />
+            <FriendsSection userId={id || ""} currentUserId={currentUserId} />
+            <PhotoGallery userId={id || ""} />
           </div>
         </div>
       </div>
