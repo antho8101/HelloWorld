@@ -14,7 +14,7 @@ import { Footer } from "@/components/layout/Footer";
 
 const Index = () => {
   return (
-    <main className="min-h-screen select-none">
+    <main className="min-h-screen select-none bg-white">
       <div className="bg-[rgba(255,243,240,1)] flex w-full flex-col items-stretch p-5 max-md:max-w-full">
         <Header />
         <Hero />
