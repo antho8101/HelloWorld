@@ -1,13 +1,22 @@
 
-import React, { useState, KeyboardEvent } from "react";
+import React, { useState, KeyboardEvent, useRef } from "react";
 import { Header } from "@/components/landing/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChatCircle } from "@phosphor-icons/react";
+import { 
+  ChatCircle, 
+  TextBolder, 
+  TextItalic, 
+  TextUnderline, 
+  Palette,
+  Image as ImageIcon
+} from "@phosphor-icons/react";
+import { Button } from "@/components/ui/button";
 
 export const Messages = () => {
   const [message, setMessage] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSendMessage = () => {
     if (message.trim()) {
@@ -20,6 +29,19 @@ export const Messages = () => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  const handleFormatClick = (format: string) => {
+    console.log("Applying format:", format);
+    // Format implementation will go here
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      console.log("Image selected:", file);
+      // Image upload implementation will go here
     }
   };
 
@@ -85,6 +107,58 @@ export const Messages = () => {
 
               {/* Message Input */}
               <div className="p-4 border-t border-gray-200">
+                {/* Formatting Toolbar */}
+                <div className="flex items-center space-x-2 mb-3 p-2 border border-gray-200 rounded-lg bg-gray-50">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleFormatClick("bold")}
+                    className="text-gray-600 hover:text-[#6153BD] hover:bg-[#6153BD]/10"
+                  >
+                    <TextBolder size={20} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleFormatClick("italic")}
+                    className="text-gray-600 hover:text-[#6153BD] hover:bg-[#6153BD]/10"
+                  >
+                    <TextItalic size={20} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleFormatClick("underline")}
+                    className="text-gray-600 hover:text-[#6153BD] hover:bg-[#6153BD]/10"
+                  >
+                    <TextUnderline size={20} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleFormatClick("color")}
+                    className="text-gray-600 hover:text-[#6153BD] hover:bg-[#6153BD]/10"
+                  >
+                    <Palette size={20} />
+                  </Button>
+                  <div className="h-5 w-px bg-gray-300 mx-2" />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="text-gray-600 hover:text-[#6153BD] hover:bg-[#6153BD]/10"
+                  >
+                    <ImageIcon size={20} />
+                  </Button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleImageUpload}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                </div>
+
                 <div className="flex space-x-4">
                   <Input 
                     value={message}
