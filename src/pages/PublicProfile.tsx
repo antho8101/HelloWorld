@@ -1,29 +1,20 @@
 
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Header } from "@/components/landing/Header";
-import { Footer } from "@/components/layout/Footer";
+import { useParams } from "react-router-dom";
+import { LoadingSpinner } from "@/components/profile/LoadingSpinner";
+import { ProfileLayout } from "@/components/profile/ProfileLayout";
+import { MainProfileSection } from "@/components/profile/MainProfileSection";
+import { ProfileSidebar } from "@/components/profile/ProfileSidebar";
 import { ProfileError } from "@/components/profile/ProfileError";
-import { ProfileContent } from "@/components/profile/ProfileContent";
-import { PostsList } from "@/components/profile/PostsList";
-import { PhotoGallery } from "@/components/profile/PhotoGallery";
-import { ProfileActions } from "@/components/profile/ProfileActions";
-import { FriendsSection } from "@/components/profile/FriendsSection";
-import { ReportButton } from "@/components/profile/ReportButton";
 import { ReportDialog } from "@/components/profile/ReportDialog";
-import { AccountStatusAlerts } from "@/components/profile/AccountStatusAlerts";
-import { FriendRequests } from "@/components/profile/FriendRequests";
 import { useProfile } from "@/hooks/useProfile";
 import { usePosts } from "@/hooks/usePosts";
 import { useSession } from "@/hooks/useSession";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { PencilSimple } from "@phosphor-icons/react";
 
 export const PublicProfile = () => {
   const params = useParams();
-  const navigate = useNavigate();
   const { profile, loading, error } = useProfile(params.id);
   const { currentUserId } = useSession();
   const { posts, fetchPosts } = usePosts(profile?.id, currentUserId);
@@ -107,15 +98,7 @@ export const PublicProfile = () => {
   };
 
   if (loading) {
-    return (
-      <>
-        <Header />
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#6153BD]"></div>
-        </div>
-        <Footer />
-      </>
-    );
+    return <LoadingSpinner />;
   }
 
   if (error) {
@@ -134,58 +117,23 @@ export const PublicProfile = () => {
 
   return (
     <>
-      <Header />
-      <div className="min-h-screen bg-[rgba(255,243,240,1)] py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-[900px] mx-auto grid grid-cols-[1fr,300px] gap-6">
-          <div className="space-y-6">
-            <AccountStatusAlerts
-              isBanned={profile.is_banned || false}
-              isSuspended={profile.is_suspended || false}
-              suspensionEndTimestamp={profile.suspension_end_timestamp}
-            />
-            <ProfileContent profile={profile} />
-            <PostsList
-              posts={posts}
-              currentUserId={currentUserId}
-              profileId={profile.id}
-              onPostCreated={fetchPosts}
-            />
-          </div>
-          
-          <div className="space-y-6">
-            {!isOwnProfile && !profile.is_banned && !profile.is_suspended && (
-              <ProfileActions
-                onMessage={handleMessage}
-                profileId={profile.id}
-                currentUserId={currentUserId}
-              />
-            )}
-            {isOwnProfile && (
-              <>
-                <Button 
-                  onClick={() => navigate('/profile/edit')}
-                  className="bg-[rgba(97,83,189,1)] hover:bg-[rgba(97,83,189,0.9)] text-white flex items-center gap-2 w-full justify-center"
-                >
-                  <PencilSimple size={20} weight="bold" />
-                  Edit Profile
-                </Button>
-                <FriendRequests
-                  requests={friendRequests}
-                  onRequestHandled={fetchFriendRequests}
-                />
-              </>
-            )}
-            <div>
-              <FriendsSection />
-            </div>
-            <PhotoGallery userId={profile.id} />
-            {!isOwnProfile && !profile.is_banned && (
-              <ReportButton onClick={() => setIsReportModalOpen(true)} />
-            )}
-          </div>
-        </div>
-      </div>
-      <Footer />
+      <ProfileLayout>
+        <MainProfileSection
+          profile={profile}
+          posts={posts}
+          currentUserId={currentUserId}
+          onPostCreated={fetchPosts}
+        />
+        <ProfileSidebar
+          isOwnProfile={isOwnProfile}
+          profile={profile}
+          currentUserId={currentUserId}
+          friendRequests={friendRequests}
+          onMessage={handleMessage}
+          onRequestHandled={fetchFriendRequests}
+          onReportClick={() => setIsReportModalOpen(true)}
+        />
+      </ProfileLayout>
 
       <ReportDialog
         isOpen={isReportModalOpen}
