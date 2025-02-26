@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, KeyboardEvent } from "react";
 import { Header } from "@/components/landing/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,22 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChatCircle } from "@phosphor-icons/react";
 
 export const Messages = () => {
+  const [message, setMessage] = useState("");
+
+  const handleSendMessage = () => {
+    if (message.trim()) {
+      console.log("Sending message:", message);
+      setMessage("");
+    }
+  };
+
+  const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
   return (
     <>
       <Header />
@@ -71,10 +87,16 @@ export const Messages = () => {
               <div className="p-4 border-t border-gray-200">
                 <div className="flex space-x-4">
                   <Input 
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyDown={handleKeyPress}
                     placeholder="Type your message..." 
                     className="flex-1"
                   />
-                  <button className="px-4 py-2 bg-[#6153BD] text-white rounded-lg hover:bg-[#6153BD]/90 transition-colors">
+                  <button 
+                    onClick={handleSendMessage}
+                    className="px-4 py-2 bg-[#6153BD] text-white rounded-lg hover:bg-[#6153BD]/90 transition-colors"
+                  >
                     Send
                   </button>
                 </div>
