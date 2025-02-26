@@ -1,5 +1,6 @@
 
 import { type ProfileData } from "@/types/profile";
+import { useNavigate } from "react-router-dom";
 import { ProfileAvatar } from "./ProfileAvatar";
 import { BasicInfo } from "./BasicInfo";
 import { LanguagesAndPreferences } from "./LanguagesAndPreferences";
@@ -26,6 +27,7 @@ export const ProfileForm = ({
   onCitySelect,
   onSubmit,
 }: ProfileFormProps) => {
+  const navigate = useNavigate();
   const [showErrors, setShowErrors] = useState(false);
 
   const validations = {
@@ -53,6 +55,7 @@ export const ProfileForm = ({
       return;
     }
     onSubmit();
+    navigate('/profile/bio');
   };
 
   return (
