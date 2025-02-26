@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { Header } from "@/components/landing/Header";
+import { Footer } from "@/components/layout/Footer";
 import { LoadingSpinner } from "@/components/profile/LoadingSpinner";
 import { ProfileLayout } from "@/components/profile/ProfileLayout";
 import { MainProfileSection } from "@/components/profile/MainProfileSection";
