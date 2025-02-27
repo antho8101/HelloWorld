@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/landing/Header";
 import { Footer } from "@/components/layout/Footer";
 import { LoadingSpinner } from "@/components/profile/LoadingSpinner";
@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const PublicProfile = () => {
   const params = useParams();
+  const navigate = useNavigate();
   const { profile, loading, error } = useProfile(params.id);
   const { currentUserId } = useSession();
   const { posts, fetchPosts } = usePosts(profile?.id, currentUserId);
@@ -56,8 +57,18 @@ export const PublicProfile = () => {
     }
   };
 
-  const handleMessage = () => {
-    console.log("Send message to:", profile?.id);
+  const handleMessage = async () => {
+    if (!currentUserId) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Required",
+        description: "You need to be logged in to send messages.",
+      });
+      return;
+    }
+    
+    // The actual functionality is now handled in the ProfileActions component
+    console.log("Message action initiated for user:", profile?.id);
   };
 
   const handleReport = async () => {

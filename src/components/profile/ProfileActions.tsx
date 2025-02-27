@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ChatText, UserPlus } from "@phosphor-icons/react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface ProfileActionsProps {
   onMessage: () => void;
@@ -17,6 +18,7 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
   currentUserId,
 }) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [attemptsCount, setAttemptsCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isFriend, setIsFriend] = useState(false);
@@ -66,6 +68,60 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
     } catch (error) {
       console.error('Error checking friend request attempts:', error);
     }
+  };
+
+  const handleMessageClick = async () => {
+    if (!currentUserId) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Required",
+        description: "You need to be logged in to send messages.",
+      });
+      return;
+    }
+
+    try {
+      // Check if conversation exists
+      const { data: existingConversation, error: conversationError } = await supabase
+        .from('conversations')
+        .select('id')
+        .or(`user_id1.eq.${currentUserId},user_id2.eq.${currentUserId}`)
+        .or(`user_id1.eq.${profileId},user_id2.eq.${profileId}`)
+        .maybeSingle();
+
+      if (conversationError) throw conversationError;
+
+      if (existingConversation) {
+        // Conversation exists, navigate to messages
+        navigate('/messages', { state: { conversationId: existingConversation.id } });
+      } else {
+        // Create new conversation
+        const { data: newConversation, error: createError } = await supabase
+          .from('conversations')
+          .insert({
+            user_id1: currentUserId,
+            user_id2: profileId,
+            created_at: new Date().toISOString()
+          })
+          .select('id')
+          .single();
+
+        if (createError) throw createError;
+
+        // Navigate to messages with the new conversation
+        navigate('/messages', { state: { conversationId: newConversation.id } });
+      }
+    } catch (error) {
+      console.error('Error handling message action:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to start conversation. Please try again later.",
+      });
+    }
+
+    // Still call the original onMessage function for backward compatibility
+    onMessage();
   };
 
   const handleAddFriend = async () => {
@@ -131,7 +187,7 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
   return (
     <div className="flex flex-col gap-3">
       <Button 
-        onClick={onMessage}
+        onClick={handleMessageClick}
         className="bg-[rgba(97,83,189,1)] flex items-center gap-2.5 text-white justify-center px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[rgba(97,83,189,0.9)] w-full"
       >
         <ChatText size={20} weight="bold" />

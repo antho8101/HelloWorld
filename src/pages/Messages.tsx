@@ -1,5 +1,4 @@
-
-import React, { useState, KeyboardEvent, useRef } from "react";
+import React, { useState, KeyboardEvent, useRef, useEffect } from "react";
 import { Header } from "@/components/landing/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -26,15 +25,67 @@ import {
   DropdownMenuItem
 } from "@/components/ui/dropdown-menu";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { useLocation } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useSession } from "@/hooks/useSession";
 
 export const Messages = () => {
+  const location = useLocation();
+  const { currentUserId } = useSession();
   const [message, setMessage] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [conversations, setConversations] = useState<any[]>([]);
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Check if we have a conversationId from navigation state
+    const stateConversationId = location.state?.conversationId;
+    if (stateConversationId) {
+      setCurrentConversationId(stateConversationId);
+    }
+    
+    if (currentUserId) {
+      fetchConversations();
+    }
+  }, [location, currentUserId]);
+
+  const fetchConversations = async () => {
+    if (!currentUserId) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('conversations')
+        .select(`
+          id,
+          user_id1,
+          user_id2,
+          created_at,
+          last_message,
+          profile1:user_id1(id, name, avatar_url),
+          profile2:user_id2(id, name, avatar_url)
+        `)
+        .or(`user_id1.eq.${currentUserId},user_id2.eq.${currentUserId}`);
+
+      if (error) throw error;
+      
+      setConversations(data || []);
+      
+      // If we have a conversation ID from navigation, select it
+      if (location.state?.conversationId && data?.length) {
+        setCurrentConversationId(location.state.conversationId);
+      } else if (data?.length) {
+        // Otherwise select the first conversation
+        setCurrentConversationId(data[0].id);
+      }
+    } catch (error) {
+      console.error('Error fetching conversations:', error);
+    }
+  };
 
   const handleSendMessage = () => {
-    if (message.trim()) {
-      console.log("Sending message:", message);
+    if (message.trim() && currentConversationId) {
+      console.log("Sending message:", message, "to conversation:", currentConversationId);
       setMessage("");
     }
   };
