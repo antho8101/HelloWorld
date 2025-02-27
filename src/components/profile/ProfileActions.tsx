@@ -130,69 +130,52 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
   
   const createNewConversation = async () => {
     try {
-      // Using RPC function to avoid row-level security issues
-      const { data: conversationData, error: conversationError } = await supabase
-        .rpc('create_conversation_with_participants', {
-          user_id1: currentUserId,
-          user_id2: profileId
+      // Create a new conversation record
+      const { data: conversation, error: createError } = await supabase
+        .from('conversations')
+        .insert({})
+        .select('id')
+        .single();
+        
+      if (createError) throw createError;
+      
+      console.log("Created new conversation with ID:", conversation.id);
+      
+      // Add current user as participant
+      const { error: user1Error } = await supabase
+        .from('conversation_participants')
+        .insert({
+          conversation_id: conversation.id,
+          user_id: currentUserId
         });
+        
+      if (user1Error) throw user1Error;
       
-      if (conversationError) throw conversationError;
+      console.log("Added current user as participant");
       
-      // If successful, navigate to the messages page
-      if (conversationData) {
-        navigate('/messages', { state: { conversationId: conversationData } });
-        onMessage(); // Call the original onMessage function
-      } else {
-        throw new Error("Failed to create conversation");
-      }
+      // Add other user as participant
+      const { error: user2Error } = await supabase
+        .from('conversation_participants')
+        .insert({
+          conversation_id: conversation.id,
+          user_id: profileId
+        });
+        
+      if (user2Error) throw user2Error;
+      
+      console.log("Added other user as participant");
+      
+      // Navigate to messages
+      navigate('/messages', { state: { conversationId: conversation.id } });
+      onMessage(); // Call the original onMessage function
+        
     } catch (error) {
-      // If the RPC function doesn't exist, we'll fall back to an alternative approach
-      console.error("Error in createNewConversation:", error);
-      
-      try {
-        // Alternative: create conversation and add participants
-        // First create conversation
-        const { data: conversation, error: createError } = await supabase
-          .from('conversations')
-          .insert({})
-          .select('id')
-          .single();
-          
-        if (createError) throw createError;
-        
-        // Add current user as participant
-        const { error: user1Error } = await supabase
-          .from('conversation_participants')
-          .insert({
-            conversation_id: conversation.id,
-            user_id: currentUserId
-          });
-          
-        if (user1Error) throw user1Error;
-        
-        // Add other user as participant
-        const { error: user2Error } = await supabase
-          .from('conversation_participants')
-          .insert({
-            conversation_id: conversation.id,
-            user_id: profileId
-          });
-          
-        if (user2Error) throw user2Error;
-        
-        // Navigate to messages
-        navigate('/messages', { state: { conversationId: conversation.id } });
-        onMessage(); // Call the original onMessage function
-        
-      } catch (fallbackError) {
-        console.error("Fallback error:", fallbackError);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to create conversation. Please try again later.",
-        });
-      }
+      console.error("Error creating new conversation:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to create conversation. Please try again later.",
+      });
     }
   };
 
