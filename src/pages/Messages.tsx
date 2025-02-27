@@ -2,8 +2,8 @@
 import React, { useState, KeyboardEvent, useRef } from "react";
 import { Header } from "@/components/landing/Header";
 import { Footer } from "@/components/layout/Footer";
-import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   ChatCircle, 
   TextBolder, 
@@ -25,7 +25,7 @@ export const Messages = () => {
     }
   };
 
-  const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
@@ -160,16 +160,16 @@ export const Messages = () => {
                 </div>
 
                 <div className="flex space-x-4">
-                  <Input 
+                  <Textarea 
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyDown={handleKeyPress}
                     placeholder="Type your message..." 
-                    className="flex-1"
+                    className="flex-1 min-h-[80px] resize-none"
                   />
                   <button 
                     onClick={handleSendMessage}
-                    className="px-4 py-2 bg-[#6153BD] text-white rounded-lg hover:bg-[#6153BD]/90 transition-colors"
+                    className="px-4 py-2 bg-[#6153BD] text-white rounded-lg hover:bg-[#6153BD]/90 transition-colors h-fit"
                   >
                     Send
                   </button>
