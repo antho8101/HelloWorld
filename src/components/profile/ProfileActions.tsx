@@ -22,6 +22,7 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
   const [attemptsCount, setAttemptsCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isFriend, setIsFriend] = useState(false);
+  const [isMessageLoading, setIsMessageLoading] = useState(false);
 
   useEffect(() => {
     if (currentUserId) {
@@ -81,41 +82,40 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
     }
 
     try {
+      setIsMessageLoading(true);
       console.log("Message action initiated for user:", profileId);
       
       // First, search for existing conversation between the two users
-      // Get conversations where current user is a participant
-      const { data: myParticipations, error: myParticipationsError } = await supabase
+      const { data: existingConversation, error: findError } = await supabase
         .from('conversation_participants')
-        .select('conversation_id')
-        .eq('user_id', currentUserId);
+        .select(`
+          conversation_id,
+          conversations:conversation_id(id)
+        `)
+        .eq('user_id', currentUserId)
+        .in('conversation_id', (
+          supabase
+            .from('conversation_participants')
+            .select('conversation_id')
+            .eq('user_id', profileId)
+        ));
       
-      if (myParticipationsError) throw myParticipationsError;
-      if (!myParticipations || myParticipations.length === 0) {
-        // No conversations for current user, create new one
-        return createNewConversation();
+      if (findError) {
+        console.error('Error finding existing conversation:', findError);
+        throw findError;
       }
       
-      // Check if the other user is in any of these conversations
-      const conversationIds = myParticipations.map(p => p.conversation_id);
-      
-      const { data: otherUserParticipations, error: otherUserError } = await supabase
-        .from('conversation_participants')
-        .select('conversation_id')
-        .eq('user_id', profileId)
-        .in('conversation_id', conversationIds);
-      
-      if (otherUserError) throw otherUserError;
-      
-      if (otherUserParticipations && otherUserParticipations.length > 0) {
-        // Found an existing conversation with both users
-        const conversationId = otherUserParticipations[0].conversation_id;
+      if (existingConversation && existingConversation.length > 0) {
+        // Found existing conversation with both users
+        const conversationId = existingConversation[0].conversation_id;
+        console.log("Found existing conversation with ID:", conversationId);
         navigate('/messages', { state: { conversationId } });
-        onMessage(); // Call the original onMessage function
+        onMessage();
+        setIsMessageLoading(false);
         return;
       }
       
-      // No common conversation found, create a new one
+      console.log("No existing conversation found, creating new one");
       await createNewConversation();
       
     } catch (error) {
@@ -125,50 +125,47 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
         title: "Error",
         description: "Failed to start conversation. Please try again later.",
       });
+      setIsMessageLoading(false);
     }
   };
   
   const createNewConversation = async () => {
     try {
-      // Create a new conversation record
+      // First create the conversation
       const { data: conversation, error: createError } = await supabase
         .from('conversations')
-        .insert({})
+        .insert([{}])
         .select('id')
         .single();
         
-      if (createError) throw createError;
+      if (createError) {
+        console.error("Error creating conversation:", createError);
+        throw createError;
+      }
       
       console.log("Created new conversation with ID:", conversation.id);
       
-      // Add current user as participant
-      const { error: user1Error } = await supabase
+      // Then add both participants in sequence
+      const participantsToAdd = [
+        { conversation_id: conversation.id, user_id: currentUserId },
+        { conversation_id: conversation.id, user_id: profileId }
+      ];
+      
+      const { error: participantsError } = await supabase
         .from('conversation_participants')
-        .insert({
-          conversation_id: conversation.id,
-          user_id: currentUserId
-        });
+        .insert(participantsToAdd);
         
-      if (user1Error) throw user1Error;
+      if (participantsError) {
+        console.error("Error adding participants:", participantsError);
+        throw participantsError;
+      }
       
-      console.log("Added current user as participant");
+      console.log("Added participants successfully");
       
-      // Add other user as participant
-      const { error: user2Error } = await supabase
-        .from('conversation_participants')
-        .insert({
-          conversation_id: conversation.id,
-          user_id: profileId
-        });
-        
-      if (user2Error) throw user2Error;
-      
-      console.log("Added other user as participant");
-      
-      // Navigate to messages
+      // Navigate to messages page
       navigate('/messages', { state: { conversationId: conversation.id } });
-      onMessage(); // Call the original onMessage function
-        
+      onMessage();
+      
     } catch (error) {
       console.error("Error creating new conversation:", error);
       toast({
@@ -176,6 +173,8 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
         title: "Error",
         description: "Failed to create conversation. Please try again later.",
       });
+    } finally {
+      setIsMessageLoading(false);
     }
   };
 
@@ -243,10 +242,11 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
     <div className="flex flex-col gap-3">
       <Button 
         onClick={handleMessageClick}
+        disabled={isMessageLoading}
         className="bg-[rgba(97,83,189,1)] flex items-center gap-2.5 text-white justify-center px-5 py-2.5 rounded-[10px] border-[rgba(18,0,113,1)] border-solid border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:bg-[rgba(97,83,189,0.9)] w-full"
       >
         <ChatText size={20} weight="bold" />
-        Send Message
+        {isMessageLoading ? "Loading..." : "Send Message"}
       </Button>
       {!isFriend && !isLoading && (
         <Button 
