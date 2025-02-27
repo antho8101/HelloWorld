@@ -54,29 +54,80 @@ export const Messages = () => {
     if (!currentUserId) return;
     
     try {
-      const { data, error } = await supabase
+      // First get all conversation IDs where the current user is a participant
+      const { data: participations, error: participationError } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', currentUserId);
+
+      if (participationError) throw participationError;
+      
+      if (!participations || participations.length === 0) {
+        setConversations([]);
+        return;
+      }
+
+      // Extract conversation IDs
+      const conversationIds = participations.map(p => p.conversation_id);
+      
+      // Get conversation details
+      const { data: conversationsData, error: conversationsError } = await supabase
         .from('conversations')
         .select(`
           id,
-          user_id1,
-          user_id2,
           created_at,
-          last_message,
-          profile1:user_id1(id, name, avatar_url),
-          profile2:user_id2(id, name, avatar_url)
+          updated_at,
+          is_pinned,
+          is_archived
         `)
-        .or(`user_id1.eq.${currentUserId},user_id2.eq.${currentUserId}`);
+        .in('id', conversationIds);
 
-      if (error) throw error;
+      if (conversationsError) throw conversationsError;
       
-      setConversations(data || []);
+      // For each conversation, get the other participant
+      const conversationsWithParticipants = await Promise.all(
+        (conversationsData || []).map(async (conversation) => {
+          // Get the other participant in this conversation
+          const { data: otherParticipants, error: otherParticipantError } = await supabase
+            .from('conversation_participants')
+            .select(`
+              user_id,
+              profiles:user_id(
+                id,
+                name,
+                avatar_url
+              )
+            `)
+            .eq('conversation_id', conversation.id)
+            .neq('user_id', currentUserId);
+
+          if (otherParticipantError) {
+            console.error('Error fetching other participant:', otherParticipantError);
+            return {
+              ...conversation,
+              otherParticipant: null
+            };
+          }
+
+          const otherParticipant = otherParticipants && otherParticipants.length > 0 
+            ? otherParticipants[0].profiles
+            : null;
+
+          return {
+            ...conversation,
+            otherParticipant
+          };
+        })
+      );
+      
+      setConversations(conversationsWithParticipants);
       
       // If we have a conversation ID from navigation, select it
-      if (location.state?.conversationId && data?.length) {
+      if (location.state?.conversationId && conversationsWithParticipants.length) {
         setCurrentConversationId(location.state.conversationId);
-      } else if (data?.length) {
+      } else if (conversationsWithParticipants.length) {
         // Otherwise select the first conversation
-        setCurrentConversationId(data[0].id);
+        setCurrentConversationId(conversationsWithParticipants[0].id);
       }
     } catch (error) {
       console.error('Error fetching conversations:', error);

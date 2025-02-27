@@ -81,36 +81,74 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
     }
 
     try {
-      // Check if conversation exists
-      const { data: existingConversation, error: conversationError } = await supabase
-        .from('conversations')
-        .select('id')
-        .or(`user_id1.eq.${currentUserId},user_id2.eq.${currentUserId}`)
-        .or(`user_id1.eq.${profileId},user_id2.eq.${profileId}`)
-        .maybeSingle();
+      // Check if conversation exists by looking for a conversation where both users are participants
+      const { data: existingConversations, error: queryError } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', currentUserId);
 
-      if (conversationError) throw conversationError;
+      if (queryError) throw queryError;
 
-      if (existingConversation) {
-        // Conversation exists, navigate to messages
-        navigate('/messages', { state: { conversationId: existingConversation.id } });
-      } else {
+      let conversationId = null;
+
+      // If we found conversations where the current user is a participant
+      if (existingConversations && existingConversations.length > 0) {
+        // For each conversation, check if the other user is also a participant
+        for (const conv of existingConversations) {
+          const { data: otherParticipant, error: participantError } = await supabase
+            .from('conversation_participants')
+            .select('conversation_id')
+            .eq('conversation_id', conv.conversation_id)
+            .eq('user_id', profileId)
+            .maybeSingle();
+          
+          if (participantError) throw participantError;
+          
+          // If we found a match, this is the conversation between the two users
+          if (otherParticipant) {
+            conversationId = conv.conversation_id;
+            break;
+          }
+        }
+      }
+
+      // If no existing conversation was found, create a new one
+      if (!conversationId) {
         // Create new conversation
         const { data: newConversation, error: createError } = await supabase
           .from('conversations')
           .insert({
-            user_id1: currentUserId,
-            user_id2: profileId,
             created_at: new Date().toISOString()
           })
           .select('id')
           .single();
 
         if (createError) throw createError;
-
-        // Navigate to messages with the new conversation
-        navigate('/messages', { state: { conversationId: newConversation.id } });
+        
+        conversationId = newConversation.id;
+        
+        // Add both users as participants
+        const { error: participantError1 } = await supabase
+          .from('conversation_participants')
+          .insert({
+            conversation_id: conversationId,
+            user_id: currentUserId
+          });
+          
+        if (participantError1) throw participantError1;
+        
+        const { error: participantError2 } = await supabase
+          .from('conversation_participants')
+          .insert({
+            conversation_id: conversationId,
+            user_id: profileId
+          });
+          
+        if (participantError2) throw participantError2;
       }
+
+      // Navigate to messages with the conversation ID
+      navigate('/messages', { state: { conversationId } });
     } catch (error) {
       console.error('Error handling message action:', error);
       toast({
