@@ -85,38 +85,48 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
       setIsMessageLoading(true);
       console.log("Message action initiated for user:", profileId);
       
-      // First, search for existing conversation between the two users
-      const { data: existingConversation, error: findError } = await supabase
+      // First get all conversation IDs where the profile user is a participant
+      const { data: profileConversations, error: profileError } = await supabase
         .from('conversation_participants')
-        .select(`
-          conversation_id,
-          conversations:conversation_id(id)
-        `)
-        .eq('user_id', currentUserId)
-        .in('conversation_id', (
-          supabase
-            .from('conversation_participants')
-            .select('conversation_id')
-            .eq('user_id', profileId)
-        ));
-      
-      if (findError) {
-        console.error('Error finding existing conversation:', findError);
-        throw findError;
+        .select('conversation_id')
+        .eq('user_id', profileId);
+        
+      if (profileError) {
+        console.error('Error finding profile conversations:', profileError);
+        throw profileError;
       }
       
-      if (existingConversation && existingConversation.length > 0) {
-        // Found existing conversation with both users
-        const conversationId = existingConversation[0].conversation_id;
-        console.log("Found existing conversation with ID:", conversationId);
-        navigate('/messages', { state: { conversationId } });
-        onMessage();
-        setIsMessageLoading(false);
+      if (!profileConversations || profileConversations.length === 0) {
+        console.log("No conversations found for profile user, creating new one");
+        await createNewConversation();
         return;
       }
       
-      console.log("No existing conversation found, creating new one");
-      await createNewConversation();
+      // Extract the conversation IDs to an array
+      const conversationIds = profileConversations.map(item => item.conversation_id);
+      
+      // Now find if current user is part of any of these conversations
+      const { data: currentUserConversations, error: currentUserError } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', currentUserId)
+        .in('conversation_id', conversationIds);
+        
+      if (currentUserError) {
+        console.error('Error finding current user conversations:', currentUserError);
+        throw currentUserError;
+      }
+      
+      if (currentUserConversations && currentUserConversations.length > 0) {
+        // Found existing conversation with both users
+        const conversationId = currentUserConversations[0].conversation_id;
+        console.log("Found existing conversation with ID:", conversationId);
+        navigate('/messages', { state: { conversationId } });
+        onMessage();
+      } else {
+        console.log("No shared conversation found, creating new one");
+        await createNewConversation();
+      }
       
     } catch (error) {
       console.error('Error handling message action:', error);
