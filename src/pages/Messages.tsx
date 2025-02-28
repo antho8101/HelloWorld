@@ -157,23 +157,25 @@ export const Messages = () => {
             };
           }
 
-          let otherParticipant = null;
+          let otherParticipant: ConversationParticipant | null = null;
           
           if (otherParticipants && otherParticipants.length > 0) {
-            const profileData = otherParticipants[0].profiles;
+            // Make a separate check for the profiles object
+            const participant = otherParticipants[0];
             
-            // Check if profileData is a valid object (not an error object)
-            if (profileData && typeof profileData === 'object' && !('error' in profileData)) {
-              // Create a participant object with safe property access
+            if (participant.profiles && typeof participant.profiles === 'object' && !('error' in participant.profiles)) {
+              // Now we can safely access the properties
+              const profile = participant.profiles;
+              // Making all properties optional with nullish coalescing
               otherParticipant = {
-                id: profileData.id ? (typeof profileData.id === 'string' ? profileData.id : String(profileData.id)) : '',
-                name: profileData.name !== undefined ? profileData.name : null,
-                avatar_url: profileData.avatar_url !== undefined ? profileData.avatar_url : null
+                id: typeof profile.id === 'string' ? profile.id : String(profile.id || ''),
+                name: profile.name || null,
+                avatar_url: profile.avatar_url || null
               };
-            } else if (otherParticipants[0].user_id) {
-              // If we can at least get the user_id, create a minimal participant
+            } else if (participant.user_id) {
+              // Fallback to just using the user_id
               otherParticipant = {
-                id: otherParticipants[0].user_id,
+                id: participant.user_id,
                 name: null,
                 avatar_url: null
               };
@@ -193,7 +195,7 @@ export const Messages = () => {
       let allConversations: Conversation[] = [...conversationsWithParticipants];
       
       if (tempConversation) {
-        const otherParticipantId = tempConversation.participants.find(
+        const otherParticipantId = tempConversation.participants?.find(
           (p: any) => p.id !== currentUserId
         )?.id;
         
@@ -201,8 +203,8 @@ export const Messages = () => {
           // Create a temporary conversation with the correct type
           const tempConversationItem: Conversation = {
             id: tempConversation.id,
-            created_at: new Date(tempConversation.timestamp).toISOString(),
-            updated_at: new Date(tempConversation.timestamp).toISOString(),
+            created_at: new Date(tempConversation.timestamp || Date.now()).toISOString(),
+            updated_at: new Date(tempConversation.timestamp || Date.now()).toISOString(),
             is_pinned: false,
             is_archived: false,
             otherParticipant: {
