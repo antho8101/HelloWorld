@@ -85,63 +85,8 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
       setIsMessageLoading(true);
       console.log("Message action initiated for user:", profileId);
       
-      // First get all conversation IDs where the profile user is a participant
-      const { data: profileConversations, error: profileError } = await supabase
-        .from('conversation_participants')
-        .select('conversation_id')
-        .eq('user_id', profileId);
-        
-      if (profileError) {
-        console.error('Error finding profile conversations:', profileError);
-        throw profileError;
-      }
-      
-      if (!profileConversations || profileConversations.length === 0) {
-        console.log("No conversations found for profile user, creating new one");
-        await createNewConversation();
-        return;
-      }
-      
-      // Extract the conversation IDs to an array
-      const conversationIds = profileConversations.map(item => item.conversation_id);
-      
-      // Now find if current user is part of any of these conversations
-      const { data: currentUserConversations, error: currentUserError } = await supabase
-        .from('conversation_participants')
-        .select('conversation_id')
-        .eq('user_id', currentUserId)
-        .in('conversation_id', conversationIds);
-        
-      if (currentUserError) {
-        console.error('Error finding current user conversations:', currentUserError);
-        throw currentUserError;
-      }
-      
-      if (currentUserConversations && currentUserConversations.length > 0) {
-        // Found existing conversation with both users
-        const conversationId = currentUserConversations[0].conversation_id;
-        console.log("Found existing conversation with ID:", conversationId);
-        navigate('/messages', { state: { conversationId } });
-        onMessage();
-      } else {
-        console.log("No shared conversation found, creating new one");
-        await createNewConversation();
-      }
-      
-    } catch (error) {
-      console.error('Error handling message action:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to start conversation. Please try again later.",
-      });
-      setIsMessageLoading(false);
-    }
-  };
-  
-  const createNewConversation = async () => {
-    try {
-      // First create the conversation
+      // Create a new conversation directly
+      // This simplifies the process and avoids potential RLS policy issues
       const { data: conversation, error: createError } = await supabase
         .from('conversations')
         .insert([{}])
@@ -155,7 +100,7 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
       
       console.log("Created new conversation with ID:", conversation.id);
       
-      // Then add both participants in sequence
+      // Then add both participants
       const participantsToAdd = [
         { conversation_id: conversation.id, user_id: currentUserId },
         { conversation_id: conversation.id, user_id: profileId }
@@ -172,16 +117,16 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
       
       console.log("Added participants successfully");
       
-      // Navigate to messages page
+      // Navigate to messages page and call onMessage callback
       navigate('/messages', { state: { conversationId: conversation.id } });
       onMessage();
       
     } catch (error) {
-      console.error("Error creating new conversation:", error);
+      console.error('Error handling message action:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to create conversation. Please try again later.",
+        description: "Failed to start conversation. Please try again later.",
       });
     } finally {
       setIsMessageLoading(false);
