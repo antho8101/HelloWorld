@@ -160,25 +160,33 @@ export const Messages = () => {
           let otherParticipant: ConversationParticipant | null = null;
           
           if (otherParticipants && otherParticipants.length > 0) {
-            // Make a separate check for the profiles object
             const participant = otherParticipants[0];
             
-            if (participant.profiles && typeof participant.profiles === 'object' && !('error' in participant.profiles)) {
-              // Now we can safely access the properties
-              const profile = participant.profiles;
-              // Making all properties optional with nullish coalescing
-              otherParticipant = {
-                id: typeof profile.id === 'string' ? profile.id : String(profile.id || ''),
-                name: profile.name || null,
-                avatar_url: profile.avatar_url || null
-              };
-            } else if (participant.user_id) {
-              // Fallback to just using the user_id
+            // First check if participant and participant.profiles exist
+            if (participant && participant.user_id) {
+              // If we at least have a user_id, create a minimal participant
               otherParticipant = {
                 id: participant.user_id,
                 name: null,
                 avatar_url: null
               };
+              
+              // Then, if profiles data is available, enhance the participant with that data
+              if (participant.profiles && 
+                  typeof participant.profiles === 'object' && 
+                  !('error' in participant.profiles)) {
+                
+                // Make sure profile values are not null before accessing them
+                const profileId = participant.profiles.id;
+                const profileName = participant.profiles.name;
+                const profileAvatar = participant.profiles.avatar_url;
+                
+                otherParticipant = {
+                  id: typeof profileId === 'string' ? profileId : String(profileId || participant.user_id),
+                  name: profileName || null,
+                  avatar_url: profileAvatar || null
+                };
+              }
             }
           }
 
@@ -194,15 +202,15 @@ export const Messages = () => {
       // Si nous avons une conversation temporaire, l'ajouter à la liste
       let allConversations: Conversation[] = [...conversationsWithParticipants];
       
-      if (tempConversation) {
-        const otherParticipantId = tempConversation.participants?.find(
-          (p: any) => p.id !== currentUserId
+      if (tempConversation && tempConversation.participants) {
+        const otherParticipantId = tempConversation.participants.find(
+          (p: any) => p && p.id !== currentUserId
         )?.id;
         
         if (otherParticipantId) {
           // Create a temporary conversation with the correct type
           const tempConversationItem: Conversation = {
-            id: tempConversation.id,
+            id: tempConversation.id || `temp-${Date.now()}`,
             created_at: new Date(tempConversation.timestamp || Date.now()).toISOString(),
             updated_at: new Date(tempConversation.timestamp || Date.now()).toISOString(),
             is_pinned: false,
