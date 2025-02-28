@@ -31,6 +31,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/useSession";
 import { useToast } from "@/hooks/use-toast";
 
+// Définir une interface pour les participants des conversations
+interface ConversationParticipant {
+  id: string;
+  name: string | null;
+  avatar_url: string | null;
+}
+
+// Définir une interface pour les conversations
+interface Conversation {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  is_pinned: boolean;
+  is_archived: boolean;
+  otherParticipant: ConversationParticipant | null;
+  isTemporary?: boolean;
+}
+
 export const Messages = () => {
   const location = useLocation();
   const { currentUserId } = useSession();
@@ -38,7 +56,7 @@ export const Messages = () => {
   const [message, setMessage] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [conversations, setConversations] = useState<any[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [tempConversation, setTempConversation] = useState<any>(null);
 
@@ -138,9 +156,19 @@ export const Messages = () => {
             };
           }
 
-          const otherParticipant = otherParticipants && otherParticipants.length > 0 
-            ? otherParticipants[0].profiles
-            : null;
+          // S'assurer qu'on a bien un otherParticipant valide
+          let otherParticipant = null;
+          if (otherParticipants && otherParticipants.length > 0 && otherParticipants[0].profiles) {
+            // Vérifier si profiles est un objet valide et a les bonnes propriétés
+            const profile = otherParticipants[0].profiles;
+            if ('id' in profile) {
+              otherParticipant = {
+                id: profile.id,
+                name: profile.name,
+                avatar_url: profile.avatar_url
+              };
+            }
+          }
 
           return {
             ...conversation,
@@ -149,32 +177,37 @@ export const Messages = () => {
         })
       );
       
-      // If we have a temporary conversation from localStorage, add it to the list
+      // Si nous avons une conversation temporaire, l'ajouter à la liste
+      let allConversations = [...conversationsWithParticipants];
       if (tempConversation) {
-        // Add the temporary conversation to the list
-        conversationsWithParticipants.unshift({
+        const otherParticipantId = tempConversation.participants.find(
+          (p: any) => p.id !== currentUserId
+        )?.id;
+        
+        // Ajouter la conversation temporaire à la liste
+        allConversations.unshift({
           id: tempConversation.id,
           created_at: new Date(tempConversation.timestamp).toISOString(),
           updated_at: new Date(tempConversation.timestamp).toISOString(),
           is_pinned: false,
           is_archived: false,
-          otherParticipant: {
-            id: tempConversation.participants.find((p: any) => p.id !== currentUserId)?.id,
+          otherParticipant: otherParticipantId ? {
+            id: otherParticipantId,
             name: "Conversation partner",
             avatar_url: null
-          },
+          } : null,
           isTemporary: true
         });
       }
       
-      setConversations(conversationsWithParticipants);
+      setConversations(allConversations);
       
-      // If we have a conversation ID from navigation, select it
-      if (location.state?.conversationId && conversationsWithParticipants.length) {
+      // Si nous avons un ID de conversation de navigation, le sélectionner
+      if (location.state?.conversationId && allConversations.length) {
         setCurrentConversationId(location.state.conversationId);
-      } else if (conversationsWithParticipants.length) {
-        // Otherwise select the first conversation
-        setCurrentConversationId(conversationsWithParticipants[0].id);
+      } else if (allConversations.length) {
+        // Sinon, sélectionner la première conversation
+        setCurrentConversationId(allConversations[0].id);
       }
     } catch (error) {
       console.error('Error fetching conversations:', error);
