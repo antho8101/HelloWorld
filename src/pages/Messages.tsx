@@ -16,7 +16,8 @@ import {
   UserPlus,
   Trash,
   Prohibit,
-  Flag
+  Flag,
+  Chats
 } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -60,6 +61,7 @@ export const Messages = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [tempConversation, setTempConversation] = useState<any>(null);
+  const [showNewConversationBanner, setShowNewConversationBanner] = useState(true);
 
   // Récupérer les informations de la conversation temporaire du localStorage
   useEffect(() => {
@@ -162,7 +164,7 @@ export const Messages = () => {
           if (otherParticipants && otherParticipants.length > 0) {
             const participant = otherParticipants[0];
             
-            // First check if participant and participant.profiles exist
+            // First check if participant exists and has user_id
             if (participant && participant.user_id) {
               // If we at least have a user_id, create a minimal participant
               otherParticipant = {
@@ -172,20 +174,22 @@ export const Messages = () => {
               };
               
               // Then, if profiles data is available, enhance the participant with that data
-              if (participant.profiles && 
-                  typeof participant.profiles === 'object' && 
-                  !('error' in participant.profiles)) {
+              if (participant.profiles) {
+                // Need an additional null check to satisfy TypeScript
+                const profiles = participant.profiles;
                 
-                // Make sure profile values are not null before accessing them
-                const profileId = participant.profiles.id;
-                const profileName = participant.profiles.name;
-                const profileAvatar = participant.profiles.avatar_url;
-                
-                otherParticipant = {
-                  id: typeof profileId === 'string' ? profileId : String(profileId || participant.user_id),
-                  name: profileName || null,
-                  avatar_url: profileAvatar || null
-                };
+                if (profiles && typeof profiles === 'object' && !('error' in profiles)) {
+                  // Make sure profile values are not null before accessing them
+                  const profileId = profiles.id;
+                  const profileName = profiles.name;
+                  const profileAvatar = profiles.avatar_url;
+                  
+                  otherParticipant = {
+                    id: typeof profileId === 'string' ? profileId : String(profileId || participant.user_id),
+                    name: profileName || null,
+                    avatar_url: profileAvatar || null
+                  };
+                }
               }
             }
           }
@@ -245,6 +249,9 @@ export const Messages = () => {
     if (message.trim() && currentConversationId) {
       console.log("Sending message:", message, "to conversation:", currentConversationId);
       
+      // Masquer le bandeau de nouvelle conversation après l'envoi du premier message
+      setShowNewConversationBanner(false);
+      
       // Pour cette version simplifiée, nous n'enregistrons pas réellement le message en base de données
       // mais affichons simplement une notification
       toast({
@@ -281,6 +288,12 @@ export const Messages = () => {
     // Implementation for user actions will go here
   };
 
+  // Vérifier si la conversation actuelle est une nouvelle conversation temporaire
+  const isNewTemporaryConversation = (): boolean => {
+    if (!currentConversationId || !tempConversation) return false;
+    return currentConversationId === (tempConversation.id || `temp-${Date.now()}`);
+  };
+
   // Mock online status for demo purposes - in a real app, this would come from your backend
   const mockOnlineStatus = (userId: string) => {
     const userIds = ["user1", "user3", "user5"];
@@ -315,6 +328,10 @@ export const Messages = () => {
                           onClick={() => {
                             setCurrentConversationId(convo.id);
                             setSelectedUserId(userId);
+                            // Réinitialiser le bandeau si nécessaire
+                            if (convo.isTemporary) {
+                              setShowNewConversationBanner(true);
+                            }
                           }}
                         >
                           <div className="flex items-center space-x-3">
@@ -423,31 +440,47 @@ export const Messages = () => {
                 )}
               </div>
 
+              {/* New Conversation Banner */}
+              {tempConversation && 
+               currentConversationId === tempConversation.id && 
+               showNewConversationBanner && (
+                <div className="bg-blue-50 p-4 border-b border-blue-100">
+                  <div className="flex items-center justify-center gap-2 text-blue-600">
+                    <Chats size={20} weight="fill" />
+                    <p className="text-center font-medium">
+                      This is the beginning of your conversation. Your messages will be saved when you send your first message.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Messages Area */}
               <ScrollArea className="flex-1 p-4">
                 <div className="space-y-4">
                   {currentConversationId ? (
-                    <>
-                      {/* Sample messages */}
-                      <div className="flex justify-end">
-                        <div className="bg-[#6153BD] text-white rounded-lg p-3 max-w-[70%]">
-                          Hello! How are you?
+                    tempConversation && currentConversationId === tempConversation.id ? (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="text-center text-gray-500 max-w-md">
+                          <ChatCircle size={64} weight="light" className="mx-auto mb-4 text-[#6153BD]" />
+                          <h3 className="text-lg font-medium text-[#6153BD] mb-2">Start a new conversation</h3>
+                          <p>Type your first message below to start chatting with this person. Your conversation will begin once you send your first message.</p>
                         </div>
                       </div>
-                      <div className="flex justify-start">
-                        <div className="bg-gray-100 rounded-lg p-3 max-w-[70%]">
-                          I'm doing great, thanks! How about you?
-                        </div>
-                      </div>
-                      
-                      {tempConversation && currentConversationId === tempConversation.id && (
-                        <div className="flex justify-center my-8">
-                          <div className="bg-yellow-100 text-yellow-800 rounded-lg p-3 max-w-[80%] text-center">
-                            This is a new conversation. The messages will be saved when you send your first message.
+                    ) : (
+                      <>
+                        {/* Sample messages for existing conversations */}
+                        <div className="flex justify-end">
+                          <div className="bg-[#6153BD] text-white rounded-lg p-3 max-w-[70%]">
+                            Hello! How are you?
                           </div>
                         </div>
-                      )}
-                    </>
+                        <div className="flex justify-start">
+                          <div className="bg-gray-100 rounded-lg p-3 max-w-[70%]">
+                            I'm doing great, thanks! How about you?
+                          </div>
+                        </div>
+                      </>
+                    )
                   ) : (
                     <div className="flex items-center justify-center h-full">
                       <div className="text-center text-gray-500">
