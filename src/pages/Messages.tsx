@@ -30,6 +30,7 @@ import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/useSession";
 import { useToast } from "@/hooks/use-toast";
+import { useProfile } from "@/hooks/useProfile";
 
 // Définir une interface pour les participants des conversations
 interface ConversationParticipant {
@@ -156,48 +157,64 @@ export const Messages = () => {
             };
           }
 
-          // S'assurer qu'on a bien un otherParticipant valide
           let otherParticipant = null;
-          if (otherParticipants && otherParticipants.length > 0 && otherParticipants[0].profiles) {
-            // Vérifier si profiles est un objet valide et a les bonnes propriétés
-            const profile = otherParticipants[0].profiles;
-            if ('id' in profile) {
+          
+          if (otherParticipants && otherParticipants.length > 0) {
+            const profileData = otherParticipants[0].profiles;
+            
+            // Check if profileData is a valid object (not an error object)
+            if (profileData && typeof profileData === 'object' && !('error' in profileData)) {
+              // Type guard to ensure we have the necessary properties
               otherParticipant = {
-                id: profile.id,
-                name: profile.name,
-                avatar_url: profile.avatar_url
+                id: typeof profileData.id === 'string' ? profileData.id : String(profileData.id),
+                name: profileData.name as string | null,
+                avatar_url: profileData.avatar_url as string | null
+              };
+            } else if (otherParticipants[0].user_id) {
+              // If we can at least get the user_id, create a minimal participant
+              otherParticipant = {
+                id: otherParticipants[0].user_id,
+                name: null,
+                avatar_url: null
               };
             }
           }
 
-          return {
+          const result: Conversation = {
             ...conversation,
             otherParticipant
           };
+
+          return result;
         })
       );
       
       // Si nous avons une conversation temporaire, l'ajouter à la liste
-      let allConversations = [...conversationsWithParticipants];
+      let allConversations: Conversation[] = [...conversationsWithParticipants];
+      
       if (tempConversation) {
         const otherParticipantId = tempConversation.participants.find(
           (p: any) => p.id !== currentUserId
         )?.id;
         
-        // Ajouter la conversation temporaire à la liste
-        allConversations.unshift({
-          id: tempConversation.id,
-          created_at: new Date(tempConversation.timestamp).toISOString(),
-          updated_at: new Date(tempConversation.timestamp).toISOString(),
-          is_pinned: false,
-          is_archived: false,
-          otherParticipant: otherParticipantId ? {
-            id: otherParticipantId,
-            name: "Conversation partner",
-            avatar_url: null
-          } : null,
-          isTemporary: true
-        });
+        if (otherParticipantId) {
+          // Create a temporary conversation with the correct type
+          const tempConversationItem: Conversation = {
+            id: tempConversation.id,
+            created_at: new Date(tempConversation.timestamp).toISOString(),
+            updated_at: new Date(tempConversation.timestamp).toISOString(),
+            is_pinned: false,
+            is_archived: false,
+            otherParticipant: {
+              id: otherParticipantId,
+              name: "Conversation partner",
+              avatar_url: null
+            },
+            isTemporary: true
+          };
+          
+          allConversations.unshift(tempConversationItem);
+        }
       }
       
       setConversations(allConversations);
