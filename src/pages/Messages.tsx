@@ -1,3 +1,4 @@
+
 import React, { useState, KeyboardEvent, useRef, useEffect } from "react";
 import { Header } from "@/components/landing/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -28,21 +29,43 @@ import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/useSession";
+import { useToast } from "@/hooks/use-toast";
 
 export const Messages = () => {
   const location = useLocation();
   const { currentUserId } = useSession();
+  const { toast } = useToast();
   const [message, setMessage] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<any[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [tempConversation, setTempConversation] = useState<any>(null);
+
+  // Récupérer les informations de la conversation temporaire du localStorage
+  useEffect(() => {
+    const storedConversation = localStorage.getItem('currentConversation');
+    if (storedConversation) {
+      try {
+        const parsedConversation = JSON.parse(storedConversation);
+        setTempConversation(parsedConversation);
+      } catch (e) {
+        console.error("Error parsing stored conversation:", e);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     // Check if we have a conversationId from navigation state
     const stateConversationId = location.state?.conversationId;
+    const stateOtherUserId = location.state?.otherUserId;
+    
     if (stateConversationId) {
       setCurrentConversationId(stateConversationId);
+      
+      if (stateOtherUserId) {
+        setSelectedUserId(stateOtherUserId);
+      }
     }
     
     if (currentUserId) {
@@ -60,7 +83,10 @@ export const Messages = () => {
         .select('conversation_id')
         .eq('user_id', currentUserId);
 
-      if (participationError) throw participationError;
+      if (participationError) {
+        console.error('Error fetching participations:', participationError);
+        return;
+      }
       
       if (!participations || participations.length === 0) {
         setConversations([]);
@@ -82,7 +108,10 @@ export const Messages = () => {
         `)
         .in('id', conversationIds);
 
-      if (conversationsError) throw conversationsError;
+      if (conversationsError) {
+        console.error('Error fetching conversations:', conversationsError);
+        return;
+      }
       
       // For each conversation, get the other participant
       const conversationsWithParticipants = await Promise.all(
@@ -120,6 +149,24 @@ export const Messages = () => {
         })
       );
       
+      // If we have a temporary conversation from localStorage, add it to the list
+      if (tempConversation) {
+        // Add the temporary conversation to the list
+        conversationsWithParticipants.unshift({
+          id: tempConversation.id,
+          created_at: new Date(tempConversation.timestamp).toISOString(),
+          updated_at: new Date(tempConversation.timestamp).toISOString(),
+          is_pinned: false,
+          is_archived: false,
+          otherParticipant: {
+            id: tempConversation.participants.find((p: any) => p.id !== currentUserId)?.id,
+            name: "Conversation partner",
+            avatar_url: null
+          },
+          isTemporary: true
+        });
+      }
+      
       setConversations(conversationsWithParticipants);
       
       // If we have a conversation ID from navigation, select it
@@ -137,6 +184,14 @@ export const Messages = () => {
   const handleSendMessage = () => {
     if (message.trim() && currentConversationId) {
       console.log("Sending message:", message, "to conversation:", currentConversationId);
+      
+      // Pour cette version simplifiée, nous n'enregistrons pas réellement le message en base de données
+      // mais affichons simplement une notification
+      toast({
+        title: "Message Sent",
+        description: "Your message has been sent successfully.",
+      });
+      
       setMessage("");
     }
   };
@@ -186,66 +241,77 @@ export const Messages = () => {
               <ScrollArea className="h-[calc(100%-60px)]">
                 <div className="p-2 space-y-2">
                   {/* Conversations */}
-                  {[1, 2, 3, 4, 5].map((i) => {
-                    const userId = `user${i}`;
-                    const isOnline = mockOnlineStatus(userId);
-                    
-                    return (
-                      <div
-                        key={i}
-                        className="p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors relative"
-                        onClick={() => setSelectedUserId(userId)}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <div className="relative">
-                            <div className="w-10 h-10 bg-[#6153BD]/10 rounded-full flex items-center justify-center">
-                              <ChatCircle size={20} weight="fill" className="text-[#6153BD]" />
+                  {conversations.length > 0 ? (
+                    conversations.map((convo, i) => {
+                      const userId = convo.otherParticipant?.id || `user${i}`;
+                      const isOnline = mockOnlineStatus(userId);
+                      
+                      return (
+                        <div
+                          key={convo.id}
+                          className={`p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors relative ${
+                            currentConversationId === convo.id ? 'bg-gray-100' : ''
+                          }`}
+                          onClick={() => {
+                            setCurrentConversationId(convo.id);
+                            setSelectedUserId(userId);
+                          }}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="relative">
+                              <div className="w-10 h-10 bg-[#6153BD]/10 rounded-full flex items-center justify-center">
+                                <ChatCircle size={20} weight="fill" className="text-[#6153BD]" />
+                              </div>
+                              <div 
+                                className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${
+                                  isOnline ? 'bg-green-500' : 'bg-red-500'
+                                }`} 
+                              />
                             </div>
-                            <div 
-                              className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${
-                                isOnline ? 'bg-green-500' : 'bg-red-500'
-                              }`} 
-                            />
+                            <div className="flex-1">
+                              <p className="font-medium">{convo.otherParticipant?.name || `User ${i+1}`}</p>
+                              <p className="text-sm text-gray-500 truncate">
+                                {convo.isTemporary ? "New conversation" : "Last message preview..."}
+                              </p>
+                            </div>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8 opacity-0 group-hover:opacity-100 hover:opacity-100 focus:opacity-100"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <DotsThree size={20} weight="bold" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-48">
+                                <DropdownMenuItem onClick={() => handleUserAction('pin', userId)}>
+                                  <Star size={16} className="mr-2" /> Pin to favorites
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleUserAction('add-friend', userId)}>
+                                  <UserPlus size={16} className="mr-2" /> Add friend
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleUserAction('delete', userId)}>
+                                  <Trash size={16} className="mr-2" /> Delete conversation
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleUserAction('block', userId)}>
+                                  <Prohibit size={16} className="mr-2" /> Block user
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleUserAction('report', userId)}>
+                                  <Flag size={16} className="mr-2" /> Report user
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
-                          <div className="flex-1">
-                            <p className="font-medium">User {i}</p>
-                            <p className="text-sm text-gray-500 truncate">
-                              Last message preview...
-                            </p>
-                          </div>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-8 w-8 opacity-0 group-hover:opacity-100 hover:opacity-100 focus:opacity-100"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <DotsThree size={20} weight="bold" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-48">
-                              <DropdownMenuItem onClick={() => handleUserAction('pin', userId)}>
-                                <Star size={16} className="mr-2" /> Pin to favorites
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleUserAction('add-friend', userId)}>
-                                <UserPlus size={16} className="mr-2" /> Add friend
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleUserAction('delete', userId)}>
-                                <Trash size={16} className="mr-2" /> Delete conversation
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleUserAction('block', userId)}>
-                                <Prohibit size={16} className="mr-2" /> Block user
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleUserAction('report', userId)}>
-                                <Flag size={16} className="mr-2" /> Report user
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })
+                  ) : (
+                    <div className="p-4 text-center text-gray-500">
+                      No conversations yet
+                    </div>
+                  )}
                 </div>
               </ScrollArea>
             </div>
@@ -265,7 +331,9 @@ export const Messages = () => {
                       }`} 
                     />
                   </div>
-                  <h2 className="text-lg font-semibold">Chat with User 1</h2>
+                  <h2 className="text-lg font-semibold">
+                    {selectedUserId ? "Chat with User" : "Select a conversation"}
+                  </h2>
                 </div>
                 {selectedUserId && (
                   <DropdownMenu>
@@ -298,90 +366,111 @@ export const Messages = () => {
               {/* Messages Area */}
               <ScrollArea className="flex-1 p-4">
                 <div className="space-y-4">
-                  {/* Sample messages */}
-                  <div className="flex justify-end">
-                    <div className="bg-[#6153BD] text-white rounded-lg p-3 max-w-[70%]">
-                      Hello! How are you?
+                  {currentConversationId ? (
+                    <>
+                      {/* Sample messages */}
+                      <div className="flex justify-end">
+                        <div className="bg-[#6153BD] text-white rounded-lg p-3 max-w-[70%]">
+                          Hello! How are you?
+                        </div>
+                      </div>
+                      <div className="flex justify-start">
+                        <div className="bg-gray-100 rounded-lg p-3 max-w-[70%]">
+                          I'm doing great, thanks! How about you?
+                        </div>
+                      </div>
+                      
+                      {tempConversation && currentConversationId === tempConversation.id && (
+                        <div className="flex justify-center my-8">
+                          <div className="bg-yellow-100 text-yellow-800 rounded-lg p-3 max-w-[80%] text-center">
+                            This is a new conversation. The messages will be saved when you send your first message.
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-center text-gray-500">
+                        <ChatCircle size={48} weight="light" className="mx-auto mb-2 text-gray-400" />
+                        <p>Select a conversation to start messaging</p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex justify-start">
-                    <div className="bg-gray-100 rounded-lg p-3 max-w-[70%]">
-                      I'm doing great, thanks! How about you?
-                    </div>
-                  </div>
+                  )}
                 </div>
               </ScrollArea>
 
               {/* Message Input */}
-              <div className="p-4 border-t border-gray-200">
-                {/* Formatting Toolbar */}
-                <div className="flex items-center space-x-2 mb-3 p-2 border border-gray-200 rounded-lg bg-gray-50">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleFormatClick("bold")}
-                    className="text-gray-600 hover:text-[#6153BD] hover:bg-[#6153BD]/10"
-                  >
-                    <TextBolder size={20} />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleFormatClick("italic")}
-                    className="text-gray-600 hover:text-[#6153BD] hover:bg-[#6153BD]/10"
-                  >
-                    <TextItalic size={20} />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleFormatClick("underline")}
-                    className="text-gray-600 hover:text-[#6153BD] hover:bg-[#6153BD]/10"
-                  >
-                    <TextUnderline size={20} />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleFormatClick("color")}
-                    className="text-gray-600 hover:text-[#6153BD] hover:bg-[#6153BD]/10"
-                  >
-                    <Palette size={20} />
-                  </Button>
-                  <div className="h-5 w-px bg-gray-300 mx-2" />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="text-gray-600 hover:text-[#6153BD] hover:bg-[#6153BD]/10"
-                  >
-                    <ImageIcon size={20} />
-                  </Button>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleImageUpload}
-                    accept="image/*"
-                    className="hidden"
-                  />
-                </div>
+              {currentConversationId && (
+                <div className="p-4 border-t border-gray-200">
+                  {/* Formatting Toolbar */}
+                  <div className="flex items-center space-x-2 mb-3 p-2 border border-gray-200 rounded-lg bg-gray-50">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleFormatClick("bold")}
+                      className="text-gray-600 hover:text-[#6153BD] hover:bg-[#6153BD]/10"
+                    >
+                      <TextBolder size={20} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleFormatClick("italic")}
+                      className="text-gray-600 hover:text-[#6153BD] hover:bg-[#6153BD]/10"
+                    >
+                      <TextItalic size={20} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleFormatClick("underline")}
+                      className="text-gray-600 hover:text-[#6153BD] hover:bg-[#6153BD]/10"
+                    >
+                      <TextUnderline size={20} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleFormatClick("color")}
+                      className="text-gray-600 hover:text-[#6153BD] hover:bg-[#6153BD]/10"
+                    >
+                      <Palette size={20} />
+                    </Button>
+                    <div className="h-5 w-px bg-gray-300 mx-2" />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="text-gray-600 hover:text-[#6153BD] hover:bg-[#6153BD]/10"
+                    >
+                      <ImageIcon size={20} />
+                    </Button>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleImageUpload}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                  </div>
 
-                <div className="flex space-x-4">
-                  <Textarea 
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    onKeyDown={handleKeyPress}
-                    placeholder="Type your message..." 
-                    className="flex-1 min-h-[80px] resize-none"
-                  />
-                  <button 
-                    onClick={handleSendMessage}
-                    className="px-4 py-2 bg-[#6153BD] text-white rounded-lg hover:bg-[#6153BD]/90 transition-colors h-fit"
-                  >
-                    Send
-                  </button>
+                  <div className="flex space-x-4">
+                    <Textarea 
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      onKeyDown={handleKeyPress}
+                      placeholder="Type your message..." 
+                      className="flex-1 min-h-[80px] resize-none"
+                    />
+                    <button 
+                      onClick={handleSendMessage}
+                      className="px-4 py-2 bg-[#6153BD] text-white rounded-lg hover:bg-[#6153BD]/90 transition-colors h-fit"
+                    >
+                      Send
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>

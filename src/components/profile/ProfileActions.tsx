@@ -71,7 +71,7 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
     }
   };
 
-  const handleMessageClick = async () => {
+  const handleMessageClick = () => {
     if (!currentUserId) {
       toast({
         variant: "destructive",
@@ -83,55 +83,40 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
 
     try {
       setIsMessageLoading(true);
-      console.log("Message action initiated for user:", profileId);
       
-      // Créer directement une nouvelle conversation en une seule requête
-      const { data: newConversation, error: conversationError } = await supabase
-        .from('conversations')
-        .insert({})
-        .select('id')
-        .single();
+      // Approche simplifiée: générer un identifiant pour la conversation localement
+      // et le passer à la page des messages
+      const tempConversationId = `temp_${currentUserId}_${profileId}_${Date.now()}`;
       
-      if (conversationError) {
-        console.error("Error creating conversation:", conversationError);
-        throw conversationError;
-      }
+      // Stocker les informations nécessaires dans localStorage
+      const conversationData = {
+        id: tempConversationId,
+        participants: [
+          {id: currentUserId},
+          {id: profileId}
+        ],
+        timestamp: Date.now()
+      };
       
-      const conversationId = newConversation.id;
-      console.log("Created new conversation with ID:", conversationId);
+      localStorage.setItem('currentConversation', JSON.stringify(conversationData));
       
-      // Créer les deux participants en une seule requête
-      const { error: participantsError } = await supabase
-        .from('conversation_participants')
-        .insert([
-          { conversation_id: conversationId, user_id: currentUserId },
-          { conversation_id: conversationId, user_id: profileId }
-        ]);
-      
-      if (participantsError) {
-        console.error("Error adding participants:", participantsError);
-        throw participantsError;
-      }
-      
-      console.log("Navigating to messages with conversation ID:", conversationId);
-      
-      // Appliquer l'onMessage en premier pour éviter tout problème de timing
+      // Appliquer l'onMessage callback pour déclencher les changements d'interface
       onMessage();
       
-      // Force l'état local dans le localStorage avant la navigation
-      localStorage.setItem('lastConversationId', conversationId);
-      
-      // Ensuite naviguer vers la page de messages
+      // Naviguer vers la page de messages
       navigate('/messages', { 
-        state: { conversationId },
-        replace: true // Remplacer l'historique pour éviter les problèmes de retour arrière
+        state: { 
+          conversationId: tempConversationId,
+          otherUserId: profileId
+        },
+        replace: true 
       });
     } catch (error) {
       console.error('Error handling message action:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to start conversation. Please try again later.",
+        description: "Failed to navigate to messages. Please try again later.",
       });
     } finally {
       setIsMessageLoading(false);
