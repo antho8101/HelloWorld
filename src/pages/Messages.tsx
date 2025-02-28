@@ -164,11 +164,11 @@ export const Messages = () => {
             
             // Check if profileData is a valid object (not an error object)
             if (profileData && typeof profileData === 'object' && !('error' in profileData)) {
-              // Type guard to ensure we have the necessary properties
+              // Create a participant object with safe property access
               otherParticipant = {
-                id: typeof profileData.id === 'string' ? profileData.id : String(profileData.id),
-                name: profileData.name as string | null,
-                avatar_url: profileData.avatar_url as string | null
+                id: profileData.id ? (typeof profileData.id === 'string' ? profileData.id : String(profileData.id)) : '',
+                name: profileData.name !== undefined ? profileData.name : null,
+                avatar_url: profileData.avatar_url !== undefined ? profileData.avatar_url : null
               };
             } else if (otherParticipants[0].user_id) {
               // If we can at least get the user_id, create a minimal participant
