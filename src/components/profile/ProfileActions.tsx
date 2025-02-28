@@ -85,96 +85,47 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
       setIsMessageLoading(true);
       console.log("Message action initiated for user:", profileId);
       
-      // Étape 1: Vérifier si une conversation existe déjà
-      const { data: existingConvos, error: searchError } = await supabase
-        .from('conversation_participants')
-        .select(`
-          conversation_id
-        `)
-        .eq('user_id', currentUserId);
-      
-      if (searchError) {
-        console.error("Error searching conversations:", searchError);
-        throw searchError;
-      }
-      
-      // Si l'utilisateur actuel a des conversations
-      if (existingConvos && existingConvos.length > 0) {
-        const currentUserConvoIds = existingConvos.map(c => c.conversation_id);
-        
-        // Rechercher si l'autre utilisateur est dans l'une de ces conversations
-        const { data: sharedConvos, error: sharedError } = await supabase
-          .from('conversation_participants')
-          .select('conversation_id')
-          .eq('user_id', profileId)
-          .in('conversation_id', currentUserConvoIds);
-        
-        if (sharedError) {
-          console.error("Error finding shared conversations:", sharedError);
-          throw sharedError;
-        }
-        
-        // Si une conversation partagée est trouvée
-        if (sharedConvos && sharedConvos.length > 0) {
-          const conversationId = sharedConvos[0].conversation_id;
-          console.log("Found existing conversation with ID:", conversationId);
-          navigate('/messages', { state: { conversationId } });
-          onMessage();
-          setIsMessageLoading(false);
-          return;
-        }
-      }
-      
-      // Si aucune conversation partagée n'est trouvée, en créer une nouvelle
-      console.log("Creating new conversation");
-      
-      // Créer une nouvelle conversation
-      const { data: newConvo, error: createError } = await supabase
+      // Créer directement une nouvelle conversation en une seule requête
+      const { data: newConversation, error: conversationError } = await supabase
         .from('conversations')
         .insert({})
         .select('id')
         .single();
       
-      if (createError) {
-        console.error("Error creating conversation:", createError);
-        throw createError;
+      if (conversationError) {
+        console.error("Error creating conversation:", conversationError);
+        throw conversationError;
       }
       
-      const conversationId = newConvo.id;
+      const conversationId = newConversation.id;
       console.log("Created new conversation with ID:", conversationId);
       
-      // Ajouter le premier participant (utilisateur actuel)
-      const { error: addCurrentUserError } = await supabase
+      // Créer les deux participants en une seule requête
+      const { error: participantsError } = await supabase
         .from('conversation_participants')
-        .insert({
-          conversation_id: conversationId,
-          user_id: currentUserId
-        });
+        .insert([
+          { conversation_id: conversationId, user_id: currentUserId },
+          { conversation_id: conversationId, user_id: profileId }
+        ]);
       
-      if (addCurrentUserError) {
-        console.error("Error adding current user to conversation:", addCurrentUserError);
-        throw addCurrentUserError;
+      if (participantsError) {
+        console.error("Error adding participants:", participantsError);
+        throw participantsError;
       }
       
-      // Ajouter le deuxième participant (profil cible)
-      const { error: addProfileUserError } = await supabase
-        .from('conversation_participants')
-        .insert({
-          conversation_id: conversationId,
-          user_id: profileId
-        });
+      console.log("Navigating to messages with conversation ID:", conversationId);
       
-      if (addProfileUserError) {
-        console.error("Error adding profile user to conversation:", addProfileUserError);
-        throw addProfileUserError;
-      }
-      
-      console.log("Added both participants successfully");
-      
-      // Naviguer vers la page de messages
-      navigate('/messages', { state: { conversationId } });
+      // Appliquer l'onMessage en premier pour éviter tout problème de timing
       onMessage();
       
+      // Force l'état local dans le localStorage avant la navigation
+      localStorage.setItem('lastConversationId', conversationId);
+      
+      // Ensuite naviguer vers la page de messages
+      navigate('/messages', { 
+        state: { conversationId },
+        replace: true // Remplacer l'historique pour éviter les problèmes de retour arrière
+      });
     } catch (error) {
       console.error('Error handling message action:', error);
       toast({
