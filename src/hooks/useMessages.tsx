@@ -84,7 +84,7 @@ export const useMessages = () => {
         if (!conversationInfo) continue;
 
         // Get the other participant's profile
-        const otherParticipant = participantsData.length > 0 && participantsData[0].profiles;
+        const otherParticipant = participantsData.length > 0 ? participantsData[0].profiles : null;
         let participantProfile = null;
 
         if (otherParticipant && typeof otherParticipant === 'object') {
@@ -150,11 +150,12 @@ export const useMessages = () => {
         let senderAvatar = null;
         
         if (item.sender && typeof item.sender === 'object') {
+          // Use optional chaining to safely access potentially null properties
           if ('name' in item.sender) {
-            senderName = item.sender.name;
+            senderName = item.sender?.name;
           }
           if ('avatar_url' in item.sender) {
-            senderAvatar = item.sender.avatar_url;
+            senderAvatar = item.sender?.avatar_url;
           }
         }
         
