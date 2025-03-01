@@ -1,316 +1,291 @@
-
-import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useSession } from "@/hooks/useSession";
+import { useNavigate } from "react-router-dom";
+import { useSession } from "./useSession";
 import { toast } from "sonner";
-import type { Conversation, Message } from "@/types/messages";
+import type { Conversation, Message, ConversationParticipant } from "@/types/messages";
 
 export const useMessages = () => {
-  const location = useLocation();
-  const { currentUserId } = useSession();
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
-  const [currentMessages, setCurrentMessages] = useState<Message[]>([]);
-  const [tempConversation, setTempConversation] = useState<any>(null);
-  const [showNewConversationBanner, setShowNewConversationBanner] = useState(true);
-  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
-  const [profileId, setProfileId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const { currentUserId } = useSession();
+  const navigate = useNavigate();
 
-  // Use useEffect to set profileId when selectedUserId changes
-  useEffect(() => {
-    setProfileId(selectedUserId);
-  }, [selectedUserId]);
-
-  // Récupérer les informations de la conversation temporaire du localStorage
-  useEffect(() => {
-    const storedConversation = localStorage.getItem('currentConversation');
-    if (storedConversation) {
-      try {
-        const parsedConversation = JSON.parse(storedConversation);
-        setTempConversation(parsedConversation);
-      } catch (e) {
-        console.error("Error parsing stored conversation:", e);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    // Check if we have a conversationId from navigation state
-    const stateConversationId = location.state?.conversationId;
-    const stateOtherUserId = location.state?.otherUserId;
-    
-    if (stateConversationId) {
-      setCurrentConversationId(stateConversationId);
-      
-      if (stateOtherUserId) {
-        setSelectedUserId(stateOtherUserId);
-      }
-    }
-    
-    if (currentUserId) {
-      fetchConversations();
-    }
-  }, [location, currentUserId]);
-
-  // Fetch messages when conversation changes
-  useEffect(() => {
-    if (currentConversationId) {
-      fetchMessages(currentConversationId);
-    }
-  }, [currentConversationId]);
-
-  const fetchConversations = async () => {
+  // Fetch conversations from Supabase
+  const fetchConversations = useCallback(async () => {
     if (!currentUserId) return;
-    
+
     try {
-      // First get all conversation IDs where the current user is a participant
-      const { data: participations, error: participationError } = await supabase
-        .from('conversation_participants')
-        .select('conversation_id')
-        .eq('user_id', currentUserId);
-
-      if (participationError) {
-        console.error('Error fetching participations:', participationError);
-        return;
-      }
+      setLoading(true);
       
-      if (!participations || participations.length === 0) {
-        setConversations([]);
-        return;
-      }
-
-      // Extract conversation IDs
-      const conversationIds = participations.map(p => p.conversation_id);
-      
-      // Get conversation details
+      // Get conversations where the current user is a participant
       const { data: conversationsData, error: conversationsError } = await supabase
-        .from('conversations')
+        .from("conversations")
         .select(`
           id,
           created_at,
           updated_at,
-          is_pinned,
-          is_archived
+          participants!inner(user_id, profile_id),
+          is_archived,
+          is_pinned
         `)
-        .in('id', conversationIds)
-        .order('updated_at', { ascending: false });
+        .or(`participants.user_id.eq.${currentUserId}`)
+        .order("updated_at", { ascending: false });
 
-      if (conversationsError) {
-        console.error('Error fetching conversations:', conversationsError);
+      if (conversationsError) throw conversationsError;
+
+      if (!conversationsData) {
+        setConversations([]);
+        setLoading(false);
         return;
       }
-      
-      // For each conversation, get the other participant
-      const conversationsWithParticipants = await Promise.all(
-        (conversationsData || []).map(async (conversation) => {
-          // Get the other participant in this conversation
-          const { data: otherParticipants, error: otherParticipantError } = await supabase
-            .from('conversation_participants')
-            .select(`
-              user_id,
-              profiles:user_id(
-                id,
-                name,
-                avatar_url
-              )
-            `)
-            .eq('conversation_id', conversation.id)
-            .neq('user_id', currentUserId);
 
-          if (otherParticipantError) {
-            console.error('Error fetching other participant:', otherParticipantError);
+      // For each conversation, get the other participant's details
+      const conversationsWithProfiles = await Promise.all(
+        conversationsData.map(async (conversation) => {
+          // Find participant that isn't the current user
+          const otherParticipant = conversation.participants.find(
+            (p: any) => p.user_id !== currentUserId
+          );
+
+          if (!otherParticipant) {
             return {
               ...conversation,
               otherParticipant: null
             };
           }
 
-          let otherParticipant: Conversation['otherParticipant'] = null;
-          
-          if (otherParticipants && otherParticipants.length > 0) {
-            const participant = otherParticipants[0];
-            
-            // First check if participant exists and has user_id
-            if (participant && participant.user_id) {
-              // If we at least have a user_id, create a minimal participant
-              otherParticipant = {
-                id: participant.user_id,
-                name: null,
-                avatar_url: null
-              };
-              
-              // Then, if profiles data is available, enhance the participant with that data
-              if (participant.profiles) {
-                // Need an additional null check to satisfy TypeScript
-                const profiles = participant.profiles;
-                
-                if (profiles && typeof profiles === 'object' && !('error' in profiles)) {
-                  // Make sure profile values are not null before accessing them
-                  const profileId = profiles.id;
-                  const profileName = profiles.name;
-                  const profileAvatar = profiles.avatar_url;
-                  
-                  otherParticipant = {
-                    id: typeof profileId === 'string' ? profileId : String(profileId || participant.user_id),
-                    name: profileName || null,
-                    avatar_url: profileAvatar || null
-                  };
-                }
-              }
-            }
-          }
+          // Get profile of other participant
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("id, name, avatar_url")
+            .eq("id", otherParticipant.profile_id)
+            .single();
 
-          const result: Conversation = {
-            ...conversation,
-            otherParticipant
+          return {
+            id: conversation.id,
+            created_at: conversation.created_at,
+            updated_at: conversation.updated_at,
+            is_pinned: conversation.is_pinned || false,
+            is_archived: conversation.is_archived || false,
+            otherParticipant: profileData || null
           };
-
-          return result;
         })
       );
-      
-      setConversations(conversationsWithParticipants);
-      
-      // Si nous avons un ID de conversation de navigation, le sélectionner
-      if (location.state?.conversationId && conversationsWithParticipants.length) {
-        setCurrentConversationId(location.state.conversationId);
-        // Supprimer les conversations temporaires du localStorage une fois qu'on a trouvé une conversation réelle
-        localStorage.removeItem('currentConversation');
-      } else if (conversationsWithParticipants.length) {
-        // Sinon, sélectionner la première conversation
-        setCurrentConversationId(conversationsWithParticipants[0].id);
-      }
-    } catch (error) {
-      console.error('Error fetching conversations:', error);
-    }
-  };
 
-  const fetchMessages = async (conversationId: string) => {
-    if (!conversationId) return;
-    
-    setIsLoadingMessages(true);
-    
+      setConversations(conversationsWithProfiles);
+    } catch (error) {
+      console.error("Error fetching conversations:", error);
+      toast("Failed to load conversations");
+    } finally {
+      setLoading(false);
+    }
+  }, [currentUserId]);
+
+  // Fetch messages for a particular conversation
+  const fetchMessages = useCallback(async (conversationId: string) => {
+    if (!currentUserId) return;
+
     try {
+      setLoadingMessages(true);
+      
       const { data: messagesData, error: messagesError } = await supabase
-        .from('messages')
+        .from("messages")
         .select(`
           id,
           content,
           created_at,
           sender_id,
-          profiles:sender_id(
+          profiles:sender_id (
             name,
             avatar_url
           )
         `)
-        .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true });
-        
-      if (messagesError) {
-        console.error('Error fetching messages:', messagesError);
-        setCurrentMessages([]);
+        .eq("conversation_id", conversationId)
+        .order("created_at", { ascending: true });
+
+      if (messagesError) throw messagesError;
+
+      if (!messagesData) {
+        setMessages([]);
+        setLoadingMessages(false);
         return;
       }
-      
-      // Format messages with profile data
-      const formattedMessages = messagesData?.map(msg => {
-        // Add proper null checking for profiles
-        const profileData = msg.profiles ? 
-          // Check if profiles is an error or an object with data
-          ('error' in msg.profiles ? { name: null, avatar_url: null } : msg.profiles)
-          : { name: null, avatar_url: null };
-        
-        return {
-          id: msg.id,
-          content: msg.content,
-          created_at: msg.created_at,
-          sender_id: msg.sender_id,
-          sender_name: profileData.name,
-          sender_avatar: profileData.avatar_url
-        };
-      }) || [];
-      
-      setCurrentMessages(formattedMessages);
+
+      const formattedMessages = messagesData.map((message) => ({
+        id: message.id,
+        content: message.content,
+        created_at: message.created_at,
+        sender_id: message.sender_id,
+        sender_name: message.profiles?.name || "Unknown",
+        sender_avatar: message.profiles?.avatar_url || null
+      }));
+
+      setMessages(formattedMessages);
     } catch (error) {
-      console.error('Error in fetchMessages:', error);
-      setCurrentMessages([]);
+      console.error("Error fetching messages:", error);
+      toast("Failed to load messages");
     } finally {
-      setIsLoadingMessages(false);
+      setLoadingMessages(false);
     }
-  };
+  }, [currentUserId]);
 
-  const sendMessage = async (message: string) => {
-    if (message.trim() && currentConversationId && currentUserId) {
-      try {
-        // Insert the message into the database
-        const { data, error } = await supabase
-          .from('messages')
-          .insert({
-            conversation_id: currentConversationId,
-            sender_id: currentUserId,
-            content: message.trim()
-          })
-          .select();
-          
-        if (error) {
-          console.error('Error sending message:', error);
-          toast({
-            variant: "destructive",
-            title: "Failed to Send",
-            description: "There was an error sending your message. Please try again."
-          });
-          return false;
-        }
-        
-        // Fetch the latest messages to update the UI
-        fetchMessages(currentConversationId);
-        
-        // Masquer le bandeau de nouvelle conversation après l'envoi du premier message
-        setShowNewConversationBanner(false);
-        
-        toast({
-          title: "Message Sent",
-          description: "Your message has been sent successfully.",
-        });
-        
-        return true;
-      } catch (error) {
-        console.error('Error in sendMessage:', error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Something went wrong. Please try again later."
-        });
-        return false;
+  // Set active conversation and fetch its messages
+  const setConversationActive = useCallback(async (conversation: Conversation) => {
+    setActiveConversation(conversation);
+    await fetchMessages(conversation.id);
+  }, [fetchMessages]);
+
+  // Send a new message
+  const sendMessage = useCallback(async () => {
+    if (!currentUserId || !activeConversation || !newMessage.trim()) return;
+
+    try {
+      setSendingMessage(true);
+      
+      // Insert new message
+      const { data: messageData, error: messageError } = await supabase
+        .from("messages")
+        .insert({
+          conversation_id: activeConversation.id,
+          sender_id: currentUserId,
+          content: newMessage.trim()
+        })
+        .select();
+
+      if (messageError) throw messageError;
+
+      // Update conversation's updated_at
+      const { error: updateError } = await supabase
+        .from("conversations")
+        .update({ updated_at: new Date().toISOString() })
+        .eq("id", activeConversation.id);
+
+      if (updateError) throw updateError;
+
+      // Clear message input
+      setNewMessage("");
+      
+      // Fetch messages to update the UI
+      await fetchMessages(activeConversation.id);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast("Failed to send message");
+    } finally {
+      setSendingMessage(false);
+    }
+  }, [currentUserId, activeConversation, newMessage, fetchMessages]);
+
+  // Start a conversation with a user
+  const startConversation = useCallback(async (userId: string) => {
+    if (!currentUserId) {
+      toast("You need to be logged in to send messages");
+      navigate("/login");
+      return;
+    }
+
+    if (userId === currentUserId) {
+      toast("You cannot message yourself");
+      return;
+    }
+
+    try {
+      // Check if a conversation already exists
+      const { data: existingConvData, error: existingConvError } = await supabase
+        .from("conversations")
+        .select(`
+          id,
+          participants!inner(user_id, profile_id)
+        `)
+        .or(`and(participants.user_id.eq.${currentUserId},participants.profile_id.eq.${userId}),and(participants.user_id.eq.${userId},participants.profile_id.eq.${currentUserId})`)
+        .limit(1);
+
+      if (existingConvError) throw existingConvError;
+
+      // If conversation exists, navigate to it
+      if (existingConvData && existingConvData.length > 0) {
+        navigate(`/messages?conversation=${existingConvData[0].id}`);
+        return;
       }
-    }
-    return false;
-  };
 
-  // Mock online status for demo purposes - in a real app, this would come from your backend
-  const mockOnlineStatus = (userId: string) => {
-    const userIds = ["user1", "user3", "user5"];
-    return userIds.includes(userId);
-  };
+      // Otherwise, create a new conversation
+      const { data: newConvData, error: newConvError } = await supabase
+        .from("conversations")
+        .insert({})
+        .select();
+
+      if (newConvError) throw newConvError;
+      
+      if (!newConvData || newConvData.length === 0) {
+        throw new Error("Failed to create conversation");
+      }
+
+      // Add participants
+      const { error: participantsError } = await supabase
+        .from("participants")
+        .insert([
+          { conversation_id: newConvData[0].id, user_id: currentUserId, profile_id: userId },
+          { conversation_id: newConvData[0].id, user_id: userId, profile_id: currentUserId }
+        ]);
+
+      if (participantsError) throw participantsError;
+
+      // Navigate to new conversation
+      navigate(`/messages?conversation=${newConvData[0].id}`);
+      
+      toast("Conversation started");
+    } catch (error) {
+      console.error("Error starting conversation:", error);
+      toast("Failed to start conversation");
+    }
+  }, [currentUserId, navigate]);
+
+  // Initial load
+  useEffect(() => {
+    if (currentUserId) {
+      fetchConversations();
+    }
+  }, [currentUserId, fetchConversations]);
+
+  // Setup real-time updates for messages
+  useEffect(() => {
+    if (!activeConversation) return;
+
+    const channel = supabase
+      .channel(`messages:${activeConversation.id}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `conversation_id=eq.${activeConversation.id}`
+      }, (payload) => {
+        console.log('New message received:', payload);
+        fetchMessages(activeConversation.id);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [activeConversation, fetchMessages]);
 
   return {
-    selectedUserId,
-    setSelectedUserId,
     conversations,
-    currentConversationId,
-    setCurrentConversationId,
-    currentMessages,
-    tempConversation,
-    showNewConversationBanner,
-    setShowNewConversationBanner,
-    isLoadingMessages,
-    profileId,
-    fetchConversations,
-    fetchMessages,
+    loading,
+    activeConversation,
+    messages,
+    newMessage,
+    loadingMessages,
+    sendingMessage,
+    setNewMessage,
+    setConversationActive,
     sendMessage,
-    mockOnlineStatus,
-    currentUserId
+    startConversation,
+    fetchConversations
   };
 };

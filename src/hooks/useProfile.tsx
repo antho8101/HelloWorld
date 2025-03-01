@@ -3,26 +3,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { LanguageWithLevel } from "@/components/LanguageSelector";
 import type { Json } from "@/integrations/supabase/types";
+import type { ProfileData } from "@/types/profile";
 import { toast } from "sonner";
-
-interface Profile {
-  username: string | null;
-  name: string | null;
-  avatar_url: string | null;
-  age: number | null;
-  city: string | null;
-  country: string | null;
-  gender: string | null;
-  native_languages: string[];
-  language_levels: LanguageWithLevel[];
-  interested_in: string[];
-  looking_for: string[];
-  bio: string | null;
-  id: string | null;
-  is_banned: boolean | null;
-  is_suspended: boolean | null;
-  suspension_end_timestamp: string | null;
-}
 
 const transformLanguageLevels = (languageLevels: Json | null): LanguageWithLevel[] => {
   if (!languageLevels || !Array.isArray(languageLevels)) return [];
@@ -38,7 +20,7 @@ const transformLanguageLevels = (languageLevels: Json | null): LanguageWithLevel
 };
 
 export const useProfile = (profileId: string | undefined) => {
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -80,7 +62,7 @@ export const useProfile = (profileId: string | undefined) => {
 
         if (fetchError) {
           console.error("Error fetching profile:", fetchError);
-          toast.error("Error loading profile");
+          toast("Error loading profile");
           setError(fetchError.message);
           return;
         }

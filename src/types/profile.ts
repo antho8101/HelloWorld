@@ -2,20 +2,30 @@
 import type { LanguageWithLevel } from "@/components/LanguageSelector";
 
 export interface ProfileData {
-  username: string;
-  name: string;
-  age: number;
-  avatar_url: string;
-  native_languages: LanguageWithLevel[];
-  learning_languages: LanguageWithLevel[];
-  country: string;
-  city: string;
-  bio: string;
-  gender: string;
+  id: string | null;
+  username: string | null;
+  name: string | null;
+  age: number | null;
+  avatar_url: string | null;
+  native_languages: string[];
+  language_levels: LanguageWithLevel[];
+  country: string | null;
+  city: string | null;
+  bio: string | null;
+  gender: string | null;
   interested_in: string[];
   looking_for: string[];
-  language_levels: LanguageWithLevel[];
-  is_suspended?: boolean;
-  is_banned?: boolean;
+  is_suspended?: boolean | null;
+  is_banned?: boolean | null;
   suspension_end_timestamp?: string | null;
+}
+
+export interface FriendRequest {
+  id: string;
+  created_at: string;
+  sender: {
+    id: string;
+    name: string | null;
+    avatar_url: string | null;
+  };
 }
