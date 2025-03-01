@@ -1,4 +1,3 @@
-
 import React, { useState, KeyboardEvent, useRef, useEffect } from "react";
 import { Header } from "@/components/landing/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -62,6 +61,7 @@ export const Messages = () => {
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [tempConversation, setTempConversation] = useState<any>(null);
   const [showNewConversationBanner, setShowNewConversationBanner] = useState(true);
+  const [posts, setPosts] = useState<any[]>([]);
 
   // Récupérer les informations de la conversation temporaire du localStorage
   useEffect(() => {
@@ -242,6 +242,90 @@ export const Messages = () => {
       }
     } catch (error) {
       console.error('Error fetching conversations:', error);
+    }
+  };
+
+  const fetchPosts = async () => {
+    if (profileId) {
+      const { data: postsData, error: postsError } = await supabase
+        .from("posts")
+        .select(`
+          *,
+          profiles (
+            id,
+            name,
+            username,
+            avatar_url
+          )
+        `)
+        .eq("user_id", profileId)
+        .order("created_at", { ascending: false });
+
+      if (postsError) {
+        console.error("Error fetching posts:", postsError);
+        return;
+      }
+
+      if (currentUserId) {
+        const { data: likedPosts } = await supabase
+          .from("post_likes")
+          .select("post_id")
+          .eq("user_id", currentUserId);
+
+        const likedPostIds = new Set(likedPosts?.map(like => like.post_id) || []);
+
+        const postsWithLikes = await Promise.all(
+          postsData.map(async (post) => {
+            const { data: comments, error: commentsError } = await supabase
+              .from("comments")
+              .select(`
+                id,
+                content,
+                created_at,
+                profiles (
+                  name,
+                  username,
+                  avatar_url
+                )
+              `)
+              .eq("post_id", post.id)
+              .order("created_at", { ascending: true });
+
+            if (commentsError) {
+              console.error("Error fetching comments:", commentsError);
+              return {
+                ...post,
+                isLiked: likedPostIds.has(post.id),
+                comments: [],
+              };
+            }
+
+            return {
+              ...post,
+              isLiked: likedPostIds.has(post.id),
+              comments: comments?.map(comment => {
+                // Add null checking for profiles
+                const profileData = comment.profiles || { name: null, username: null, avatar_url: null };
+              
+                return {
+                  id: comment.id,
+                  content: comment.content,
+                  createdAt: comment.created_at,
+                  author: {
+                    name: profileData.name || "Unknown User",
+                    username: profileData.username || "unknown",
+                    avatarUrl: profileData.avatar_url || null,
+                  },
+                  likesCount: 0,
+                  isLiked: false,
+                };
+              }) || [],
+            };
+          })
+        );
+
+        setPosts(postsWithLikes);
+      }
     }
   };
 
