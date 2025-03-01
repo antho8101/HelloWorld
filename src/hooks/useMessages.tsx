@@ -3,7 +3,13 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/useSession";
 import { toast } from "sonner";
-import type { Conversation, Message, MessageData } from "@/types/messages";
+import type { Conversation, Message } from "@/types/messages";
+
+interface MessageData {
+  content: string;
+  conversation_id: string;
+  sender_id: string;
+}
 
 export const useMessages = () => {
   const { currentUserId } = useSession();
@@ -29,63 +35,77 @@ export const useMessages = () => {
         .from("conversation_participants")
         .select(`
           conversation_id,
-          conversation:conversation_id (
+          conversation:conversations!inner(
             id,
             created_at,
             updated_at,
             is_pinned,
             is_archived
-          ),
-          participants:conversation_id (
-            user_id,
-            profile:user_id (
-              id,
-              name,
-              username,
-              avatar_url
-            )
           )
         `)
         .eq("user_id", currentUserId);
 
       if (error) throw error;
 
-      // Transform data into conversations array
-      const transformedConversations: Conversation[] = [];
-
-      if (data) {
-        for (const item of data) {
-          if (!item.conversation) continue;
-
-          // Find participants other than current user
-          const participants = Array.isArray(item.participants) 
-            ? item.participants.filter((p: any) => p.user_id !== currentUserId && p.profile)
-            : [];
-          
-          // Get the other user's profile
-          const otherUserProfile = participants.length > 0 ? participants[0].profile : null;
-
-          if (otherUserProfile) {
-            transformedConversations.push({
-              id: item.conversation.id,
-              userId: otherUserProfile.id,
-              name: otherUserProfile.name || otherUserProfile.username || "User",
-              avatar: otherUserProfile.avatar_url,
-              lastMessage: "",
-              timestamp: item.conversation.updated_at,
-              isPinned: item.conversation.is_pinned,
-              isArchived: item.conversation.is_archived,
-            });
-          }
-        }
+      if (!data || data.length === 0) {
+        setConversations([]);
+        setLoading(false);
+        return;
       }
 
-      // Sort conversations by timestamp (newest first)
-      transformedConversations.sort((a, b) => 
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      // Get all conversation IDs
+      const conversationIds = data.map(item => item.conversation_id);
+
+      // For each conversation, find the other participant
+      const conversationsWithParticipants: Conversation[] = [];
+
+      for (const conversationId of conversationIds) {
+        // Get other participants for this conversation
+        const { data: participantsData, error: participantsError } = await supabase
+          .from("conversation_participants")
+          .select(`
+            user_id,
+            profiles:user_id(
+              id,
+              name,
+              avatar_url
+            )
+          `)
+          .eq("conversation_id", conversationId)
+          .neq("user_id", currentUserId);
+
+        if (participantsError) {
+          console.error("Error fetching participants:", participantsError);
+          continue;
+        }
+
+        const conversationInfo = data.find(item => item.conversation_id === conversationId)?.conversation;
+        
+        if (!conversationInfo) continue;
+
+        // Get the other participant's profile
+        const otherParticipant = participantsData[0]?.profiles || null;
+
+        conversationsWithParticipants.push({
+          id: conversationId,
+          created_at: conversationInfo.created_at,
+          updated_at: conversationInfo.updated_at,
+          is_pinned: conversationInfo.is_pinned,
+          is_archived: conversationInfo.is_archived,
+          otherParticipant: otherParticipant ? {
+            id: otherParticipant.id,
+            name: otherParticipant.name,
+            avatar_url: otherParticipant.avatar_url
+          } : null
+        });
+      }
+
+      // Sort conversations by updated_at (newest first)
+      conversationsWithParticipants.sort((a, b) => 
+        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
       );
 
-      setConversations(transformedConversations);
+      setConversations(conversationsWithParticipants);
     } catch (error) {
       console.error("Error fetching conversations:", error);
       toast("Error loading conversations");
@@ -106,7 +126,7 @@ export const useMessages = () => {
           content,
           created_at,
           sender_id,
-          sender:sender_id (
+          profiles:sender_id(
             name,
             avatar_url
           )
@@ -116,21 +136,14 @@ export const useMessages = () => {
 
       if (error) throw error;
 
-      const fetchedMessages: Message[] = [];
-      if (data) {
-        for (const item of data) {
-          const senderData = item.sender || { name: null, avatar_url: null };
-          fetchedMessages.push({
-            id: item.id,
-            text: item.content,
-            senderId: item.sender_id,
-            senderName: senderData.name || "Unknown",
-            senderAvatar: senderData.avatar_url,
-            timestamp: item.created_at,
-            isMine: item.sender_id === currentUserId
-          });
-        }
-      }
+      const fetchedMessages: Message[] = data.map(item => ({
+        id: item.id,
+        content: item.content,
+        created_at: item.created_at,
+        sender_id: item.sender_id,
+        sender_name: item.profiles?.name || null,
+        sender_avatar: item.profiles?.avatar_url || null
+      }));
 
       setMessages(fetchedMessages);
     } catch (error) {
@@ -149,34 +162,28 @@ export const useMessages = () => {
 
       // If no active conversation, create a new one
       if (!conversationId) {
-        // Check if a conversation already exists with this user
-        const existingConv = conversations.find(c => c.userId === receiverId);
-        if (existingConv) {
-          conversationId = existingConv.id;
-        } else {
-          // Create a new conversation
-          const { data: newConv, error: convError } = await supabase
-            .from("conversations")
-            .insert({})
-            .select("id")
-            .single();
+        // Create a new conversation
+        const { data: newConv, error: convError } = await supabase
+          .from("conversations")
+          .insert({})
+          .select("id")
+          .single();
 
-          if (convError) throw convError;
-          
-          conversationId = newConv.id;
+        if (convError) throw convError;
+        
+        conversationId = newConv.id;
 
-          // Add participants to the conversation
-          const participants = [
-            { conversation_id: conversationId, user_id: currentUserId },
-            { conversation_id: conversationId, user_id: receiverId }
-          ];
+        // Add participants to the conversation
+        const participants = [
+          { conversation_id: conversationId, user_id: currentUserId },
+          { conversation_id: conversationId, user_id: receiverId }
+        ];
 
-          const { error: participantsError } = await supabase
-            .from("conversation_participants")
-            .insert(participants);
+        const { error: participantsError } = await supabase
+          .from("conversation_participants")
+          .insert(participants);
 
-          if (participantsError) throw participantsError;
-        }
+        if (participantsError) throw participantsError;
       }
 
       // Send the message
@@ -191,6 +198,14 @@ export const useMessages = () => {
         .insert(messageData);
 
       if (messageError) throw messageError;
+
+      // Update the timestamp on the conversation
+      const { error: updateError } = await supabase
+        .from("conversations")
+        .update({ updated_at: new Date().toISOString() })
+        .eq("id", conversationId);
+
+      if (updateError) console.error("Error updating conversation timestamp:", updateError);
 
       // Refresh conversations and messages
       await fetchConversations();
@@ -208,7 +223,11 @@ export const useMessages = () => {
 
   const selectConversation = useCallback((conversation: Conversation) => {
     setActiveConversation(conversation);
-    fetchMessages(conversation.id);
+    if (conversation.id) {
+      fetchMessages(conversation.id);
+    } else {
+      setMessages([]);
+    }
   }, []);
 
   return {

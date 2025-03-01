@@ -81,7 +81,9 @@ export const useProfile = (profileId: string | undefined) => {
           city: data.city,
           country: data.country,
           gender: data.gender,
-          native_languages: Array.isArray(data.native_languages) ? data.native_languages : [],
+          native_languages: Array.isArray(data.native_languages) 
+            ? data.native_languages.map((lang: string) => ({ language: lang })) 
+            : [],
           language_levels: transformLanguageLevels(data.language_levels),
           interested_in: Array.isArray(data.interested_in) ? data.interested_in : [],
           looking_for: Array.isArray(data.looking_for) ? data.looking_for : [],

@@ -16,7 +16,7 @@ interface ProfileContentProps {
     city: string | null;
     country: string | null;
     bio: string | null;
-    native_languages: string[];
+    native_languages: LanguageWithLevel[];
     language_levels: LanguageWithLevel[];
     interested_in: string[];
     looking_for: string[];

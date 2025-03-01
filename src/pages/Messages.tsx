@@ -32,7 +32,9 @@ export const Messages = () => {
   useEffect(() => {
     if (userId && conversations.length > 0) {
       // Find existing conversation with this user
-      const existingConversation = conversations.find(c => c.userId === userId);
+      const existingConversation = conversations.find(c => 
+        c.otherParticipant && c.otherParticipant.id === userId
+      );
       
       if (existingConversation) {
         setActiveConversation(existingConversation);
@@ -40,13 +42,16 @@ export const Messages = () => {
         // Create placeholder for new conversation
         const newConversationPlaceholder = {
           id: "",
-          userId: userId,
-          name: "New Conversation",
-          avatar: null,
-          lastMessage: "",
-          timestamp: new Date().toISOString(),
-          isPinned: false,
-          isArchived: false
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          is_pinned: false,
+          is_archived: false,
+          otherParticipant: {
+            id: userId,
+            name: "New Conversation",
+            avatar_url: null
+          },
+          isTemporary: true
         };
         setActiveConversation(newConversationPlaceholder);
       }
@@ -57,8 +62,8 @@ export const Messages = () => {
   }, [userId, conversations, navigate, setActiveConversation]);
 
   const handleSendMessage = () => {
-    if (activeConversation && newMessage.trim()) {
-      sendMessage(activeConversation.userId, newMessage);
+    if (activeConversation && activeConversation.otherParticipant && newMessage.trim()) {
+      sendMessage(activeConversation.otherParticipant.id, newMessage);
     }
   };
 
@@ -84,8 +89,8 @@ export const Messages = () => {
                 {activeConversation ? (
                   <>
                     <ConversationHeader 
-                      name={activeConversation.name}
-                      avatar={activeConversation.avatar}
+                      name={activeConversation.otherParticipant?.name || "Unknown"}
+                      avatar={activeConversation.otherParticipant?.avatar_url}
                       isOnline={Math.random() > 0.5} // Mocked online status for demo
                     />
                     
