@@ -282,7 +282,11 @@ export const Messages = () => {
       
       // Format messages with profile data
       const formattedMessages = messagesData?.map(msg => {
-        const profileData = msg.profiles || { name: null, avatar_url: null };
+        // Add proper null checking for profiles
+        const profileData = msg.profiles ? 
+          // Check if profiles is an error or an object with data
+          ('error' in msg.profiles ? { name: null, avatar_url: null } : msg.profiles)
+          : { name: null, avatar_url: null };
         
         return {
           id: msg.id,
@@ -362,7 +366,7 @@ export const Messages = () => {
               ...post,
               isLiked: likedPostIds.has(post.id),
               comments: comments?.map(comment => {
-                // Add null checking for profiles
+                // Add proper null checking for profiles
                 const profileData = comment.profiles || { name: null, username: null, avatar_url: null };
               
                 return {
