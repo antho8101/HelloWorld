@@ -91,9 +91,9 @@ export const useMessages = () => {
           // Make sure this is not a SelectQueryError by checking for expected properties
           if ('id' in otherParticipant) {
             participantProfile = {
-              id: otherParticipant.id,
-              name: otherParticipant.name,
-              avatar_url: otherParticipant.avatar_url
+              id: otherParticipant?.id,
+              name: otherParticipant?.name,
+              avatar_url: otherParticipant?.avatar_url
             };
           }
         }
@@ -152,10 +152,10 @@ export const useMessages = () => {
         if (item.sender && typeof item.sender === 'object') {
           // Use optional chaining to safely access potentially null properties
           if ('name' in item.sender) {
-            senderName = item.sender?.name;
+            senderName = item.sender?.name ?? null;
           }
           if ('avatar_url' in item.sender) {
-            senderAvatar = item.sender?.avatar_url;
+            senderAvatar = item.sender?.avatar_url ?? null;
           }
         }
         
