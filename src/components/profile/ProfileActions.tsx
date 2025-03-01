@@ -2,9 +2,14 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ChatText, UserPlus } from "@phosphor-icons/react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { 
+  checkFriendRequestAttempts,
+  checkFriendshipStatus,
+  sendFriendRequest
+} from "@/services/friendRequestService";
+import { handleMessageAction } from "@/services/profileMessagingService";
 
 interface ProfileActionsProps {
   onMessage: () => void;
@@ -26,49 +31,21 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
 
   useEffect(() => {
     if (currentUserId) {
-      checkAttemptsCount();
-      checkFriendshipStatus();
+      loadInitialData();
     }
   }, [currentUserId, profileId]);
 
-  const checkFriendshipStatus = async () => {
+  const loadInitialData = async () => {
     if (!currentUserId || !profileId) return;
     
-    try {
-      const { data, error } = await supabase
-        .from('friends')
-        .select('*')
-        .or(`user_id1.eq.${currentUserId},user_id2.eq.${currentUserId}`)
-        .or(`user_id1.eq.${profileId},user_id2.eq.${profileId}`);
-
-      if (error) throw error;
-
-      const isFriendFound = data?.some(friendship => 
-        (friendship.user_id1 === currentUserId && friendship.user_id2 === profileId) ||
-        (friendship.user_id1 === profileId && friendship.user_id2 === currentUserId)
-      );
-
-      setIsFriend(isFriendFound);
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Error checking friendship status:', error);
-      setIsLoading(false);
-    }
-  };
-
-  const checkAttemptsCount = async () => {
-    try {
-      const { data, error } = await supabase
-        .rpc('check_friend_request_attempts', {
-          sender: currentUserId,
-          receiver: profileId
-        });
-
-      if (error) throw error;
-      setAttemptsCount(data || 0);
-    } catch (error) {
-      console.error('Error checking friend request attempts:', error);
-    }
+    const [friendshipStatus, attempts] = await Promise.all([
+      checkFriendshipStatus(currentUserId, profileId),
+      checkFriendRequestAttempts(currentUserId, profileId)
+    ]);
+    
+    setIsFriend(friendshipStatus);
+    setAttemptsCount(attempts);
+    setIsLoading(false);
   };
 
   const handleMessageClick = async () => {
@@ -83,40 +60,21 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
 
     try {
       setIsMessageLoading(true);
+      const success = await handleMessageAction(currentUserId, profileId, onMessage);
       
-      // Check if a conversation already exists between these two users
-      const { data: existingParticipations, error: participationsError } = await supabase
-        .from('conversation_participants')
-        .select('conversation_id')
-        .eq('user_id', currentUserId);
-      
-      if (participationsError) throw participationsError;
-      
-      // Get all conversation IDs where the current user is a participant
-      const conversationIds = existingParticipations?.map(p => p.conversation_id) || [];
-      
-      // If there are no conversations, create a new one
-      if (conversationIds.length === 0) {
-        return await createNewConversation();
-      }
-      
-      // Find conversations where the other user is also a participant
-      const { data: otherUserParticipations, error: otherUserError } = await supabase
-        .from('conversation_participants')
-        .select('conversation_id')
-        .in('conversation_id', conversationIds)
-        .eq('user_id', profileId);
-      
-      if (otherUserError) throw otherUserError;
-      
-      // If there's a common conversation, use that
-      if (otherUserParticipations && otherUserParticipations.length > 0) {
-        // Use the first existing conversation
-        const existingConversationId = otherUserParticipations[0].conversation_id;
-        navigateToConversation(existingConversationId);
+      if (success) {
+        navigate('/messages', { 
+          state: { 
+            otherUserId: profileId
+          },
+          replace: true 
+        });
       } else {
-        // Create a new conversation if none exists
-        await createNewConversation();
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to navigate to messages. Please try again later.",
+        });
       }
     } catch (error) {
       console.error('Error handling message action:', error);
@@ -128,46 +86,6 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
     } finally {
       setIsMessageLoading(false);
     }
-  };
-  
-  const createNewConversation = async () => {
-    // 1. Create new conversation
-    const { data: newConversation, error: conversationError } = await supabase
-      .from('conversations')
-      .insert([{ is_pinned: false, is_archived: false }])
-      .select()
-      .single();
-    
-    if (conversationError) throw conversationError;
-    
-    // 2. Add both users as participants
-    const participantsToInsert = [
-      { conversation_id: newConversation.id, user_id: currentUserId },
-      { conversation_id: newConversation.id, user_id: profileId }
-    ];
-    
-    const { error: participantsError } = await supabase
-      .from('conversation_participants')
-      .insert(participantsToInsert);
-    
-    if (participantsError) throw participantsError;
-    
-    // 3. Navigate to the new conversation
-    navigateToConversation(newConversation.id);
-  };
-  
-  const navigateToConversation = (conversationId: string) => {
-    // Appliquer l'onMessage callback pour déclencher les changements d'interface
-    onMessage();
-    
-    // Naviguer vers la page de messages
-    navigate('/messages', { 
-      state: { 
-        conversationId: conversationId,
-        otherUserId: profileId
-      },
-      replace: true 
-    });
   };
 
   const handleAddFriend = async () => {
@@ -190,36 +108,21 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
     }
 
     try {
-      const { data: existingRequest } = await supabase
-        .from('friend_requests')
-        .select('status, attempt_count')
-        .eq('sender_id', currentUserId)
-        .eq('receiver_id', profileId)
-        .maybeSingle();
-
-      const newAttemptCount = (existingRequest?.attempt_count || 0) + 1;
-
-      const { error } = await supabase
-        .from('friend_requests')
-        .upsert({
-          sender_id: currentUserId,
-          receiver_id: profileId,
-          status: 'pending',
-          attempt_count: newAttemptCount
-        }, {
-          onConflict: 'sender_id,receiver_id'
-        });
-
-      if (error) {
-        throw error;
-      }
-
-      setAttemptsCount(newAttemptCount);
+      const { success, newAttemptCount } = await sendFriendRequest(currentUserId, profileId);
       
-      toast({
-        title: "Friend Request Sent! 🎉",
-        description: `Your friend request has been sent successfully. You have ${3 - newAttemptCount} attempts remaining.`,
-      });
+      if (success) {
+        setAttemptsCount(newAttemptCount);
+        toast({
+          title: "Friend Request Sent! 🎉",
+          description: `Your friend request has been sent successfully. You have ${3 - newAttemptCount} attempts remaining.`,
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Failed to Send Friend Request",
+          description: "There was an error sending your friend request. Please try again later.",
+        });
+      }
     } catch (error) {
       console.error('Error sending friend request:', error);
       toast({
