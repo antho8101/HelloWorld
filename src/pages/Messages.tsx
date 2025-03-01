@@ -1,3 +1,4 @@
+
 import React, { useState, KeyboardEvent, useRef, useEffect } from "react";
 import { Header } from "@/components/landing/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -50,6 +51,16 @@ interface Conversation {
   isTemporary?: boolean;
 }
 
+// Définir une interface pour les messages
+interface Message {
+  id: string;
+  content: string;
+  created_at: string;
+  sender_id: string;
+  sender_name?: string | null;
+  sender_avatar?: string | null;
+}
+
 export const Messages = () => {
   const location = useLocation();
   const { currentUserId } = useSession();
@@ -59,9 +70,12 @@ export const Messages = () => {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [currentMessages, setCurrentMessages] = useState<Message[]>([]);
   const [tempConversation, setTempConversation] = useState<any>(null);
   const [showNewConversationBanner, setShowNewConversationBanner] = useState(true);
   const [posts, setPosts] = useState<any[]>([]);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   // Define the profileId variable based on the selectedUserId
   const [profileId, setProfileId] = useState<string | null>(null);
 
@@ -83,6 +97,11 @@ export const Messages = () => {
     }
   }, []);
 
+  // Effect pour scroller vers le bas lorsque de nouveaux messages sont chargés
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [currentMessages]);
+
   useEffect(() => {
     // Check if we have a conversationId from navigation state
     const stateConversationId = location.state?.conversationId;
@@ -100,6 +119,13 @@ export const Messages = () => {
       fetchConversations();
     }
   }, [location, currentUserId]);
+
+  // Fetch messages when conversation changes
+  useEffect(() => {
+    if (currentConversationId) {
+      fetchMessages(currentConversationId);
+    }
+  }, [currentConversationId]);
 
   const fetchConversations = async () => {
     if (!currentUserId) return;
@@ -134,7 +160,8 @@ export const Messages = () => {
           is_pinned,
           is_archived
         `)
-        .in('id', conversationIds);
+        .in('id', conversationIds)
+        .order('updated_at', { ascending: false });
 
       if (conversationsError) {
         console.error('Error fetching conversations:', conversationsError);
@@ -210,45 +237,69 @@ export const Messages = () => {
         })
       );
       
-      // Si nous avons une conversation temporaire, l'ajouter à la liste
-      let allConversations: Conversation[] = [...conversationsWithParticipants];
-      
-      if (tempConversation && tempConversation.participants) {
-        const otherParticipantId = tempConversation.participants.find(
-          (p: any) => p && p.id !== currentUserId
-        )?.id;
-        
-        if (otherParticipantId) {
-          // Create a temporary conversation with the correct type
-          const tempConversationItem: Conversation = {
-            id: tempConversation.id || `temp-${Date.now()}`,
-            created_at: new Date(tempConversation.timestamp || Date.now()).toISOString(),
-            updated_at: new Date(tempConversation.timestamp || Date.now()).toISOString(),
-            is_pinned: false,
-            is_archived: false,
-            otherParticipant: {
-              id: otherParticipantId,
-              name: "Conversation partner",
-              avatar_url: null
-            },
-            isTemporary: true
-          };
-          
-          allConversations.unshift(tempConversationItem);
-        }
-      }
-      
-      setConversations(allConversations);
+      setConversations(conversationsWithParticipants);
       
       // Si nous avons un ID de conversation de navigation, le sélectionner
-      if (location.state?.conversationId && allConversations.length) {
+      if (location.state?.conversationId && conversationsWithParticipants.length) {
         setCurrentConversationId(location.state.conversationId);
-      } else if (allConversations.length) {
+        // Supprimer les conversations temporaires du localStorage une fois qu'on a trouvé une conversation réelle
+        localStorage.removeItem('currentConversation');
+      } else if (conversationsWithParticipants.length) {
         // Sinon, sélectionner la première conversation
-        setCurrentConversationId(allConversations[0].id);
+        setCurrentConversationId(conversationsWithParticipants[0].id);
       }
     } catch (error) {
       console.error('Error fetching conversations:', error);
+    }
+  };
+
+  const fetchMessages = async (conversationId: string) => {
+    if (!conversationId) return;
+    
+    setIsLoadingMessages(true);
+    
+    try {
+      const { data: messagesData, error: messagesError } = await supabase
+        .from('messages')
+        .select(`
+          id,
+          content,
+          created_at,
+          sender_id,
+          profiles:sender_id(
+            name,
+            avatar_url
+          )
+        `)
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
+        
+      if (messagesError) {
+        console.error('Error fetching messages:', messagesError);
+        setCurrentMessages([]);
+        return;
+      }
+      
+      // Format messages with profile data
+      const formattedMessages = messagesData?.map(msg => {
+        const profileData = msg.profiles || { name: null, avatar_url: null };
+        
+        return {
+          id: msg.id,
+          content: msg.content,
+          created_at: msg.created_at,
+          sender_id: msg.sender_id,
+          sender_name: profileData.name,
+          sender_avatar: profileData.avatar_url
+        };
+      }) || [];
+      
+      setCurrentMessages(formattedMessages);
+    } catch (error) {
+      console.error('Error in fetchMessages:', error);
+      setCurrentMessages([]);
+    } finally {
+      setIsLoadingMessages(false);
     }
   };
 
@@ -336,21 +387,49 @@ export const Messages = () => {
     }
   };
 
-  const handleSendMessage = () => {
-    if (message.trim() && currentConversationId) {
-      console.log("Sending message:", message, "to conversation:", currentConversationId);
-      
-      // Masquer le bandeau de nouvelle conversation après l'envoi du premier message
-      setShowNewConversationBanner(false);
-      
-      // Pour cette version simplifiée, nous n'enregistrons pas réellement le message en base de données
-      // mais affichons simplement une notification
-      toast({
-        title: "Message Sent",
-        description: "Your message has been sent successfully.",
-      });
-      
-      setMessage("");
+  const handleSendMessage = async () => {
+    if (message.trim() && currentConversationId && currentUserId) {
+      try {
+        // Insert the message into the database
+        const { data, error } = await supabase
+          .from('messages')
+          .insert({
+            conversation_id: currentConversationId,
+            sender_id: currentUserId,
+            content: message.trim()
+          })
+          .select();
+          
+        if (error) {
+          console.error('Error sending message:', error);
+          toast({
+            variant: "destructive",
+            title: "Failed to Send",
+            description: "There was an error sending your message. Please try again."
+          });
+          return;
+        }
+        
+        // Fetch the latest messages to update the UI
+        fetchMessages(currentConversationId);
+        
+        // Masquer le bandeau de nouvelle conversation après l'envoi du premier message
+        setShowNewConversationBanner(false);
+        
+        toast({
+          title: "Message Sent",
+          description: "Your message has been sent successfully.",
+        });
+        
+        setMessage("");
+      } catch (error) {
+        console.error('Error in handleSendMessage:', error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Something went wrong. Please try again later."
+        });
+      }
     }
   };
 
@@ -377,12 +456,6 @@ export const Messages = () => {
   const handleUserAction = (action: string, userId: string) => {
     console.log(`Performing action: ${action} on user: ${userId}`);
     // Implementation for user actions will go here
-  };
-
-  // Vérifier si la conversation actuelle est une nouvelle conversation temporaire
-  const isNewTemporaryConversation = (): boolean => {
-    if (!currentConversationId || !tempConversation) return false;
-    return currentConversationId === (tempConversation.id || `temp-${Date.now()}`);
   };
 
   // Mock online status for demo purposes - in a real app, this would come from your backend
@@ -419,16 +492,20 @@ export const Messages = () => {
                           onClick={() => {
                             setCurrentConversationId(convo.id);
                             setSelectedUserId(userId);
-                            // Réinitialiser le bandeau si nécessaire
-                            if (convo.isTemporary) {
-                              setShowNewConversationBanner(true);
-                            }
                           }}
                         >
                           <div className="flex items-center space-x-3">
                             <div className="relative">
                               <div className="w-10 h-10 bg-[#6153BD]/10 rounded-full flex items-center justify-center">
-                                <ChatCircle size={20} weight="fill" className="text-[#6153BD]" />
+                                {convo.otherParticipant?.avatar_url ? (
+                                  <img 
+                                    src={convo.otherParticipant.avatar_url} 
+                                    alt="Profile" 
+                                    className="w-10 h-10 rounded-full object-cover"
+                                  />
+                                ) : (
+                                  <ChatCircle size={20} weight="fill" className="text-[#6153BD]" />
+                                )}
                               </div>
                               <div 
                                 className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${
@@ -439,7 +516,7 @@ export const Messages = () => {
                             <div className="flex-1">
                               <p className="font-medium">{convo.otherParticipant?.name || `User ${i+1}`}</p>
                               <p className="text-sm text-gray-500 truncate">
-                                {convo.isTemporary ? "New conversation" : "Last message preview..."}
+                                {convo.isTemporary ? "New conversation" : "Click to view messages"}
                               </p>
                             </div>
                             <DropdownMenu>
@@ -500,7 +577,9 @@ export const Messages = () => {
                     />
                   </div>
                   <h2 className="text-lg font-semibold">
-                    {selectedUserId ? "Chat with User" : "Select a conversation"}
+                    {selectedUserId ? 
+                      conversations.find(c => c.id === currentConversationId)?.otherParticipant?.name || "Chat" 
+                      : "Select a conversation"}
                   </h2>
                 </div>
                 {selectedUserId && (
@@ -532,14 +611,12 @@ export const Messages = () => {
               </div>
 
               {/* New Conversation Banner */}
-              {tempConversation && 
-               currentConversationId === tempConversation.id && 
-               showNewConversationBanner && (
+              {currentConversationId && currentMessages.length === 0 && showNewConversationBanner && (
                 <div className="bg-blue-50 p-4 border-b border-blue-100">
                   <div className="flex items-center justify-center gap-2 text-blue-600">
                     <Chats size={20} weight="fill" />
                     <p className="text-center font-medium">
-                      This is the beginning of your conversation. Your messages will be saved when you send your first message.
+                      This is the beginning of your conversation. Send a message to start chatting.
                     </p>
                   </div>
                 </div>
@@ -549,27 +626,39 @@ export const Messages = () => {
               <ScrollArea className="flex-1 p-4">
                 <div className="space-y-4">
                   {currentConversationId ? (
-                    tempConversation && currentConversationId === tempConversation.id ? (
+                    isLoadingMessages ? (
+                      <div className="flex items-center justify-center h-full">
+                        <p className="text-gray-500">Loading messages...</p>
+                      </div>
+                    ) : currentMessages.length === 0 ? (
                       <div className="flex items-center justify-center h-full">
                         <div className="text-center text-gray-500 max-w-md">
                           <ChatCircle size={64} weight="light" className="mx-auto mb-4 text-[#6153BD]" />
                           <h3 className="text-lg font-medium text-[#6153BD] mb-2">Start a new conversation</h3>
-                          <p>Type your first message below to start chatting with this person. Your conversation will begin once you send your first message.</p>
+                          <p>Type your first message below to start chatting with this person.</p>
                         </div>
                       </div>
                     ) : (
                       <>
-                        {/* Sample messages for existing conversations */}
-                        <div className="flex justify-end">
-                          <div className="bg-[#6153BD] text-white rounded-lg p-3 max-w-[70%]">
-                            Hello! How are you?
+                        {/* Display actual messages */}
+                        {currentMessages.map((msg) => (
+                          <div 
+                            key={msg.id} 
+                            className={`flex ${msg.sender_id === currentUserId ? 'justify-end' : 'justify-start'}`}
+                          >
+                            <div 
+                              className={`p-3 rounded-lg max-w-[70%] ${
+                                msg.sender_id === currentUserId 
+                                  ? 'bg-[#6153BD] text-white' 
+                                  : 'bg-gray-100 text-gray-800'
+                              }`}
+                            >
+                              {msg.content}
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex justify-start">
-                          <div className="bg-gray-100 rounded-lg p-3 max-w-[70%]">
-                            I'm doing great, thanks! How about you?
-                          </div>
-                        </div>
+                        ))}
+                        {/* This div allows us to scroll to the bottom of the messages */}
+                        <div ref={messagesEndRef} />
                       </>
                     )
                   ) : (

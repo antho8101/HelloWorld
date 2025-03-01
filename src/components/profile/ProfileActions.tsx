@@ -71,7 +71,7 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
     }
   };
 
-  const handleMessageClick = () => {
+  const handleMessageClick = async () => {
     if (!currentUserId) {
       toast({
         variant: "destructive",
@@ -84,33 +84,40 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
     try {
       setIsMessageLoading(true);
       
-      // Approche simplifiée: générer un identifiant pour la conversation localement
-      // et le passer à la page des messages
-      const tempConversationId = `temp_${currentUserId}_${profileId}_${Date.now()}`;
+      // Check if a conversation already exists between these two users
+      const { data: existingParticipations, error: participationsError } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', currentUserId);
       
-      // Stocker les informations nécessaires dans localStorage
-      const conversationData = {
-        id: tempConversationId,
-        participants: [
-          {id: currentUserId},
-          {id: profileId}
-        ],
-        timestamp: Date.now()
-      };
+      if (participationsError) throw participationsError;
       
-      localStorage.setItem('currentConversation', JSON.stringify(conversationData));
+      // Get all conversation IDs where the current user is a participant
+      const conversationIds = existingParticipations?.map(p => p.conversation_id) || [];
       
-      // Appliquer l'onMessage callback pour déclencher les changements d'interface
-      onMessage();
+      // If there are no conversations, create a new one
+      if (conversationIds.length === 0) {
+        return await createNewConversation();
+      }
       
-      // Naviguer vers la page de messages
-      navigate('/messages', { 
-        state: { 
-          conversationId: tempConversationId,
-          otherUserId: profileId
-        },
-        replace: true 
-      });
+      // Find conversations where the other user is also a participant
+      const { data: otherUserParticipations, error: otherUserError } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .in('conversation_id', conversationIds)
+        .eq('user_id', profileId);
+      
+      if (otherUserError) throw otherUserError;
+      
+      // If there's a common conversation, use that
+      if (otherUserParticipations && otherUserParticipations.length > 0) {
+        // Use the first existing conversation
+        const existingConversationId = otherUserParticipations[0].conversation_id;
+        navigateToConversation(existingConversationId);
+      } else {
+        // Create a new conversation if none exists
+        await createNewConversation();
+      }
     } catch (error) {
       console.error('Error handling message action:', error);
       toast({
@@ -121,6 +128,46 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
     } finally {
       setIsMessageLoading(false);
     }
+  };
+  
+  const createNewConversation = async () => {
+    // 1. Create new conversation
+    const { data: newConversation, error: conversationError } = await supabase
+      .from('conversations')
+      .insert([{ is_pinned: false, is_archived: false }])
+      .select()
+      .single();
+    
+    if (conversationError) throw conversationError;
+    
+    // 2. Add both users as participants
+    const participantsToInsert = [
+      { conversation_id: newConversation.id, user_id: currentUserId },
+      { conversation_id: newConversation.id, user_id: profileId }
+    ];
+    
+    const { error: participantsError } = await supabase
+      .from('conversation_participants')
+      .insert(participantsToInsert);
+    
+    if (participantsError) throw participantsError;
+    
+    // 3. Navigate to the new conversation
+    navigateToConversation(newConversation.id);
+  };
+  
+  const navigateToConversation = (conversationId: string) => {
+    // Appliquer l'onMessage callback pour déclencher les changements d'interface
+    onMessage();
+    
+    // Naviguer vers la page de messages
+    navigate('/messages', { 
+      state: { 
+        conversationId: conversationId,
+        otherUserId: profileId
+      },
+      replace: true 
+    });
   };
 
   const handleAddFriend = async () => {
