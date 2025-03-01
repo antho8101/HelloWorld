@@ -33,14 +33,14 @@ export const ProfileForm = ({
   const validations = {
     username: !profile.username?.trim(),
     name: !profile.name?.trim(),
-    age: profile.age <= 0,
+    age: !profile.age || profile.age <= 0,
     gender: !profile.gender?.trim(),
     country: !profile.country?.trim(),
     city: !profile.city?.trim(),
     nativeLanguages: profile.native_languages.length === 0 || 
       !profile.native_languages.every(lang => lang.language?.trim()),
-    learningLanguages: profile.learning_languages.length === 0 || 
-      !profile.learning_languages.every(lang => lang.language?.trim() && lang.level?.trim()),
+    learningLanguages: profile.language_levels.length === 0 || 
+      !profile.language_levels.every(lang => lang.language?.trim() && lang.level?.trim()),
     lookingFor: profile.looking_for.length === 0,
     interestedIn: profile.interested_in.length === 0
   };
@@ -97,11 +97,11 @@ export const ProfileForm = ({
         <div className="flex-1">
           <LanguagesAndPreferences
             nativeLanguages={profile.native_languages}
-            learningLanguages={profile.learning_languages}
+            learningLanguages={profile.language_levels}
             lookingFor={profile.looking_for}
             interestedIn={profile.interested_in}
             onNativeLanguagesChange={(native_languages) => onProfileChange({ native_languages })}
-            onLearningLanguagesChange={(learning_languages) => onProfileChange({ learning_languages })}
+            onLearningLanguagesChange={(language_levels) => onProfileChange({ language_levels })}
             onLookingForChange={(looking_for) => onProfileChange({ looking_for })}
             onInterestedInChange={(interested_in) => onProfileChange({ interested_in })}
             errors={showErrors ? {

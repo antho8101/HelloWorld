@@ -9,19 +9,18 @@ export const useProfile = (userId: string | null) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<ProfileData>({
-    username: "",
-    name: "",
-    age: 0,
-    avatar_url: "",
+    username: null,
+    name: null,
+    age: null,
+    avatar_url: null,
     native_languages: [],
-    learning_languages: [],
-    country: "",
-    city: "",
-    bio: "",
-    gender: "",
+    language_levels: [],
+    country: null,
+    city: null,
+    bio: null,
+    gender: null,
     interested_in: [],
     looking_for: [],
-    language_levels: [],
   });
 
   const fetchProfile = useCallback(async (userId: string) => {
@@ -36,23 +35,26 @@ export const useProfile = (userId: string | null) => {
 
       if (data) {
         setProfile({
-          username: data.username || "",
-          name: data.name || "",
-          age: data.age || 0,
-          avatar_url: data.avatar_url || "",
+          id: data.id,
+          username: data.username || null,
+          name: data.name || null,
+          age: data.age || null,
+          avatar_url: data.avatar_url || null,
           native_languages: Array.isArray(data.native_languages) 
             ? data.native_languages.map((lang: string) => ({ language: lang })) 
             : [],
-          learning_languages: Array.isArray(data.language_levels) 
-            ? (data.language_levels as { language: string; level: string }[])
+          language_levels: Array.isArray(data.language_levels) 
+            ? data.language_levels 
             : [],
-          country: data.country || "",
-          city: data.city || "",
-          bio: data.bio || "",
-          gender: data.gender || "",
+          country: data.country || null,
+          city: data.city || null,
+          bio: data.bio || null,
+          gender: data.gender || null,
           interested_in: Array.isArray(data.interested_in) ? data.interested_in : [],
           looking_for: Array.isArray(data.looking_for) ? data.looking_for : [],
-          language_levels: [],
+          is_suspended: data.is_suspended,
+          is_banned: data.is_banned,
+          suspension_end_timestamp: data.suspension_end_timestamp,
         });
       } else {
         const { error: insertError } = await supabase
@@ -88,12 +90,13 @@ export const useProfile = (userId: string | null) => {
           age: profile.age,
           avatar_url: profile.avatar_url,
           native_languages: profile.native_languages.map(lang => lang.language),
-          language_levels: profile.learning_languages as unknown as Json,
+          language_levels: profile.language_levels,
           country: profile.country,
           city: profile.city,
           gender: profile.gender,
           interested_in: profile.interested_in,
           looking_for: profile.looking_for,
+          bio: profile.bio,
         });
 
       if (error) throw error;

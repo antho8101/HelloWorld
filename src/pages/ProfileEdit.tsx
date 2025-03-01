@@ -7,7 +7,6 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { ProfileForm } from "@/components/profile/ProfileForm";
 import { toast } from "sonner";
 import type { ProfileData } from "@/types/profile";
-import type { Json } from "@/integrations/supabase/types";
 import type { LanguageWithLevel } from "@/components/LanguageSelector";
 
 export const ProfileEdit = () => {
@@ -46,35 +45,33 @@ export const ProfileEdit = () => {
         return;
       }
 
-      // Transform the data to match ProfileData type
-      const languageLevels = Array.isArray(data.language_levels) 
-        ? (data.language_levels as any[]).map(lang => ({
-            language: typeof lang.language === 'string' ? lang.language : '',
-            level: typeof lang.level === 'string' ? lang.level : 'beginner'
+      // Transform native languages from string[] to LanguageWithLevel[]
+      const nativeLanguages: LanguageWithLevel[] = Array.isArray(data.native_languages) 
+        ? data.native_languages.map((lang: string) => ({ language: lang }))
+        : [];
+
+      // Ensure language_levels is properly formatted as LanguageWithLevel[]
+      const languageLevels: LanguageWithLevel[] = Array.isArray(data.language_levels) 
+        ? data.language_levels.map((item: any) => ({
+            language: typeof item.language === 'string' ? item.language : '',
+            level: typeof item.level === 'string' ? item.level : 'beginner'
           }))
         : [];
 
       const profileData: ProfileData = {
-        username: data.username || "",
-        name: data.name || "",
-        age: data.age || 0,
-        avatar_url: data.avatar_url || "",
-        native_languages: Array.isArray(data.native_languages) 
-          ? data.native_languages.map(lang => ({ language: lang }))
-          : [],
-        learning_languages: Array.isArray(data.language_levels) 
-          ? (data.language_levels as any[]).map(lang => ({
-              language: typeof lang.language === 'string' ? lang.language : '',
-              level: typeof lang.level === 'string' ? lang.level : 'beginner'
-            }))
-          : [],
-        country: data.country || "",
-        city: data.city || "",
-        bio: data.bio || "",
-        gender: data.gender || "",
-        interested_in: data.interested_in || [],
-        looking_for: data.looking_for || [],
+        id: data.id,
+        username: data.username || null,
+        name: data.name || null,
+        age: data.age || null,
+        avatar_url: data.avatar_url || null,
+        native_languages: nativeLanguages,
         language_levels: languageLevels,
+        country: data.country || null,
+        city: data.city || null,
+        bio: data.bio || null,
+        gender: data.gender || null,
+        interested_in: Array.isArray(data.interested_in) ? data.interested_in : [],
+        looking_for: Array.isArray(data.looking_for) ? data.looking_for : [],
         is_suspended: data.is_suspended || false,
         is_banned: data.is_banned || false,
         suspension_end_timestamp: data.suspension_end_timestamp || null,
@@ -141,13 +138,16 @@ export const ProfileEdit = () => {
   };
 
   const handleProfileUpdate = async (updates: Partial<ProfileData>) => {
+    if (!userId || !profile) return;
+
     try {
-      // Transform the updates to match the database schema
-      const dbUpdates: any = {
-        ...updates,
-        native_languages: updates.native_languages?.map(lang => lang.language),
-        language_levels: updates.learning_languages || [],
-      };
+      // Transform the data for database storage
+      const dbUpdates: any = { ...updates };
+      
+      // If we're updating native_languages, transform from LanguageWithLevel[] to string[]
+      if (updates.native_languages) {
+        dbUpdates.native_languages = updates.native_languages.map(lang => lang.language);
+      }
 
       const { error } = await supabase
         .from("profiles")
@@ -156,8 +156,10 @@ export const ProfileEdit = () => {
 
       if (error) throw error;
 
+      // Update the local state
+      setProfile(prev => prev ? { ...prev, ...updates } : null);
+
       toast.success("Profile updated successfully");
-      navigate(`/profile/${userId}`);
     } catch (error) {
       console.error("Error updating profile:", error);
       toast.error("Failed to update profile");

@@ -1,124 +1,119 @@
 
-import React, { useState, KeyboardEvent, useEffect } from "react";
-import { Header } from "@/components/landing/Header";
+import React, { useEffect } from "react";
 import { Footer } from "@/components/layout/Footer";
+import { Header } from "@/components/landing/Header";
 import { ConversationList } from "@/components/messages/ConversationList";
-import { ConversationHeader } from "@/components/messages/ConversationHeader";
 import { MessageList } from "@/components/messages/MessageList";
 import { MessageInput } from "@/components/messages/MessageInput";
+import { ConversationHeader } from "@/components/messages/ConversationHeader";
 import { useMessages } from "@/hooks/useMessages";
-import { useProfile } from "@/hooks/useProfile";
+import { useSession } from "@/hooks/useSession";
+import { useParams, useNavigate } from "react-router-dom";
 
 export const Messages = () => {
-  const [message, setMessage] = useState("");
-  const [posts, setPosts] = useState<any[]>([]);
-  
-  const {
-    selectedUserId,
-    setSelectedUserId,
-    conversations,
-    currentConversationId,
-    setCurrentConversationId,
-    currentMessages,
-    showNewConversationBanner,
-    isLoadingMessages,
-    mockOnlineStatus,
-    sendMessage,
-    currentUserId
+  const { 
+    conversations, 
+    loading, 
+    activeConversation, 
+    messages, 
+    newMessage, 
+    loadingMessages, 
+    setActiveConversation, 
+    setNewMessage, 
+    sendMessage, 
+    fetchMessages 
   } = useMessages();
+  
+  const { userId } = useParams();
+  const navigate = useNavigate();
+  const { currentUserId } = useSession();
 
-  const { profile } = useProfile(selectedUserId);
-
+  // Handle direct message from URL parameter
   useEffect(() => {
-    if (selectedUserId) {
-      fetchPosts();
+    if (userId && conversations.length > 0) {
+      // Find existing conversation with this user
+      const existingConversation = conversations.find(c => c.userId === userId);
+      
+      if (existingConversation) {
+        setActiveConversation(existingConversation);
+      } else {
+        // Create placeholder for new conversation
+        const newConversationPlaceholder = {
+          id: "",
+          userId: userId,
+          name: "New Conversation",
+          avatar: null,
+          lastMessage: "",
+          timestamp: new Date().toISOString(),
+          isPinned: false,
+          isArchived: false
+        };
+        setActiveConversation(newConversationPlaceholder);
+      }
+      
+      // Clear URL parameter after handling
+      navigate("/messages", { replace: true });
     }
-  }, [selectedUserId]);
-
-  const fetchPosts = async () => {
-    // This is kept as a placeholder since it's not directly used in the UI
-    // but might be used in future features
-    console.log("Would fetch posts for user:", selectedUserId);
-  };
+  }, [userId, conversations, navigate, setActiveConversation]);
 
   const handleSendMessage = () => {
-    if (sendMessage(message)) {
-      setMessage("");
+    if (activeConversation && newMessage.trim()) {
+      sendMessage(activeConversation.userId, newMessage);
     }
-  };
-
-  const handleKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
-  const handleFormatClick = (format: string) => {
-    console.log("Applying format:", format);
-    // Format implementation will go here
-  };
-
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      console.log("Image selected:", file);
-      // Image upload implementation will go here
-    }
-  };
-
-  const handleUserAction = (action: string, userId: string) => {
-    console.log(`Performing action: ${action} on user: ${userId}`);
-    // Implementation for user actions will go here
   };
 
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-[rgba(255,243,240,1)] py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-lg shadow-lg h-[calc(100vh-200px)] flex">
-            {/* Left Column - Conversations List */}
-            <ConversationList 
-              conversations={conversations}
-              currentConversationId={currentConversationId}
-              setCurrentConversationId={setCurrentConversationId}
-              setSelectedUserId={setSelectedUserId}
-              handleUserAction={handleUserAction}
-              mockOnlineStatus={mockOnlineStatus}
-            />
-
-            {/* Right Column - Conversation */}
-            <div className="flex-1 flex flex-col">
-              {/* Conversation Header */}
-              <ConversationHeader 
-                selectedUserId={selectedUserId}
-                currentConversationId={currentConversationId}
-                conversations={conversations}
-                handleUserAction={handleUserAction}
-                mockOnlineStatus={mockOnlineStatus}
-              />
+      <main className="bg-[#f9f5ff] min-h-[calc(100vh-64px-80px)]">
+        <div className="container mx-auto py-8 px-4">
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 min-h-[600px]">
+              {/* Conversation List */}
+              <div className="md:col-span-1 border-r border-gray-200">
+                <ConversationList 
+                  conversations={conversations}
+                  loading={loading}
+                  activeConversationId={activeConversation?.id}
+                  onSelectConversation={setActiveConversation}
+                />
+              </div>
 
               {/* Messages Area */}
-              <MessageList 
-                currentConversationId={currentConversationId}
-                currentMessages={currentMessages}
-                isLoadingMessages={isLoadingMessages}
-                showNewConversationBanner={showNewConversationBanner}
-                currentUserId={currentUserId}
-              />
-
-              {/* Message Input */}
-              {currentConversationId && (
-                <MessageInput 
-                  message={message}
-                  setMessage={setMessage}
-                  handleSendMessage={handleSendMessage}
-                  handleFormatClick={handleFormatClick}
-                  handleImageUpload={handleImageUpload}
-                  handleKeyPress={handleKeyPress}
-                />
-              )}
+              <div className="md:col-span-2 lg:col-span-3 flex flex-col">
+                {activeConversation ? (
+                  <>
+                    <ConversationHeader 
+                      name={activeConversation.name}
+                      avatar={activeConversation.avatar}
+                      isOnline={Math.random() > 0.5} // Mocked online status for demo
+                    />
+                    
+                    <MessageList 
+                      messages={messages}
+                      loading={loadingMessages}
+                      currentUserId={currentUserId}
+                    />
+                    
+                    <MessageInput 
+                      value={newMessage}
+                      onChange={setNewMessage}
+                      onSend={handleSendMessage}
+                    />
+                  </>
+                ) : (
+                  <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center p-6">
+                      <h3 className="text-lg font-medium text-gray-700">
+                        Select a conversation to start chatting
+                      </h3>
+                      <p className="text-gray-500 mt-1">
+                        Or search for someone new to message
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

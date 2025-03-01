@@ -35,7 +35,7 @@ const getLanguageFlag = (language: string): string => {
 };
 
 interface LanguagesSectionProps {
-  nativeLanguages: string[];
+  nativeLanguages: LanguageWithLevel[];
   learningLanguages: LanguageWithLevel[];
 }
 
@@ -51,10 +51,14 @@ export const LanguagesSection: React.FC<LanguagesSectionProps> = ({
           Native Languages
         </h2>
         <div className="flex flex-wrap gap-2">
-          {nativeLanguages.map((lang) => (
-            <Badge key={lang} variant="secondary" className="flex items-center gap-1.5">
-              {getLanguageFlag(lang)}
-              <span>{lang}</span>
+          {nativeLanguages.map((langObj) => (
+            <Badge 
+              key={langObj.language} 
+              variant="secondary" 
+              className="flex items-center gap-1.5"
+            >
+              {getLanguageFlag(langObj.language)}
+              <span>{langObj.language}</span>
             </Badge>
           ))}
         </div>
@@ -67,7 +71,11 @@ export const LanguagesSection: React.FC<LanguagesSectionProps> = ({
         </h2>
         <div className="flex flex-wrap gap-2">
           {learningLanguages.map((lang) => (
-            <Badge key={lang.language} variant="outline" className="flex items-center gap-1.5">
+            <Badge 
+              key={lang.language} 
+              variant="outline" 
+              className="flex items-center gap-1.5"
+            >
               {getLanguageFlag(lang.language)}
               <span>{lang.language}</span>
               {lang.level && <span className="text-gray-500">({lang.level})</span>}

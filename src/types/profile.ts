@@ -2,12 +2,12 @@
 import type { LanguageWithLevel } from "@/components/LanguageSelector";
 
 export interface ProfileData {
-  id: string | null;
+  id?: string | null;
   username: string | null;
   name: string | null;
   age: number | null;
   avatar_url: string | null;
-  native_languages: string[];
+  native_languages: LanguageWithLevel[];
   language_levels: LanguageWithLevel[];
   country: string | null;
   city: string | null;
