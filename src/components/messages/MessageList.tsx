@@ -5,31 +5,33 @@ import { ChatCircle, Chats } from "@phosphor-icons/react";
 import type { Message } from "@/types/messages";
 
 interface MessageListProps {
-  currentConversationId: string | null;
-  currentMessages: Message[];
-  isLoadingMessages: boolean;
-  showNewConversationBanner: boolean;
+  messages: Message[];
+  loading: boolean;
   currentUserId: string | null;
+  currentConversationId?: string | null;
+  showNewConversationBanner?: boolean;
+  isLoadingMessages?: boolean;
 }
 
 export const MessageList: React.FC<MessageListProps> = ({
+  messages,
+  loading,
+  currentUserId,
   currentConversationId,
-  currentMessages,
-  isLoadingMessages,
   showNewConversationBanner,
-  currentUserId
+  isLoadingMessages
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [currentMessages]);
+  }, [messages]);
 
   return (
     <>
       {/* New Conversation Banner */}
-      {currentConversationId && currentMessages.length === 0 && showNewConversationBanner && (
+      {currentConversationId && messages.length === 0 && showNewConversationBanner && (
         <div className="bg-blue-50 p-4 border-b border-blue-100">
           <div className="flex items-center justify-center gap-2 text-blue-600">
             <Chats size={20} weight="fill" />
@@ -48,7 +50,7 @@ export const MessageList: React.FC<MessageListProps> = ({
               <div className="flex items-center justify-center h-full">
                 <p className="text-gray-500">Loading messages...</p>
               </div>
-            ) : currentMessages.length === 0 ? (
+            ) : messages.length === 0 ? (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center text-gray-500 max-w-md">
                   <ChatCircle size={64} weight="light" className="mx-auto mb-4 text-[#6153BD]" />
@@ -59,7 +61,7 @@ export const MessageList: React.FC<MessageListProps> = ({
             ) : (
               <>
                 {/* Display actual messages */}
-                {currentMessages.map((msg) => (
+                {messages.map((msg) => (
                   <div 
                     key={msg.id} 
                     className={`flex ${msg.sender_id === currentUserId ? 'justify-end' : 'justify-start'}`}

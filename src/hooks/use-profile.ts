@@ -4,6 +4,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { ProfileData } from "@/types/profile";
 import type { Json } from "@/integrations/supabase/types";
+import type { LanguageWithLevel } from "@/components/LanguageSelector";
+
+// Helper function to transform JSON to LanguageWithLevel[]
+const transformLanguageLevels = (languageLevels: Json | null): LanguageWithLevel[] => {
+  if (!languageLevels || !Array.isArray(languageLevels)) return [];
+  
+  return languageLevels.map(level => {
+    if (typeof level === 'object' && level !== null && 'language' in level) {
+      return {
+        language: String(level.language),
+        level: 'level' in level ? String(level.level) : undefined
+      };
+    }
+    return { language: String(level) };
+  });
+};
 
 export const useProfile = (userId: string | null) => {
   const { toast } = useToast();
@@ -43,9 +59,7 @@ export const useProfile = (userId: string | null) => {
           native_languages: Array.isArray(data.native_languages) 
             ? data.native_languages.map((lang: string) => ({ language: lang })) 
             : [],
-          language_levels: Array.isArray(data.language_levels) 
-            ? data.language_levels 
-            : [],
+          language_levels: transformLanguageLevels(data.language_levels),
           country: data.country || null,
           city: data.city || null,
           bio: data.bio || null,
@@ -81,6 +95,12 @@ export const useProfile = (userId: string | null) => {
     if (!userId) return false;
 
     try {
+      // Convert language_levels to JSON format before storing
+      const languageLevelsForDb = profile.language_levels.map(lang => ({
+        language: lang.language,
+        level: lang.level
+      }));
+
       const { error } = await supabase
         .from("profiles")
         .upsert({
@@ -90,7 +110,7 @@ export const useProfile = (userId: string | null) => {
           age: profile.age,
           avatar_url: profile.avatar_url,
           native_languages: profile.native_languages.map(lang => lang.language),
-          language_levels: profile.language_levels,
+          language_levels: languageLevelsForDb,
           country: profile.country,
           city: profile.city,
           gender: profile.gender,

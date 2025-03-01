@@ -21,7 +21,6 @@ export const Messages = () => {
     setActiveConversation, 
     setNewMessage, 
     sendMessage, 
-    fetchMessages 
   } = useMessages();
   
   const { userId } = useParams();
@@ -98,6 +97,9 @@ export const Messages = () => {
                       messages={messages}
                       loading={loadingMessages}
                       currentUserId={currentUserId}
+                      currentConversationId={activeConversation.id}
+                      showNewConversationBanner={activeConversation.isTemporary}
+                      isLoadingMessages={loadingMessages}
                     />
                     
                     <MessageInput 

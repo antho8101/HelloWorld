@@ -5,7 +5,7 @@ import { useSession } from "@/hooks/useSession";
 import { toast } from "sonner";
 import type { Conversation, Message } from "@/types/messages";
 
-interface MessageData {
+interface MessagePayload {
   content: string;
   conversation_id: string;
   sender_id: string;
@@ -65,7 +65,7 @@ export const useMessages = () => {
           .from("conversation_participants")
           .select(`
             user_id,
-            profiles:user_id(
+            profiles:profiles(
               id,
               name,
               avatar_url
@@ -84,7 +84,19 @@ export const useMessages = () => {
         if (!conversationInfo) continue;
 
         // Get the other participant's profile
-        const otherParticipant = participantsData[0]?.profiles || null;
+        const otherParticipant = participantsData.length > 0 && participantsData[0].profiles;
+        let participantProfile = null;
+
+        if (otherParticipant && typeof otherParticipant === 'object') {
+          // Make sure this is not a SelectQueryError by checking for expected properties
+          if ('id' in otherParticipant) {
+            participantProfile = {
+              id: otherParticipant.id,
+              name: otherParticipant.name,
+              avatar_url: otherParticipant.avatar_url
+            };
+          }
+        }
 
         conversationsWithParticipants.push({
           id: conversationId,
@@ -92,11 +104,7 @@ export const useMessages = () => {
           updated_at: conversationInfo.updated_at,
           is_pinned: conversationInfo.is_pinned,
           is_archived: conversationInfo.is_archived,
-          otherParticipant: otherParticipant ? {
-            id: otherParticipant.id,
-            name: otherParticipant.name,
-            avatar_url: otherParticipant.avatar_url
-          } : null
+          otherParticipant: participantProfile
         });
       }
 
@@ -126,7 +134,7 @@ export const useMessages = () => {
           content,
           created_at,
           sender_id,
-          profiles:sender_id(
+          sender:profiles(
             name,
             avatar_url
           )
@@ -136,14 +144,29 @@ export const useMessages = () => {
 
       if (error) throw error;
 
-      const fetchedMessages: Message[] = data.map(item => ({
-        id: item.id,
-        content: item.content,
-        created_at: item.created_at,
-        sender_id: item.sender_id,
-        sender_name: item.profiles?.name || null,
-        sender_avatar: item.profiles?.avatar_url || null
-      }));
+      const fetchedMessages: Message[] = data.map(item => {
+        // Check if sender exists and has expected properties to avoid SelectQueryError issues
+        let senderName = null;
+        let senderAvatar = null;
+        
+        if (item.sender && typeof item.sender === 'object') {
+          if ('name' in item.sender) {
+            senderName = item.sender.name;
+          }
+          if ('avatar_url' in item.sender) {
+            senderAvatar = item.sender.avatar_url;
+          }
+        }
+        
+        return {
+          id: item.id,
+          content: item.content,
+          created_at: item.created_at,
+          sender_id: item.sender_id,
+          sender_name: senderName,
+          sender_avatar: senderAvatar
+        };
+      });
 
       setMessages(fetchedMessages);
     } catch (error) {
@@ -187,7 +210,7 @@ export const useMessages = () => {
       }
 
       // Send the message
-      const messageData: MessageData = {
+      const messageData: MessagePayload = {
         content,
         conversation_id: conversationId,
         sender_id: currentUserId
