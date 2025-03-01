@@ -62,6 +62,13 @@ export const Messages = () => {
   const [tempConversation, setTempConversation] = useState<any>(null);
   const [showNewConversationBanner, setShowNewConversationBanner] = useState(true);
   const [posts, setPosts] = useState<any[]>([]);
+  // Define the profileId variable based on the selectedUserId
+  const [profileId, setProfileId] = useState<string | null>(null);
+
+  // Use useEffect to set profileId when selectedUserId changes
+  useEffect(() => {
+    setProfileId(selectedUserId);
+  }, [selectedUserId]);
 
   // Récupérer les informations de la conversation temporaire du localStorage
   useEffect(() => {

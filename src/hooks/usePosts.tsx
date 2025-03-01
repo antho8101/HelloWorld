@@ -63,18 +63,23 @@ export const usePosts = (profileId: string | null, currentUserId: string | null)
             return {
               ...post,
               isLiked: likedPostIds.has(post.id),
-              comments: comments?.map(comment => ({
-                id: comment.id,
-                content: comment.content,
-                createdAt: comment.created_at,
-                author: {
-                  name: comment.profiles.name,
-                  username: comment.profiles.username,
-                  avatarUrl: comment.profiles.avatar_url,
-                },
-                likesCount: 0,
-                isLiked: false,
-              })) || [],
+              comments: comments?.map(comment => {
+                // Add proper null checking for profiles
+                const profileData = comment.profiles || { name: null, username: null, avatar_url: null };
+                
+                return {
+                  id: comment.id,
+                  content: comment.content,
+                  createdAt: comment.created_at,
+                  author: {
+                    name: profileData.name || "Unknown User",
+                    username: profileData.username || "unknown",
+                    avatarUrl: profileData.avatar_url || null,
+                  },
+                  likesCount: 0,
+                  isLiked: false,
+                };
+              }) || [],
             };
           })
         );
