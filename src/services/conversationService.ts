@@ -56,15 +56,13 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
       let otherParticipantAvatar = null;
 
       // Only proceed if we have a participant wrapper
-      if (otherParticipantWrapper) {
+      if (otherParticipantWrapper && otherParticipantWrapper.user) {
         const otherParticipantData = otherParticipantWrapper.user;
         
-        // Check if otherParticipantData exists and is a valid object
-        if (otherParticipantData && 
-            typeof otherParticipantData === 'object' && 
-            !('code' in otherParticipantData)) {
+        // Check if otherParticipantData is a valid object
+        if (typeof otherParticipantData === 'object' && !('code' in otherParticipantData)) {
           
-          // Now we can safely access properties
+          // Now we can safely access properties - check each property individually
           if ('id' in otherParticipantData && otherParticipantData.id) {
             otherParticipantId = otherParticipantData.id;
           }
@@ -77,6 +75,7 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
             otherParticipantAvatar = otherParticipantData.avatar_url;
           }
           
+          // Create the participant object with all the validated properties
           otherParticipant = {
             id: otherParticipantId || '',
             name: otherParticipantName,
