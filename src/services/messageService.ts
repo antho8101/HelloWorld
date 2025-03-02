@@ -31,25 +31,21 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
 
     if (error) throw error;
 
-    const fetchedMessages: Message[] = data.map(item => {
+    // Transform the data into properly typed Message objects
+    return (data || []).map(item => {
       // Default values
       let senderName = null;
       let senderAvatar = null;
       
-      // Only proceed if sender exists and is not null
-      if (item.sender) {
-        const senderData = item.sender;
+      // Safely process sender data if it exists
+      if (item.sender && typeof item.sender === 'object' && !('code' in item.sender)) {
+        // Now we can safely check and extract properties
+        if ('name' in item.sender && item.sender.name !== undefined) {
+          senderName = item.sender.name;
+        }
         
-        // Check that senderData is a valid object and not an error
-        if (senderData && typeof senderData === 'object' && !('code' in senderData)) {
-          // Use 'in' operator to check if properties exist
-          if ('name' in senderData && senderData.name !== undefined) {
-            senderName = senderData.name;
-          }
-          
-          if ('avatar_url' in senderData && senderData.avatar_url !== undefined) {
-            senderAvatar = senderData.avatar_url;
-          }
+        if ('avatar_url' in item.sender && item.sender.avatar_url !== undefined) {
+          senderAvatar = item.sender.avatar_url;
         }
       }
       
@@ -63,8 +59,6 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
         sender_avatar: senderAvatar
       };
     });
-
-    return fetchedMessages;
   } catch (error) {
     console.error("Error fetching messages:", error);
     toast("Error loading messages");

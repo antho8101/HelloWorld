@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import type { Conversation } from "@/types/messages";
 
@@ -44,24 +45,23 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
     if (conversationsError) throw conversationsError;
 
     return (conversations || []).map(convo => {
-      // Get the other participant (not the current user)
-      const participants = convo.participants || [];
-      const otherParticipantWrapper = participants.find(p => p.user_id !== userId);
-      
-      // Safely handle the case where otherParticipantData might be null or a SelectQueryError
+      // Default values for the other participant
       let otherParticipant = null;
       let otherParticipantId = null;
       let otherParticipantName = null;
       let otherParticipantAvatar = null;
 
-      // Only proceed if we have a participant wrapper 
-      if (otherParticipantWrapper) {
-        // We need to assign to a variable to handle null checks properly
+      // Get the other participant (not the current user)
+      const participants = convo.participants || [];
+      const otherParticipantWrapper = participants.find(p => p.user_id !== userId);
+      
+      // Check if we found another participant
+      if (otherParticipantWrapper && otherParticipantWrapper.user) {
         const userData = otherParticipantWrapper.user;
         
         // Check if userData is a valid object (not a SelectQueryError)
         if (userData && typeof userData === 'object' && !('code' in userData)) {
-          // Now we can safely access properties with proper type guards
+          // Now we can safely extract properties
           if ('id' in userData && userData.id) {
             otherParticipantId = userData.id;
           }
@@ -74,7 +74,7 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
             otherParticipantAvatar = userData.avatar_url;
           }
           
-          // Create the participant object with all the validated properties
+          // Only create the participant object if we have an ID at minimum
           if (otherParticipantId) {
             otherParticipant = {
               id: otherParticipantId,
@@ -92,7 +92,7 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
         updated_at: convo.updated_at,
         is_pinned: convo.is_pinned || false,
         is_archived: convo.is_archived || false,
-        otherParticipant: otherParticipant,
+        otherParticipant,
         // Optional additional properties to maintain backward compatibility
         isTemporary: false,
         latest_message: convo.latest_message?.[0]?.content || null,
