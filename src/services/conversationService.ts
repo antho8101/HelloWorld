@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { Conversation } from "@/types/messages";
 
@@ -55,25 +54,24 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
       let otherParticipantName = null;
       let otherParticipantAvatar = null;
 
-      // Only proceed if we have a participant wrapper and user data
-      if (otherParticipantWrapper && otherParticipantWrapper.user) {
+      // Only proceed if we have a participant wrapper 
+      if (otherParticipantWrapper) {
         // We need to assign to a variable to handle null checks properly
-        const otherParticipantData = otherParticipantWrapper.user;
+        const userData = otherParticipantWrapper.user;
         
-        // Check if otherParticipantData is a valid object (not a SelectQueryError)
-        if (otherParticipantData && typeof otherParticipantData === 'object' && !('code' in otherParticipantData)) {
-          
-          // Now we can safely access properties - check each property individually
-          if (otherParticipantData && 'id' in otherParticipantData && otherParticipantData.id) {
-            otherParticipantId = otherParticipantData.id;
+        // Check if userData is a valid object (not a SelectQueryError)
+        if (userData && typeof userData === 'object' && !('code' in userData)) {
+          // Now we can safely access properties with proper type guards
+          if ('id' in userData && userData.id) {
+            otherParticipantId = userData.id;
           }
           
-          if (otherParticipantData && 'name' in otherParticipantData) {
-            otherParticipantName = otherParticipantData.name;
+          if ('name' in userData) {
+            otherParticipantName = userData.name;
           }
           
-          if (otherParticipantData && 'avatar_url' in otherParticipantData) {
-            otherParticipantAvatar = otherParticipantData.avatar_url;
+          if ('avatar_url' in userData) {
+            otherParticipantAvatar = userData.avatar_url;
           }
           
           // Create the participant object with all the validated properties
