@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { Conversation } from "@/types/messages";
 
@@ -55,26 +54,18 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
       const participants = convo.participants || [];
       const otherParticipantWrapper = participants.find(p => p.user_id !== userId);
       
-      // Check if we found another participant
       if (otherParticipantWrapper && otherParticipantWrapper.user) {
+        // Extract user data and use type assertion to handle null checks
         const userData = otherParticipantWrapper.user;
         
-        // Check if userData is a valid object (not a SelectQueryError)
+        // Use type guards to ensure userData is a valid object
         if (userData && typeof userData === 'object' && !('code' in userData)) {
-          // Now we can safely extract properties
-          if ('id' in userData && userData.id) {
-            otherParticipantId = userData.id;
-          }
+          // Optional chaining and nullish coalescing to handle potentially undefined properties
+          otherParticipantId = 'id' in userData ? userData.id : null;
+          otherParticipantName = 'name' in userData ? userData.name : null;
+          otherParticipantAvatar = 'avatar_url' in userData ? userData.avatar_url : null;
           
-          if ('name' in userData) {
-            otherParticipantName = userData.name;
-          }
-          
-          if ('avatar_url' in userData) {
-            otherParticipantAvatar = userData.avatar_url;
-          }
-          
-          // Only create the participant object if we have an ID at minimum
+          // Only create the participant object if we have an ID
           if (otherParticipantId) {
             otherParticipant = {
               id: otherParticipantId,
