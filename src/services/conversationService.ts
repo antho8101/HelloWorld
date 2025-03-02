@@ -53,27 +53,42 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
 
       // Find the other participant (not the current user)
       const participants = convo.participants || [];
-      const otherParticipantData = participants.find(p => p.user_id !== userId)?.user;
+      const participant = participants.find(p => p.user_id !== userId);
       
-      // Only process if we have actual participant data
-      if (otherParticipantData && typeof otherParticipantData === 'object') {
-        // Safe property access using optional chaining
-        const id = typeof otherParticipantData.id === 'string' ? otherParticipantData.id : null;
-        const name = typeof otherParticipantData.name === 'string' ? otherParticipantData.name : null;
-        const avatar = typeof otherParticipantData.avatar_url === 'string' ? otherParticipantData.avatar_url : null;
+      // Extra safety check - only proceed if participant exists
+      if (participant) {
+        // Get user data from the participant
+        const user = participant.user;
         
-        otherParticipantId = id;
-        otherParticipantName = name;
-        otherParticipantAvatar = avatar;
-        
-        // Create participant object only if we have an ID
-        if (id) {
-          otherParticipant = {
-            id,
-            name,
-            avatar_url: avatar
-          };
+        // If user data exists and is an object
+        if (user && typeof user === 'object') {
+          // Safely access properties with default fallbacks
+          const id = 'id' in user && typeof user.id === 'string' ? user.id : null;
+          const name = 'name' in user && user.name !== null ? String(user.name) : null;
+          const avatar = 'avatar_url' in user && user.avatar_url !== null ? String(user.avatar_url) : null;
+          
+          otherParticipantId = id;
+          otherParticipantName = name;
+          otherParticipantAvatar = avatar;
+          
+          // Create participant object only if we have an ID
+          if (id) {
+            otherParticipant = {
+              id,
+              name,
+              avatar_url: avatar
+            };
+          }
         }
+      }
+
+      // Get latest message data safely
+      let latestMessageContent = null;
+      let latestMessageTime = null;
+      if (Array.isArray(convo.latest_message) && convo.latest_message.length > 0) {
+        const msg = convo.latest_message[0];
+        latestMessageContent = msg && 'content' in msg ? msg.content : null;
+        latestMessageTime = msg && 'created_at' in msg ? msg.created_at : null;
       }
 
       // Create conversation object with properly typed fields
@@ -85,8 +100,8 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
         is_archived: convo.is_archived || false,
         otherParticipant,
         isTemporary: false,
-        latest_message: Array.isArray(convo.latest_message) && convo.latest_message.length > 0 ? convo.latest_message[0]?.content : null,
-        latest_message_time: Array.isArray(convo.latest_message) && convo.latest_message.length > 0 ? convo.latest_message[0]?.created_at : null,
+        latest_message: latestMessageContent,
+        latest_message_time: latestMessageTime,
         other_participant_id: otherParticipantId,
         other_participant_name: otherParticipantName,
         other_participant_avatar: otherParticipantAvatar,
