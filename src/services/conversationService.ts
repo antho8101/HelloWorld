@@ -55,12 +55,13 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
       let otherParticipantName = null;
       let otherParticipantAvatar = null;
 
-      // Only proceed if we have a participant wrapper
+      // Only proceed if we have a participant wrapper and user data
       if (otherParticipantWrapper && otherParticipantWrapper.user) {
+        // We need to assign to a variable to handle null checks properly
         const otherParticipantData = otherParticipantWrapper.user;
         
-        // Check if otherParticipantData is a valid object
-        if (typeof otherParticipantData === 'object' && !('code' in otherParticipantData)) {
+        // Check if otherParticipantData is a valid object (not a SelectQueryError)
+        if (otherParticipantData && typeof otherParticipantData === 'object' && !('code' in otherParticipantData)) {
           
           // Now we can safely access properties - check each property individually
           if ('id' in otherParticipantData && otherParticipantData.id) {
