@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Message } from "@/types/messages";
@@ -35,12 +36,12 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       let senderName = null;
       let senderAvatar = null;
       
-      // Only proceed if sender exists 
+      // Only proceed if sender exists and is not null
       if (item.sender) {
         const senderData = item.sender;
         
-        // Check that it's a valid object and not an error
-        if (typeof senderData === 'object' && !('code' in senderData)) {
+        // Check that senderData is a valid object and not an error
+        if (senderData && typeof senderData === 'object' && !('code' in senderData)) {
           // Use 'in' operator to check if properties exist
           if ('name' in senderData && senderData.name !== undefined) {
             senderName = senderData.name;
