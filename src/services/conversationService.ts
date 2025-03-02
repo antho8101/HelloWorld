@@ -57,7 +57,7 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
 
       // Check if otherParticipantData exists and is an object (not an error)
       if (otherParticipantData && typeof otherParticipantData === 'object' && !('code' in otherParticipantData)) {
-        // Use nullish coalescing to handle potential null values from properties
+        // Handle the properties with null checks using optional chaining and nullish coalescing
         otherParticipantId = otherParticipantData?.id ?? null;
         otherParticipantName = otherParticipantData?.name ?? null;
         otherParticipantAvatar = otherParticipantData?.avatar_url ?? null;
