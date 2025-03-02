@@ -59,20 +59,22 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
         const participant = convo.participants.find(p => p.user_id !== userId);
         
         if (participant && participant.user) {
-          // Safe extraction with fallbacks
+          // Type check for safety
           const userData = participant.user;
-          const id = userData?.id ?? null;
-          const name = userData?.name ?? null;
-          const avatar = userData?.avatar_url ?? null;
-          
-          // Set extracted values
-          otherParticipantId = id;
-          otherParticipantName = name;
-          otherParticipantAvatar = avatar;
-          
-          // Create participant object only if we have an ID
-          if (id) {
-            otherParticipant = { id, name, avatar_url: avatar };
+          if (typeof userData === 'object' && userData !== null) {
+            // Safely extract properties with type checking
+            otherParticipantId = 'id' in userData ? userData.id : null;
+            otherParticipantName = 'name' in userData ? userData.name : null;
+            otherParticipantAvatar = 'avatar_url' in userData ? userData.avatar_url : null;
+            
+            // Create participant object only if we have an ID
+            if (otherParticipantId) {
+              otherParticipant = { 
+                id: otherParticipantId, 
+                name: otherParticipantName, 
+                avatar_url: otherParticipantAvatar 
+              };
+            }
           }
         }
       }
@@ -80,8 +82,10 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
       // Process latest message safely
       if (Array.isArray(convo.latest_message) && convo.latest_message.length > 0) {
         const latestMsg = convo.latest_message[0];
-        latestMessageContent = latestMsg?.content ?? null;
-        latestMessageTime = latestMsg?.created_at ?? null;
+        if (latestMsg && typeof latestMsg === 'object') {
+          latestMessageContent = 'content' in latestMsg ? latestMsg.content : null;
+          latestMessageTime = 'created_at' in latestMsg ? latestMsg.created_at : null;
+        }
       }
 
       // Return a properly typed Conversation object
