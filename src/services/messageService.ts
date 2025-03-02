@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Message } from "@/types/messages";
@@ -36,18 +35,15 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       let senderName = null;
       let senderAvatar = null;
       
-      // Only proceed if sender exists
-      if (item.sender) {
-        // First verify that item.sender is an object and not a SelectQueryError
-        if (item.sender && typeof item.sender === 'object' && !('code' in item.sender)) {
-          // Now we can safely access properties using in operator first
-          if (item.sender && 'name' in item.sender) {
-            senderName = item.sender.name;
-          }
-          
-          if (item.sender && 'avatar_url' in item.sender) {
-            senderAvatar = item.sender.avatar_url;
-          }
+      // Only proceed if sender exists and is a valid object
+      if (item.sender && typeof item.sender === 'object' && !('code' in item.sender)) {
+        // Now we can safely access properties using type checking and in operator
+        if ('name' in item.sender && item.sender.name !== undefined) {
+          senderName = item.sender.name;
+        }
+        
+        if ('avatar_url' in item.sender && item.sender.avatar_url !== undefined) {
+          senderAvatar = item.sender.avatar_url;
         }
       }
       

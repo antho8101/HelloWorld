@@ -64,24 +64,26 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
         if (otherParticipantData && typeof otherParticipantData === 'object' && !('code' in otherParticipantData)) {
           
           // Now we can safely access properties - check each property individually
-          if ('id' in otherParticipantData && otherParticipantData.id) {
+          if (otherParticipantData && 'id' in otherParticipantData && otherParticipantData.id) {
             otherParticipantId = otherParticipantData.id;
           }
           
-          if ('name' in otherParticipantData) {
+          if (otherParticipantData && 'name' in otherParticipantData) {
             otherParticipantName = otherParticipantData.name;
           }
           
-          if ('avatar_url' in otherParticipantData) {
+          if (otherParticipantData && 'avatar_url' in otherParticipantData) {
             otherParticipantAvatar = otherParticipantData.avatar_url;
           }
           
           // Create the participant object with all the validated properties
-          otherParticipant = {
-            id: otherParticipantId || '',
-            name: otherParticipantName,
-            avatar_url: otherParticipantAvatar
-          };
+          if (otherParticipantId) {
+            otherParticipant = {
+              id: otherParticipantId,
+              name: otherParticipantName,
+              avatar_url: otherParticipantAvatar
+            };
+          }
         }
       }
 
