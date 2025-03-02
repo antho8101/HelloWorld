@@ -47,7 +47,26 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
     return (conversations || []).map(convo => {
       // Get the other participant (not the current user)
       const participants = convo.participants || [];
-      const otherParticipant = participants.find(p => p.user_id !== userId)?.user || null;
+      const otherParticipantData = participants.find(p => p.user_id !== userId)?.user;
+
+      // Safely handle the case where otherParticipantData might be a SelectQueryError
+      let otherParticipant = null;
+      let otherParticipantId = null;
+      let otherParticipantName = null;
+      let otherParticipantAvatar = null;
+
+      // Check if otherParticipantData exists and is an object (not an error)
+      if (otherParticipantData && typeof otherParticipantData === 'object' && !('code' in otherParticipantData)) {
+        otherParticipantId = otherParticipantData.id ?? null;
+        otherParticipantName = otherParticipantData.name ?? null;
+        otherParticipantAvatar = otherParticipantData.avatar_url ?? null;
+        
+        otherParticipant = {
+          id: otherParticipantId || '',
+          name: otherParticipantName,
+          avatar_url: otherParticipantAvatar
+        };
+      }
 
       // Create a properly typed Conversation object
       return {
@@ -56,19 +75,15 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
         updated_at: convo.updated_at,
         is_pinned: convo.is_pinned || false,
         is_archived: convo.is_archived || false,
-        otherParticipant: otherParticipant ? {
-          id: otherParticipant.id || '',
-          name: otherParticipant.name || null,
-          avatar_url: otherParticipant.avatar_url || null
-        } : null,
-        // Optional additional properties that were in the previous implementation
+        otherParticipant: otherParticipant,
+        // Optional additional properties to maintain backward compatibility
         isTemporary: false,
         latest_message: convo.latest_message?.[0]?.content || null,
         latest_message_time: convo.latest_message?.[0]?.created_at || null,
-        other_participant_id: otherParticipant?.id || null,
-        other_participant_name: otherParticipant?.name || null,
-        other_participant_avatar: otherParticipant?.avatar_url || null,
-        other_participant_online: false, // Will be updated by the online status hook
+        other_participant_id: otherParticipantId,
+        other_participant_name: otherParticipantName,
+        other_participant_avatar: otherParticipantAvatar,
+        other_participant_online: false // Will be updated by the online status hook
       };
     });
   } catch (error) {
