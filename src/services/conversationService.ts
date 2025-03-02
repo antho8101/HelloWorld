@@ -58,14 +58,16 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
         // Find other participant (not current user)
         const participant = convo.participants.find(p => p.user_id !== userId);
         
-        if (participant && participant.user) {
-          // Type check for safety
+        if (participant) {
+          // Ensure user object exists
           const userData = participant.user;
-          if (typeof userData === 'object' && userData !== null) {
-            // Safely extract properties with type checking
-            otherParticipantId = 'id' in userData ? userData.id : null;
-            otherParticipantName = 'name' in userData ? userData.name : null;
-            otherParticipantAvatar = 'avatar_url' in userData ? userData.avatar_url : null;
+          
+          // Only proceed if userData is a valid object
+          if (userData && typeof userData === 'object') {
+            // Safe property access with in operator
+            if ('id' in userData) otherParticipantId = userData.id;
+            if ('name' in userData) otherParticipantName = userData.name;
+            if ('avatar_url' in userData) otherParticipantAvatar = userData.avatar_url;
             
             // Create participant object only if we have an ID
             if (otherParticipantId) {
@@ -83,8 +85,8 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
       if (Array.isArray(convo.latest_message) && convo.latest_message.length > 0) {
         const latestMsg = convo.latest_message[0];
         if (latestMsg && typeof latestMsg === 'object') {
-          latestMessageContent = 'content' in latestMsg ? latestMsg.content : null;
-          latestMessageTime = 'created_at' in latestMsg ? latestMsg.created_at : null;
+          if ('content' in latestMsg) latestMessageContent = latestMsg.content;
+          if ('created_at' in latestMsg) latestMessageTime = latestMsg.created_at;
         }
       }
 
