@@ -49,7 +49,7 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
       const participants = convo.participants || [];
       const otherParticipantData = participants.find(p => p.user_id !== userId)?.user;
 
-      // Safely handle the case where otherParticipantData might be a SelectQueryError
+      // Safely handle the case where otherParticipantData might be null or a SelectQueryError
       let otherParticipant = null;
       let otherParticipantId = null;
       let otherParticipantName = null;
