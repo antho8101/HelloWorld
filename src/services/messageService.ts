@@ -40,9 +40,10 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       if (item.sender) {
         // Then check if it's a valid object and not an error object
         if (typeof item.sender === 'object' && !('code' in item.sender)) {
-          // Now it's safe to access properties
-          senderName = 'name' in item.sender ? item.sender.name : null;
-          senderAvatar = 'avatar_url' in item.sender ? item.sender.avatar_url : null;
+          // Now it's safe to access properties - use a temporary variable to satisfy TypeScript
+          const sender = item.sender!;
+          senderName = 'name' in sender ? sender.name : null;
+          senderAvatar = 'avatar_url' in sender ? sender.avatar_url : null;
         }
       }
       
