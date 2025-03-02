@@ -45,39 +45,38 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
     if (conversationsError) throw conversationsError;
 
     return (conversations || []).map(convo => {
-      // Default values for the other participant
+      // Default values
       let otherParticipant = null;
       let otherParticipantId = null;
       let otherParticipantName = null;
       let otherParticipantAvatar = null;
 
-      // Get the other participant (not the current user)
+      // Find the other participant (not the current user)
       const participants = convo.participants || [];
-      const otherParticipantWrapper = participants.find(p => p.user_id !== userId);
+      const otherParticipantData = participants.find(p => p.user_id !== userId)?.user;
       
-      if (otherParticipantWrapper && otherParticipantWrapper.user) {
-        // Extract user data using type assertion to handle null checks
-        const userData = otherParticipantWrapper.user;
+      // Only process if we have actual participant data
+      if (otherParticipantData && typeof otherParticipantData === 'object') {
+        // Safe property access using optional chaining
+        const id = typeof otherParticipantData.id === 'string' ? otherParticipantData.id : null;
+        const name = typeof otherParticipantData.name === 'string' ? otherParticipantData.name : null;
+        const avatar = typeof otherParticipantData.avatar_url === 'string' ? otherParticipantData.avatar_url : null;
         
-        // Using non-null assertion operator in controlled way after validation
-        if (userData && typeof userData === 'object' && !('code' in userData)) {
-          // Using null coalescing for safe property access
-          otherParticipantId = userData['id'] ? userData['id'] : null;
-          otherParticipantName = userData['name'] ? userData['name'] : null;
-          otherParticipantAvatar = userData['avatar_url'] ? userData['avatar_url'] : null;
-          
-          // Only create the participant object if we have an ID
-          if (otherParticipantId) {
-            otherParticipant = {
-              id: otherParticipantId,
-              name: otherParticipantName,
-              avatar_url: otherParticipantAvatar
-            };
-          }
+        otherParticipantId = id;
+        otherParticipantName = name;
+        otherParticipantAvatar = avatar;
+        
+        // Create participant object only if we have an ID
+        if (id) {
+          otherParticipant = {
+            id,
+            name,
+            avatar_url: avatar
+          };
         }
       }
 
-      // Create a properly typed Conversation object
+      // Create conversation object with properly typed fields
       return {
         id: convo.id,
         created_at: convo.created_at,
@@ -85,10 +84,9 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
         is_pinned: convo.is_pinned || false,
         is_archived: convo.is_archived || false,
         otherParticipant,
-        // Optional additional properties to maintain backward compatibility
         isTemporary: false,
-        latest_message: convo.latest_message?.[0]?.content || null,
-        latest_message_time: convo.latest_message?.[0]?.created_at || null,
+        latest_message: Array.isArray(convo.latest_message) && convo.latest_message.length > 0 ? convo.latest_message[0]?.content : null,
+        latest_message_time: Array.isArray(convo.latest_message) && convo.latest_message.length > 0 ? convo.latest_message[0]?.created_at : null,
         other_participant_id: otherParticipantId,
         other_participant_name: otherParticipantName,
         other_participant_avatar: otherParticipantAvatar,
