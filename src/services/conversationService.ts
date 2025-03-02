@@ -59,8 +59,9 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
       if (otherParticipantData) {
         // Then check if it's a valid object and not an error object
         if (typeof otherParticipantData === 'object' && !('code' in otherParticipantData)) {
-          // Now it's safe to access properties - use optional chaining and non-null assertion for TypeScript
-          const data = otherParticipantData!;
+          // Create a local variable that TypeScript knows is non-null
+          const data = otherParticipantData;
+          // Now it's safe to access properties
           otherParticipantId = 'id' in data ? data.id : null;
           otherParticipantName = 'name' in data ? data.name : null;
           otherParticipantAvatar = 'avatar_url' in data ? data.avatar_url : null;
