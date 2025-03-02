@@ -47,19 +47,24 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
     return (conversations || []).map(convo => {
       // Get the other participant (not the current user)
       const participants = convo.participants || [];
-      const otherParticipantData = participants.find(p => p.user_id !== userId)?.user;
-
+      const otherParticipantWrapper = participants.find(p => p.user_id !== userId);
+      
       // Safely handle the case where otherParticipantData might be null or a SelectQueryError
       let otherParticipant = null;
       let otherParticipantId = null;
       let otherParticipantName = null;
       let otherParticipantAvatar = null;
 
-      // First check if otherParticipantData exists
-      if (otherParticipantData) {
-        // Then check if it's a valid object and not an error object
-        if (typeof otherParticipantData === 'object' && !('code' in otherParticipantData)) {
-          // Safe to access properties for valid user object
+      // Only proceed if we have a participant wrapper
+      if (otherParticipantWrapper) {
+        const otherParticipantData = otherParticipantWrapper.user;
+        
+        // Check if otherParticipantData exists and is a valid object
+        if (otherParticipantData && 
+            typeof otherParticipantData === 'object' && 
+            !('code' in otherParticipantData)) {
+          
+          // Now we can safely access properties
           if ('id' in otherParticipantData && otherParticipantData.id) {
             otherParticipantId = otherParticipantData.id;
           }

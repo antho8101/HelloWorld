@@ -36,16 +36,16 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       let senderName = null;
       let senderAvatar = null;
       
-      // First check if sender exists
+      // Only proceed if sender exists
       if (item.sender) {
-        // Then check if it's a valid object and not an error object
+        // Only try to access properties if it's a valid object
         if (typeof item.sender === 'object' && !('code' in item.sender)) {
-          // Access properties safely
-          if ('name' in item.sender) {
+          // Now we can safely check for and access specific properties
+          if (item.sender && 'name' in item.sender) {
             senderName = item.sender.name;
           }
           
-          if ('avatar_url' in item.sender) {
+          if (item.sender && 'avatar_url' in item.sender) {
             senderAvatar = item.sender.avatar_url;
           }
         }
