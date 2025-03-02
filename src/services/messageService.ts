@@ -37,9 +37,9 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       let senderAvatar = null;
       
       if (item.sender && typeof item.sender === 'object') {
-        // Use nullish coalescing to handle null or undefined values safely
-        senderName = item.sender?.name || null;
-        senderAvatar = item.sender?.avatar_url || null;
+        // Use optional chaining and nullish coalescing to handle null or undefined values safely
+        senderName = item.sender?.name ?? null;
+        senderAvatar = item.sender?.avatar_url ?? null;
       }
       
       return {

@@ -49,11 +49,20 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
       const participants = convo.participants || [];
       const otherParticipant = participants.find(p => p.user_id !== userId)?.user || null;
 
+      // Create a properly typed Conversation object
       return {
         id: convo.id,
-        pinned: convo.is_pinned || false,
-        archived: convo.is_archived || false,
+        created_at: convo.created_at,
         updated_at: convo.updated_at,
+        is_pinned: convo.is_pinned || false,
+        is_archived: convo.is_archived || false,
+        otherParticipant: otherParticipant ? {
+          id: otherParticipant.id || '',
+          name: otherParticipant.name || null,
+          avatar_url: otherParticipant.avatar_url || null
+        } : null,
+        // Optional additional properties that were in the previous implementation
+        isTemporary: false,
         latest_message: convo.latest_message?.[0]?.content || null,
         latest_message_time: convo.latest_message?.[0]?.created_at || null,
         other_participant_id: otherParticipant?.id || null,

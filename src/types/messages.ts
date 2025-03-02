@@ -13,6 +13,13 @@ export interface Conversation {
   is_archived: boolean;
   otherParticipant: ConversationParticipant | null;
   isTemporary?: boolean;
+  // Additional properties to maintain backward compatibility
+  latest_message?: string | null;
+  latest_message_time?: string | null;
+  other_participant_id?: string | null;
+  other_participant_name?: string | null;
+  other_participant_avatar?: string | null;
+  other_participant_online?: boolean;
 }
 
 export interface Message {
