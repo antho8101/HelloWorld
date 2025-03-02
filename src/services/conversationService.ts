@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import type { Conversation } from "@/types/messages";
 
@@ -55,15 +56,15 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
       const otherParticipantWrapper = participants.find(p => p.user_id !== userId);
       
       if (otherParticipantWrapper && otherParticipantWrapper.user) {
-        // Extract user data and use type assertion to handle null checks
+        // Extract user data using type assertion to handle null checks
         const userData = otherParticipantWrapper.user;
         
-        // Use type guards to ensure userData is a valid object
+        // Using non-null assertion operator in controlled way after validation
         if (userData && typeof userData === 'object' && !('code' in userData)) {
-          // Optional chaining and nullish coalescing to handle potentially undefined properties
-          otherParticipantId = 'id' in userData ? userData.id : null;
-          otherParticipantName = 'name' in userData ? userData.name : null;
-          otherParticipantAvatar = 'avatar_url' in userData ? userData.avatar_url : null;
+          // Using null coalescing for safe property access
+          otherParticipantId = userData['id'] ? userData['id'] : null;
+          otherParticipantName = userData['name'] ? userData['name'] : null;
+          otherParticipantAvatar = userData['avatar_url'] ? userData['avatar_url'] : null;
           
           // Only create the participant object if we have an ID
           if (otherParticipantId) {
