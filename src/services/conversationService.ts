@@ -55,18 +55,21 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
       let otherParticipantName = null;
       let otherParticipantAvatar = null;
 
-      // Check if otherParticipantData exists and is an object (not an error)
-      if (otherParticipantData && typeof otherParticipantData === 'object' && !('code' in otherParticipantData)) {
-        // Use ! non-null assertion after we've checked that otherParticipantData is not null
-        otherParticipantId = otherParticipantData!.id ?? null;
-        otherParticipantName = otherParticipantData!.name ?? null;
-        otherParticipantAvatar = otherParticipantData!.avatar_url ?? null;
-        
-        otherParticipant = {
-          id: otherParticipantId || '',
-          name: otherParticipantName,
-          avatar_url: otherParticipantAvatar
-        };
+      // First check if otherParticipantData exists
+      if (otherParticipantData) {
+        // Then check if it's a valid object and not an error object
+        if (typeof otherParticipantData === 'object' && !('code' in otherParticipantData)) {
+          // Now it's safe to access properties
+          otherParticipantId = 'id' in otherParticipantData ? otherParticipantData.id : null;
+          otherParticipantName = 'name' in otherParticipantData ? otherParticipantData.name : null;
+          otherParticipantAvatar = 'avatar_url' in otherParticipantData ? otherParticipantData.avatar_url : null;
+          
+          otherParticipant = {
+            id: otherParticipantId || '',
+            name: otherParticipantName,
+            avatar_url: otherParticipantAvatar
+          };
+        }
       }
 
       // Create a properly typed Conversation object

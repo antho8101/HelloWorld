@@ -36,10 +36,14 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       let senderName = null;
       let senderAvatar = null;
       
-      if (item.sender && typeof item.sender === 'object' && !('code' in item.sender)) {
-        // Use ! non-null assertion after we've checked that item.sender is not null
-        senderName = item.sender!.name ?? null;
-        senderAvatar = item.sender!.avatar_url ?? null;
+      // First check if sender exists
+      if (item.sender) {
+        // Then check if it's a valid object and not an error object
+        if (typeof item.sender === 'object' && !('code' in item.sender)) {
+          // Now it's safe to access properties
+          senderName = 'name' in item.sender ? item.sender.name : null;
+          senderAvatar = 'avatar_url' in item.sender ? item.sender.avatar_url : null;
+        }
       }
       
       return {
