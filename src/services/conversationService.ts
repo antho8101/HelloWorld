@@ -45,59 +45,52 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
     if (conversationsError) throw conversationsError;
 
     return (conversations || []).map(convo => {
-      // Default values
+      // Initialize with default values
       let otherParticipant = null;
       let otherParticipantId = null;
       let otherParticipantName = null;
       let otherParticipantAvatar = null;
+      let latestMessageContent = null;
+      let latestMessageTime = null;
 
-      // Find the other participant (not the current user)
-      const participants = convo.participants || [];
-      const participant = participants.find(p => p.user_id !== userId);
-      
-      // Extra safety check - only proceed if participant exists
-      if (participant) {
-        // Get user data from the participant
-        const user = participant.user;
+      // Process participants safely
+      if (Array.isArray(convo.participants)) {
+        // Find other participant (not current user)
+        const participant = convo.participants.find(p => p.user_id !== userId);
         
-        // If user data exists and is an object
-        if (user && typeof user === 'object') {
-          // Safely access properties with default fallbacks
-          const id = 'id' in user && typeof user.id === 'string' ? user.id : null;
-          const name = 'name' in user && user.name !== null ? String(user.name) : null;
-          const avatar = 'avatar_url' in user && user.avatar_url !== null ? String(user.avatar_url) : null;
+        if (participant && participant.user) {
+          // Safe extraction with fallbacks
+          const userData = participant.user;
+          const id = userData?.id ?? null;
+          const name = userData?.name ?? null;
+          const avatar = userData?.avatar_url ?? null;
           
+          // Set extracted values
           otherParticipantId = id;
           otherParticipantName = name;
           otherParticipantAvatar = avatar;
           
           // Create participant object only if we have an ID
           if (id) {
-            otherParticipant = {
-              id,
-              name,
-              avatar_url: avatar
-            };
+            otherParticipant = { id, name, avatar_url: avatar };
           }
         }
       }
 
-      // Get latest message data safely
-      let latestMessageContent = null;
-      let latestMessageTime = null;
+      // Process latest message safely
       if (Array.isArray(convo.latest_message) && convo.latest_message.length > 0) {
-        const msg = convo.latest_message[0];
-        latestMessageContent = msg && 'content' in msg ? msg.content : null;
-        latestMessageTime = msg && 'created_at' in msg ? msg.created_at : null;
+        const latestMsg = convo.latest_message[0];
+        latestMessageContent = latestMsg?.content ?? null;
+        latestMessageTime = latestMsg?.created_at ?? null;
       }
 
-      // Create conversation object with properly typed fields
+      // Return a properly typed Conversation object
       return {
         id: convo.id,
         created_at: convo.created_at,
         updated_at: convo.updated_at,
-        is_pinned: convo.is_pinned || false,
-        is_archived: convo.is_archived || false,
+        is_pinned: Boolean(convo.is_pinned),
+        is_archived: Boolean(convo.is_archived),
         otherParticipant,
         isTemporary: false,
         latest_message: latestMessageContent,

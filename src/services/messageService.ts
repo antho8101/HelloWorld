@@ -37,16 +37,11 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       let senderName = null;
       let senderAvatar = null;
       
-      // Safely extract sender data with property existence checks
-      if (item.sender && typeof item.sender === 'object') {
-        // Check if properties exist before accessing them
-        if ('name' in item.sender && item.sender.name !== null) {
-          senderName = String(item.sender.name);
-        }
-        
-        if ('avatar_url' in item.sender && item.sender.avatar_url !== null) {
-          senderAvatar = String(item.sender.avatar_url);
-        }
+      // Safely extract sender data
+      if (item.sender) {
+        // Use nullish coalescing to handle potential nulls
+        senderName = item.sender?.name ?? null;
+        senderAvatar = item.sender?.avatar_url ?? null;
       }
       
       // Return a properly typed Message object
