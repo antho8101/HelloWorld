@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import type { Conversation } from "@/types/messages";
 
@@ -56,9 +57,10 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
 
       // Check if otherParticipantData exists and is an object (not an error)
       if (otherParticipantData && typeof otherParticipantData === 'object' && !('code' in otherParticipantData)) {
-        otherParticipantId = otherParticipantData.id ?? null;
-        otherParticipantName = otherParticipantData.name ?? null;
-        otherParticipantAvatar = otherParticipantData.avatar_url ?? null;
+        // Use ! non-null assertion after we've checked that otherParticipantData is not null
+        otherParticipantId = otherParticipantData!.id ?? null;
+        otherParticipantName = otherParticipantData!.name ?? null;
+        otherParticipantAvatar = otherParticipantData!.avatar_url ?? null;
         
         otherParticipant = {
           id: otherParticipantId || '',

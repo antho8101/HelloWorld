@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Message } from "@/types/messages";
@@ -36,8 +37,9 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       let senderAvatar = null;
       
       if (item.sender && typeof item.sender === 'object' && !('code' in item.sender)) {
-        senderName = item.sender.name ?? null;
-        senderAvatar = item.sender.avatar_url ?? null;
+        // Use ! non-null assertion after we've checked that item.sender is not null
+        senderName = item.sender!.name ?? null;
+        senderAvatar = item.sender!.avatar_url ?? null;
       }
       
       return {
