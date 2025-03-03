@@ -7,14 +7,55 @@ export const handleMessageAction = async (
   profileId: string,
   onMessage: () => void
 ): Promise<boolean> => {
-  if (!currentUserId || !profileId) return false;
+  if (!currentUserId || !profileId) {
+    console.error('Missing user IDs:', { currentUserId, profileId });
+    return false;
+  }
 
   try {
-    // Instead of checking all participations at once, let's use a more direct approach
-    // to avoid the infinite recursion issue
+    console.log('Starting message action between', currentUserId, 'and', profileId);
+
+    // First check if a conversation already exists between these users
+    const { data: existingConversations, error: checkError } = await supabase
+      .from('conversation_participants')
+      .select('conversation_id')
+      .eq('user_id', currentUserId);
+
+    if (checkError) {
+      console.error('Error checking existing conversations:', checkError);
+      toast("Error checking existing conversations");
+      return false;
+    }
+
+    if (existingConversations && existingConversations.length > 0) {
+      // For each conversation that the current user is part of, check if the other user is also a participant
+      const conversationIds = existingConversations.map(c => c.conversation_id);
+      
+      const { data: sharedConversations, error: sharedError } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', profileId)
+        .in('conversation_id', conversationIds);
+      
+      if (sharedError) {
+        console.error('Error checking shared conversations:', sharedError);
+        toast("Error checking shared conversations");
+        return false;
+      }
+      
+      if (sharedConversations && sharedConversations.length > 0) {
+        // We found an existing conversation between these users
+        console.log('Found existing conversation:', sharedConversations[0].conversation_id);
+        onMessage(); // Call callback to indicate success
+        return true;
+      }
+    }
+    
+    // No existing conversation, create a new one
     const newConversationId = await createNewConversation(currentUserId, profileId);
     
     if (newConversationId) {
+      console.log('Created new conversation:', newConversationId);
       onMessage(); // Call callback to indicate success
       return true;
     }
@@ -49,8 +90,7 @@ export const createNewConversation = async (
     
     console.log('Created conversation with ID:', newConversation.id);
     
-    // 2. Add each participant separately to avoid any potential RLS recursion issues
-    // First, add current user as participant
+    // 2. Add current user as participant
     const { error: currentUserError } = await supabase
       .from('conversation_participants')
       .insert([{ 
