@@ -15,43 +15,8 @@ export const handleMessageAction = async (
   try {
     console.log('Starting message action between', currentUserId, 'and', profileId);
 
-    // First check if a conversation already exists between these users
-    const { data: existingConversations, error: checkError } = await supabase
-      .from('conversation_participants')
-      .select('conversation_id')
-      .eq('user_id', currentUserId);
-
-    if (checkError) {
-      console.error('Error checking existing conversations:', checkError);
-      toast("Error checking existing conversations");
-      return false;
-    }
-
-    if (existingConversations && existingConversations.length > 0) {
-      // For each conversation that the current user is part of, check if the other user is also a participant
-      const conversationIds = existingConversations.map(c => c.conversation_id);
-      
-      const { data: sharedConversations, error: sharedError } = await supabase
-        .from('conversation_participants')
-        .select('conversation_id')
-        .eq('user_id', profileId)
-        .in('conversation_id', conversationIds);
-      
-      if (sharedError) {
-        console.error('Error checking shared conversations:', sharedError);
-        toast("Error checking shared conversations");
-        return false;
-      }
-      
-      if (sharedConversations && sharedConversations.length > 0) {
-        // We found an existing conversation between these users
-        console.log('Found existing conversation:', sharedConversations[0].conversation_id);
-        onMessage(); // Call callback to indicate success
-        return true;
-      }
-    }
-    
-    // No existing conversation, create a new one
+    // Create new conversation directly without checking for existing ones
+    // This approach avoids the RLS recursion issue
     const newConversationId = await createNewConversation(currentUserId, profileId);
     
     if (newConversationId) {
@@ -90,37 +55,24 @@ export const createNewConversation = async (
     
     console.log('Created conversation with ID:', newConversation.id);
     
-    // 2. Add current user as participant
-    const { error: currentUserError } = await supabase
-      .from('conversation_participants')
-      .insert([{ 
-        conversation_id: newConversation.id, 
-        user_id: currentUserId 
-      }]);
+    // 2. Add participants in a different way to avoid RLS issues
+    const participantsData = [
+      { conversation_id: newConversation.id, user_id: currentUserId },
+      { conversation_id: newConversation.id, user_id: profileId }
+    ];
     
-    if (currentUserError) {
-      console.error('Error adding current user as participant:', currentUserError);
-      toast("Error adding you to the conversation");
+    // Insert all participants at once instead of separate queries
+    const { error: participantsError } = await supabase
+      .from('conversation_participants')
+      .insert(participantsData);
+    
+    if (participantsError) {
+      console.error('Error adding participants:', participantsError);
+      toast("Error adding conversation participants");
       return null;
     }
     
-    console.log('Added current user to conversation');
-    
-    // 3. Add other user as participant
-    const { error: otherUserError } = await supabase
-      .from('conversation_participants')
-      .insert([{ 
-        conversation_id: newConversation.id, 
-        user_id: profileId 
-      }]);
-    
-    if (otherUserError) {
-      console.error('Error adding other user as participant:', otherUserError);
-      toast("Error adding the other person to the conversation");
-      return null;
-    }
-    
-    console.log('Added other user to conversation. Conversation setup complete!');
+    console.log('Added all participants to conversation. Conversation setup complete!');
     
     return newConversation.id;
   } catch (error) {
