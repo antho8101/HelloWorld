@@ -14,6 +14,8 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
   if (!conversationId) return [];
   
   try {
+    console.log('Fetching messages for conversation:', conversationId);
+    
     const { data, error } = await supabase
       .from("messages")
       .select(`
@@ -29,7 +31,12 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       .eq("conversation_id", conversationId)
       .order("created_at", { ascending: true });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching messages:', error);
+      throw error;
+    }
+
+    console.log(`Fetched ${data?.length || 0} messages for conversation ${conversationId}`);
 
     // Transform the data into properly typed Message objects
     return (data || []).map(item => {
@@ -70,11 +77,18 @@ export const sendMessage = async (
   messageData: MessagePayload
 ): Promise<boolean> => {
   try {
+    console.log('Sending message to conversation:', messageData.conversation_id);
+    
     const { error: messageError } = await supabase
       .from("messages")
       .insert(messageData);
 
-    if (messageError) throw messageError;
+    if (messageError) {
+      console.error('Error sending message:', messageError);
+      throw messageError;
+    }
+
+    console.log('Message sent successfully to conversation:', messageData.conversation_id);
 
     // Update the timestamp on the conversation
     await updateConversationTimestamp(messageData.conversation_id);

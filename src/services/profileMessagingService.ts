@@ -9,6 +9,7 @@ export const handleMessageAction = async (
 ): Promise<boolean> => {
   if (!currentUserId || !profileId) {
     console.error('Missing user IDs:', { currentUserId, profileId });
+    toast("Missing user information. Please make sure you're logged in.");
     return false;
   }
 
