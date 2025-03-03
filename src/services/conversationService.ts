@@ -64,10 +64,10 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
           
           // Only proceed if userData is a valid object
           if (userData && typeof userData === 'object') {
-            // Safe property access with in operator
-            if ('id' in userData) otherParticipantId = userData.id;
-            if ('name' in userData) otherParticipantName = userData.name;
-            if ('avatar_url' in userData) otherParticipantAvatar = userData.avatar_url;
+            // Safe property access with in operator and null checks
+            otherParticipantId = userData && 'id' in userData ? userData.id : null;
+            otherParticipantName = userData && 'name' in userData ? userData.name : null;
+            otherParticipantAvatar = userData && 'avatar_url' in userData ? userData.avatar_url : null;
             
             // Create participant object only if we have an ID
             if (otherParticipantId) {
@@ -85,8 +85,8 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
       if (Array.isArray(convo.latest_message) && convo.latest_message.length > 0) {
         const latestMsg = convo.latest_message[0];
         if (latestMsg && typeof latestMsg === 'object') {
-          if ('content' in latestMsg) latestMessageContent = latestMsg.content;
-          if ('created_at' in latestMsg) latestMessageTime = latestMsg.created_at;
+          latestMessageContent = latestMsg && 'content' in latestMsg ? latestMsg.content : null;
+          latestMessageTime = latestMsg && 'created_at' in latestMsg ? latestMsg.created_at : null;
         }
       }
 
