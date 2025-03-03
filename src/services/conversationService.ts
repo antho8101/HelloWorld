@@ -58,16 +58,17 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
         // Find other participant (not current user)
         const participant = convo.participants.find(p => p.user_id !== userId);
         
-        if (participant) {
-          // Ensure user object exists
-          const userData = participant.user;
+        if (participant && participant.user) {
+          // If participant.user is an array (which can happen with Supabase joins), take the first item
+          const userData = Array.isArray(participant.user) 
+            ? participant.user[0] 
+            : participant.user;
           
-          // Only proceed if userData is a valid object
+          // Now safely extract properties from userData
           if (userData && typeof userData === 'object') {
-            // Safe property access with in operator and null checks
-            otherParticipantId = userData && 'id' in userData ? userData.id : null;
-            otherParticipantName = userData && 'name' in userData ? userData.name : null;
-            otherParticipantAvatar = userData && 'avatar_url' in userData ? userData.avatar_url : null;
+            otherParticipantId = 'id' in userData ? userData.id : null;
+            otherParticipantName = 'name' in userData ? userData.name : null;
+            otherParticipantAvatar = 'avatar_url' in userData ? userData.avatar_url : null;
             
             // Create participant object only if we have an ID
             if (otherParticipantId) {
@@ -85,8 +86,8 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
       if (Array.isArray(convo.latest_message) && convo.latest_message.length > 0) {
         const latestMsg = convo.latest_message[0];
         if (latestMsg && typeof latestMsg === 'object') {
-          latestMessageContent = latestMsg && 'content' in latestMsg ? latestMsg.content : null;
-          latestMessageTime = latestMsg && 'created_at' in latestMsg ? latestMsg.created_at : null;
+          latestMessageContent = 'content' in latestMsg ? latestMsg.content : null;
+          latestMessageTime = 'created_at' in latestMsg ? latestMsg.created_at : null;
         }
       }
 

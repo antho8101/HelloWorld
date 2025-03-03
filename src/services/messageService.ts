@@ -38,10 +38,15 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       let senderAvatar = null;
       
       // Safely extract sender data with proper type checking
-      if (item.sender && typeof item.sender === 'object') {
-        // Check if properties exist before accessing them with null checks
-        senderName = item.sender && 'name' in item.sender ? item.sender.name : null;
-        senderAvatar = item.sender && 'avatar_url' in item.sender ? item.sender.avatar_url : null;
+      if (item.sender) {
+        // If sender is an array (which can happen with Supabase joins), take the first item
+        const senderData = Array.isArray(item.sender) ? item.sender[0] : item.sender;
+        
+        // Now safely extract properties
+        if (senderData && typeof senderData === 'object') {
+          senderName = 'name' in senderData ? senderData.name : null;
+          senderAvatar = 'avatar_url' in senderData ? senderData.avatar_url : null;
+        }
       }
       
       // Return a properly typed Message object
