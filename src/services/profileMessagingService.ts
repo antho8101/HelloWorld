@@ -16,17 +16,77 @@ export const handleMessageAction = async (
   try {
     console.log('Starting message action between', currentUserId, 'and', profileId);
 
-    // Create new conversation directly without checking for existing ones
-    // This approach avoids the RLS recursion issue
-    const newConversationId = await createNewConversation(currentUserId, profileId);
-    
-    if (newConversationId) {
-      console.log('Created new conversation:', newConversationId);
-      onMessage(); // Call callback to indicate success
-      return true;
+    // First check if a conversation already exists between these users
+    const { data: existingParticipations, error: participationsError } = await supabase
+      .from("conversation_participants")
+      .select("conversation_id")
+      .eq("user_id", currentUserId);
+
+    if (participationsError) {
+      console.error('Error fetching participations:', participationsError);
+      toast("Error checking existing conversations");
+      return false;
+    }
+
+    if (existingParticipations && existingParticipations.length > 0) {
+      // Get conversation IDs where current user is a participant
+      const conversationIds = existingParticipations.map(p => p.conversation_id);
+
+      // Check if the other user is in any of these conversations
+      const { data: sharedConversations, error: sharedError } = await supabase
+        .from("conversation_participants")
+        .select("conversation_id")
+        .eq("user_id", profileId)
+        .in("conversation_id", conversationIds);
+
+      if (sharedError) {
+        console.error('Error checking shared conversations:', sharedError);
+        toast("Error checking shared conversations");
+        return false;
+      }
+
+      // If shared conversation exists, use that
+      if (sharedConversations && sharedConversations.length > 0) {
+        console.log('Found existing conversation:', sharedConversations[0].conversation_id);
+        onMessage();
+        return true;
+      }
     }
     
-    return false;
+    console.log('No existing conversation found, creating new one');
+    
+    // Create new conversation if none exists
+    const { data: newConversation, error: conversationError } = await supabase
+      .from('conversations')
+      .insert([{ is_pinned: false, is_archived: false }])
+      .select()
+      .single();
+    
+    if (conversationError) {
+      console.error('Error creating conversation:', conversationError);
+      toast("Error creating new conversation");
+      return false;
+    }
+    
+    console.log('Created conversation with ID:', newConversation.id);
+    
+    // Add both participants at once
+    const { error: participantsError } = await supabase
+      .from('conversation_participants')
+      .insert([
+        { conversation_id: newConversation.id, user_id: currentUserId },
+        { conversation_id: newConversation.id, user_id: profileId }
+      ]);
+    
+    if (participantsError) {
+      console.error('Error adding participants:', participantsError);
+      toast("Error adding conversation participants");
+      return false;
+    }
+    
+    console.log('Added participants to conversation. Conversation setup complete!');
+    onMessage();
+    return true;
   } catch (error) {
     console.error('Error handling message action:', error);
     toast("Error processing the message action. Please try again later.");

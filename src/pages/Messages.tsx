@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/landing/Header";
 import { ConversationList } from "@/components/messages/ConversationList";
@@ -8,7 +8,10 @@ import { MessageInput } from "@/components/messages/MessageInput";
 import { ConversationHeader } from "@/components/messages/ConversationHeader";
 import { useMessages } from "@/hooks/useMessages";
 import { useSession } from "@/hooks/useSession";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { createNewConversation } from "@/services/profileMessagingService";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const Messages = () => {
   const { 
@@ -20,25 +23,101 @@ export const Messages = () => {
     loadingMessages, 
     setActiveConversation, 
     setNewMessage, 
-    sendMessage, 
+    sendMessage,
+    fetchConversations
   } = useMessages();
   
   const { userId } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const { currentUserId } = useSession();
+  const [initializing, setInitializing] = useState(false);
 
-  // Handle direct message from URL parameter
+  // Handle navigation state or URL parameter
   useEffect(() => {
-    if (userId && conversations.length > 0) {
-      // Find existing conversation with this user
+    if (!currentUserId) return;
+    
+    const otherUserId = location.state?.otherUserId || userId;
+    
+    if (otherUserId && conversations.length > 0 && !initializing) {
+      handleDirectMessage(otherUserId);
+    }
+  }, [userId, location.state, conversations, currentUserId, initializing]);
+
+  const handleDirectMessage = async (otherUserId: string) => {
+    if (!currentUserId) return;
+    
+    setInitializing(true);
+    console.log('Handling direct message with user:', otherUserId);
+    
+    try {
+      // Find existing conversation
       const existingConversation = conversations.find(c => 
-        c.otherParticipant && c.otherParticipant.id === userId
+        c.otherParticipant && c.otherParticipant.id === otherUserId
       );
       
       if (existingConversation) {
+        console.log('Found existing conversation:', existingConversation.id);
         setActiveConversation(existingConversation);
       } else {
-        // Create placeholder for new conversation
+        console.log('No existing conversation found, creating temporary placeholder');
+        
+        // First, attempt to check if a conversation already exists at the database level
+        // by querying both participants together
+        const { data: existingParticipations, error: participationsError } = await supabase
+          .from("conversation_participants")
+          .select("conversation_id")
+          .eq("user_id", currentUserId);
+        
+        if (participationsError) {
+          console.error('Error checking existing participations:', participationsError);
+          toast("Error checking existing conversations");
+          return;
+        }
+        
+        // If current user has any conversations
+        if (existingParticipations && existingParticipations.length > 0) {
+          const conversationIds = existingParticipations.map(p => p.conversation_id);
+          
+          // Check if other user is in any of those conversations
+          const { data: sharedConversations, error: sharedError } = await supabase
+            .from("conversation_participants")
+            .select("conversation_id")
+            .eq("user_id", otherUserId)
+            .in("conversation_id", conversationIds);
+          
+          if (sharedError) {
+            console.error('Error checking shared conversations:', sharedError);
+          } else if (sharedConversations && sharedConversations.length > 0) {
+            // Conversation exists but wasn't in our client-side list
+            // Refresh conversations to get the full data
+            console.log('Found conversation at database level, refreshing list');
+            await fetchConversations();
+            
+            // Find conversation in refreshed list
+            const refreshedList = conversations.find(c => 
+              c.id === sharedConversations[0].conversation_id
+            );
+            
+            if (refreshedList) {
+              setActiveConversation(refreshedList);
+              setInitializing(false);
+              return;
+            }
+          }
+        }
+        
+        // Get profile info for temp conversation
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('name, avatar_url')
+          .eq('id', otherUserId)
+          .single();
+          
+        const name = profileData?.name || "User";
+        const avatar_url = profileData?.avatar_url || null;
+        
+        // Create temporary conversation for UI
         const newConversationPlaceholder = {
           id: "",
           created_at: new Date().toISOString(),
@@ -46,19 +125,39 @@ export const Messages = () => {
           is_pinned: false,
           is_archived: false,
           otherParticipant: {
-            id: userId,
-            name: "New Conversation",
-            avatar_url: null
+            id: otherUserId,
+            name,
+            avatar_url
           },
           isTemporary: true
         };
+        
         setActiveConversation(newConversationPlaceholder);
+        
+        // Try to create actual conversation in background
+        createNewConversation(currentUserId, otherUserId)
+          .then(newConversationId => {
+            if (newConversationId) {
+              console.log('Created new conversation in background, refreshing data');
+              fetchConversations();
+            }
+          })
+          .catch(error => {
+            console.error('Error creating conversation in background:', error);
+          });
       }
-      
-      // Clear URL parameter after handling
-      navigate("/messages", { replace: true });
+    } catch (error) {
+      console.error('Error setting up conversation:', error);
+      toast("Error setting up conversation");
+    } finally {
+      // Clear navigation state
+      navigate('/messages', { 
+        state: {}, 
+        replace: true 
+      });
+      setInitializing(false);
     }
-  }, [userId, conversations, navigate, setActiveConversation]);
+  };
 
   const handleSendMessage = () => {
     if (activeConversation && activeConversation.otherParticipant && newMessage.trim()) {

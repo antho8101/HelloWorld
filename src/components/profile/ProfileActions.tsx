@@ -60,22 +60,19 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
 
     try {
       setIsMessageLoading(true);
-      const success = await handleMessageAction(currentUserId, profileId, onMessage);
       
-      if (success) {
-        navigate('/messages', { 
-          state: { 
-            otherUserId: profileId
-          },
-          replace: true 
+      // Direct navigation to messages page with state
+      navigate('/messages', { 
+        state: { 
+          otherUserId: profileId
+        }
+      });
+      
+      // Call handleMessageAction in background to create/fetch conversation
+      handleMessageAction(currentUserId, profileId, onMessage)
+        .catch(error => {
+          console.error('Background conversation creation error:', error);
         });
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to navigate to messages. Please try again later.",
-        });
-      }
     } catch (error) {
       console.error('Error handling message action:', error);
       toast({
