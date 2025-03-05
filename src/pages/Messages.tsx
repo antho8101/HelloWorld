@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import { ConversationList } from "@/components/messages/ConversationList";
 import { MessagePageContainer } from "@/components/messages/MessagePageContainer";
@@ -26,12 +26,13 @@ export const Messages = () => {
   const { userId } = useParams();
   const location = useLocation();
   const { currentUserId } = useSession();
+  const [hasError, setHasError] = useState(false);
   
   // Handle navigation state or URL parameter
   const otherUserId = location.state?.otherUserId || userId;
   
   // Use the direct message hook
-  useDirectMessage(
+  const { initializing, error } = useDirectMessage(
     otherUserId,
     currentUserId,
     conversations,
@@ -39,10 +40,24 @@ export const Messages = () => {
     fetchConversations
   );
 
+  // Update error state based on hook error
+  useEffect(() => {
+    if (error) {
+      setHasError(true);
+    } else {
+      setHasError(false);
+    }
+  }, [error]);
+
   const handleSendMessage = () => {
     if (activeConversation && activeConversation.otherParticipant && newMessage.trim()) {
       sendMessage(activeConversation.otherParticipant.id, newMessage);
     }
+  };
+
+  const handleRetry = () => {
+    setHasError(false);
+    fetchConversations();
   };
 
   return (
@@ -70,7 +85,10 @@ export const Messages = () => {
             handleSendMessage={handleSendMessage}
           />
         ) : (
-          <EmptyConversation />
+          <EmptyConversation 
+            hasError={hasError} 
+            onRetry={handleRetry} 
+          />
         )}
       </div>
     </MessagePageContainer>

@@ -16,100 +16,94 @@ export const handleMessageAction = async (
   try {
     console.log('Starting message action between', currentUserId, 'and', profileId);
 
-    // First check if a conversation already exists between these users
-    const { data: existingParticipations, error: participationsError } = await supabase
-      .from("conversation_participants")
-      .select("conversation_id")
-      .eq("user_id", currentUserId);
+    // Approche simplifiée pour vérifier les conversations existantes
+    const { data: existingConversations, error: existingError } = await supabase
+      .from("conversations")
+      .select("id")
+      .in("id", (
+        // Sous-requête pour trouver les conversations où currentUserId participe
+        supabase
+          .from("conversation_participants")
+          .select("conversation_id")
+          .eq("user_id", currentUserId)
+      ))
+      .in("id", (
+        // Sous-requête pour trouver les conversations où profileId participe
+        supabase
+          .from("conversation_participants")
+          .select("conversation_id")
+          .eq("user_id", profileId)
+      ));
 
-    if (participationsError) {
-      console.error('Error fetching participations:', participationsError);
-      toast("Error checking existing conversations");
+    if (existingError) {
+      console.error('Error checking existing conversations:', existingError);
+      // Continuons malgré l'erreur et essayons de créer une nouvelle conversation
+    } else if (existingConversations && existingConversations.length > 0) {
+      // Une conversation existe déjà entre ces utilisateurs
+      console.log('Found existing conversation:', existingConversations[0].id);
+      onMessage();
+      return true;
+    }
+
+    // Pas de conversation existante, créons-en une nouvelle
+    console.log('Creating a new conversation...');
+    
+    // Créer une nouvelle conversation
+    const { data: newConversation, error: conversationError } = await supabase
+      .from('conversations')
+      .insert([{ is_pinned: false, is_archived: false }])
+      .select();
+    
+    if (conversationError) {
+      console.error('Error creating conversation:', conversationError);
+      toast("Error creating new conversation");
       return false;
     }
 
-    let existingConversationId = null;
-
-    if (existingParticipations && existingParticipations.length > 0) {
-      // Get conversation IDs where current user is a participant
-      const conversationIds = existingParticipations.map(p => p.conversation_id);
-
-      // Check if the other user is in any of these conversations
-      const { data: sharedConversations, error: sharedError } = await supabase
-        .from("conversation_participants")
-        .select("conversation_id")
-        .eq("user_id", profileId)
-        .in("conversation_id", conversationIds);
-
-      if (sharedError) {
-        console.error('Error checking shared conversations:', sharedError);
-        // Don't fail here, just log the error and continue
-        console.log('Continuing with conversation creation despite error');
-      } else if (sharedConversations && sharedConversations.length > 0) {
-        // If shared conversation exists, use that
-        console.log('Found existing conversation:', sharedConversations[0].conversation_id);
-        existingConversationId = sharedConversations[0].conversation_id;
-        onMessage();
-        return true;
-      }
+    if (!newConversation || newConversation.length === 0) {
+      console.error('No conversation was created');
+      toast("Error creating new conversation - no data returned");
+      return false;
     }
     
-    if (!existingConversationId) {
-      console.log('No existing conversation found, creating new one');
-      
-      // Create new conversation if none exists
-      const { data: newConversation, error: conversationError } = await supabase
-        .from('conversations')
-        .insert([{ is_pinned: false, is_archived: false }])
-        .select();
-      
-      if (conversationError) {
-        console.error('Error creating conversation:', conversationError);
-        toast("Error creating new conversation");
-        return false;
-      }
-
-      if (!newConversation || newConversation.length === 0) {
-        console.error('No conversation was created');
-        toast("Error creating new conversation - no data returned");
-        return false;
-      }
-      
-      console.log('Created conversation with ID:', newConversation[0].id);
-      
-      // Add both participants one by one to avoid potential errors
-      const participantsPromises = [
-        supabase.from('conversation_participants').insert({ 
+    console.log('Created conversation with ID:', newConversation[0].id);
+    
+    // Ajouter les participants un par un avec gestion d'erreur robuste
+    try {
+      const currentUserResult = await supabase
+        .from('conversation_participants')
+        .insert({ 
           conversation_id: newConversation[0].id, 
           user_id: currentUserId 
-        }),
-        supabase.from('conversation_participants').insert({ 
-          conversation_id: newConversation[0].id, 
-          user_id: profileId 
-        })
-      ];
+        });
       
-      try {
-        const results = await Promise.all(participantsPromises);
-        const errors = results.filter(r => r.error).map(r => r.error);
-        
-        if (errors.length > 0) {
-          console.error('Error adding some participants:', errors);
-          toast("Warning: Not all participants may have been added");
-          // Continue anyway as we might have partial success
-        }
-        
-        console.log('Added participants to conversation. Conversation setup complete!');
-        onMessage();
-        return true;
-      } catch (participantsError) {
-        console.error('Error in adding participants:', participantsError);
-        toast("Error adding conversation participants");
+      if (currentUserResult.error) {
+        console.error('Error adding current user to conversation:', currentUserResult.error);
+        toast("Error adding you to the conversation");
         return false;
       }
+      
+      const otherUserResult = await supabase
+        .from('conversation_participants')
+        .insert({ 
+          conversation_id: newConversation[0].id, 
+          user_id: profileId 
+        });
+      
+      if (otherUserResult.error) {
+        console.error('Error adding other user to conversation:', otherUserResult.error);
+        toast("Error adding other user to the conversation");
+        // Essayons quand même de continuer car l'utilisateur actuel est déjà ajouté
+      }
+      
+      console.log('Participants added successfully. Conversation setup complete!');
+      onMessage();
+      return true;
+    } catch (participantsError) {
+      console.error('Error in adding participants:', participantsError);
+      toast("Error adding conversation participants");
+      return false;
     }
-    
-    return true;
   } catch (error) {
     console.error('Error handling message action:', error);
     toast("Error processing the message action. Please try again later.");
@@ -124,11 +118,12 @@ export const createNewConversation = async (
   try {
     console.log('Creating new conversation between', currentUserId, 'and', profileId);
     
-    // 1. Create new conversation
+    // 1. Créer une nouvelle conversation
     const { data: newConversation, error: conversationError } = await supabase
       .from('conversations')
       .insert([{ is_pinned: false, is_archived: false }])
-      .select();
+      .select()
+      .single();
     
     if (conversationError) {
       console.error('Error creating conversation:', conversationError);
@@ -136,37 +131,46 @@ export const createNewConversation = async (
       return null;
     }
 
-    if (!newConversation || newConversation.length === 0) {
+    if (!newConversation) {
       console.error('No conversation was created');
       toast("Error creating new conversation - no data returned");
       return null;
     }
     
-    console.log('Created conversation with ID:', newConversation[0].id);
+    console.log('Created conversation with ID:', newConversation.id);
     
-    // 2. Add participants separately to avoid potential RLS issues
-    const participantsPromises = [
-      supabase.from('conversation_participants').insert({ 
-        conversation_id: newConversation[0].id, 
-        user_id: currentUserId 
-      }),
-      supabase.from('conversation_participants').insert({ 
-        conversation_id: newConversation[0].id, 
-        user_id: profileId 
-      })
-    ];
-    
+    // 2. Ajouter les participants séparément avec une meilleure gestion d'erreur
     try {
-      const results = await Promise.all(participantsPromises);
-      const errors = results.filter(r => r.error).map(r => r.error);
+      // Ajouter l'utilisateur actuel
+      const currentUserResult = await supabase
+        .from('conversation_participants')
+        .insert({ 
+          conversation_id: newConversation.id, 
+          user_id: currentUserId 
+        });
       
-      if (errors.length > 0) {
-        console.error('Error adding some participants:', errors);
-        // Continue anyway, we might have partial success
+      if (currentUserResult.error) {
+        console.error('Error adding current user to conversation:', currentUserResult.error);
+        toast("Error adding you to the conversation");
+        return null;
+      }
+      
+      // Ajouter l'autre utilisateur
+      const otherUserResult = await supabase
+        .from('conversation_participants')
+        .insert({ 
+          conversation_id: newConversation.id, 
+          user_id: profileId 
+        });
+      
+      if (otherUserResult.error) {
+        console.error('Error adding other user to conversation:', otherUserResult.error);
+        toast("Error adding other user to the conversation");
+        return null;
       }
       
       console.log('Added all participants to conversation. Conversation setup complete!');
-      return newConversation[0].id;
+      return newConversation.id;
     } catch (participantsError) {
       console.error('Error in participant creation:', participantsError);
       toast("Error adding conversation participants");

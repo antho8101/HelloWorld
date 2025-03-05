@@ -14,6 +14,7 @@ export const useDirectMessage = (
   fetchConversations: () => Promise<void>
 ) => {
   const [initializing, setInitializing] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,6 +27,7 @@ export const useDirectMessage = (
     if (!currentUserId) return;
     
     setInitializing(true);
+    setError(null);
     console.log('Handling direct message with user:', otherUserId);
     
     try {
@@ -40,57 +42,17 @@ export const useDirectMessage = (
       } else {
         console.log('No existing conversation found, creating temporary placeholder');
         
-        // First, attempt to check if a conversation already exists at the database level
-        // by querying both participants together
-        const { data: existingParticipations, error: participationsError } = await supabase
-          .from("conversation_participants")
-          .select("conversation_id")
-          .eq("user_id", currentUserId);
-        
-        if (participationsError) {
-          console.error('Error checking existing participations:', participationsError);
-          toast("Error checking existing conversations");
-          return;
-        }
-        
-        // If current user has any conversations
-        if (existingParticipations && existingParticipations.length > 0) {
-          const conversationIds = existingParticipations.map(p => p.conversation_id);
-          
-          // Check if other user is in any of those conversations
-          const { data: sharedConversations, error: sharedError } = await supabase
-            .from("conversation_participants")
-            .select("conversation_id")
-            .eq("user_id", otherUserId)
-            .in("conversation_id", conversationIds);
-          
-          if (sharedError) {
-            console.error('Error checking shared conversations:', sharedError);
-          } else if (sharedConversations && sharedConversations.length > 0) {
-            // Conversation exists but wasn't in our client-side list
-            // Refresh conversations to get the full data
-            console.log('Found conversation at database level, refreshing list');
-            await fetchConversations();
-            
-            // Find conversation in refreshed list
-            const refreshedList = conversations.find(c => 
-              c.id === sharedConversations[0].conversation_id
-            );
-            
-            if (refreshedList) {
-              setActiveConversation(refreshedList);
-              setInitializing(false);
-              return;
-            }
-          }
-        }
-        
         // Get profile info for temp conversation
-        const { data: profileData } = await supabase
+        const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('name, avatar_url, age, country')
           .eq('id', otherUserId)
-          .single();
+          .maybeSingle();
+          
+        if (profileError) {
+          console.error('Error fetching profile data:', profileError);
+          throw new Error('Could not load user profile information');
+        }
           
         const name = profileData?.name || "User";
         const avatar_url = profileData?.avatar_url || null;
@@ -117,20 +79,26 @@ export const useDirectMessage = (
         setActiveConversation(newConversationPlaceholder);
         
         // Try to create actual conversation in background
-        createNewConversation(currentUserId, otherUserId)
-          .then(newConversationId => {
-            if (newConversationId) {
-              console.log('Created new conversation in background, refreshing data');
-              fetchConversations();
-            }
-          })
-          .catch(error => {
-            console.error('Error creating conversation in background:', error);
-          });
+        try {
+          const newConversationId = await createNewConversation(currentUserId, otherUserId);
+          
+          if (newConversationId) {
+            console.log('Created new conversation in background, refreshing data');
+            await fetchConversations();
+          } else {
+            throw new Error('Failed to create conversation');
+          }
+        } catch (convError) {
+          console.error('Error creating conversation in background:', convError);
+          // We still show the placeholder, but we'll track the error
+          setError(convError instanceof Error ? convError : new Error('Unknown error creating conversation'));
+          // Don't throw here, we want to continue with the placeholder
+        }
       }
     } catch (error) {
       console.error('Error setting up conversation:', error);
       toast("Error setting up conversation");
+      setError(error instanceof Error ? error : new Error('Unknown error setting up conversation'));
     } finally {
       // Clear navigation state
       navigate('/messages', { 
@@ -141,5 +109,5 @@ export const useDirectMessage = (
     }
   };
 
-  return { initializing };
+  return { initializing, error };
 };
