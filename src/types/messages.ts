@@ -3,6 +3,9 @@ export interface ConversationParticipant {
   id: string;
   name: string | null;
   avatar_url: string | null;
+  age?: number | null;
+  country?: string | null;
+  is_online?: boolean;
 }
 
 export interface Conversation {

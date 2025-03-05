@@ -56,13 +56,26 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                       </span>
                     )}
                   </div>
+                  {conversation.otherParticipant?.is_online && (
+                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">
-                    {conversation.otherParticipant?.name || "Unknown User"}
-                  </p>
+                  <div className="flex justify-between items-start">
+                    <p className="font-medium truncate">
+                      {conversation.otherParticipant?.name || "Unknown User"}
+                    </p>
+                    {conversation.otherParticipant?.age && (
+                      <span className="text-xs text-gray-500 ml-1">{conversation.otherParticipant.age}</span>
+                    )}
+                  </div>
+                  {conversation.otherParticipant?.country && (
+                    <p className="text-xs text-gray-500 truncate">
+                      {conversation.otherParticipant.country}
+                    </p>
+                  )}
                   <p className="text-sm text-gray-500 truncate">
-                    {conversation.isTemporary ? "New conversation" : "Click to view messages"}
+                    {conversation.latest_message || (conversation.isTemporary ? "New conversation" : "Click to view messages")}
                   </p>
                 </div>
               </div>

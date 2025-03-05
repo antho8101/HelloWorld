@@ -110,12 +110,14 @@ export const Messages = () => {
         // Get profile info for temp conversation
         const { data: profileData } = await supabase
           .from('profiles')
-          .select('name, avatar_url')
+          .select('name, avatar_url, age, country')
           .eq('id', otherUserId)
           .single();
           
         const name = profileData?.name || "User";
         const avatar_url = profileData?.avatar_url || null;
+        const age = profileData?.age || null;
+        const country = profileData?.country || null;
         
         // Create temporary conversation for UI
         const newConversationPlaceholder = {
@@ -127,7 +129,9 @@ export const Messages = () => {
           otherParticipant: {
             id: otherUserId,
             name,
-            avatar_url
+            avatar_url,
+            age,
+            country
           },
           isTemporary: true
         };
@@ -190,6 +194,8 @@ export const Messages = () => {
                       name={activeConversation.otherParticipant?.name || "Unknown"}
                       avatar={activeConversation.otherParticipant?.avatar_url}
                       isOnline={Math.random() > 0.5} // Mocked online status for demo
+                      age={activeConversation.otherParticipant?.age}
+                      country={activeConversation.otherParticipant?.country}
                     />
                     
                     <MessageList 

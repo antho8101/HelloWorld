@@ -35,6 +35,8 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
             id,
             name,
             avatar_url,
+            age,
+            country,
             last_seen
           )
         )
@@ -50,6 +52,8 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
       let otherParticipantId = null;
       let otherParticipantName = null;
       let otherParticipantAvatar = null;
+      let otherParticipantAge = null;
+      let otherParticipantCountry = null;
       let latestMessageContent = null;
       let latestMessageTime = null;
 
@@ -69,13 +73,18 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
             otherParticipantId = 'id' in userData ? userData.id : null;
             otherParticipantName = 'name' in userData ? userData.name : null;
             otherParticipantAvatar = 'avatar_url' in userData ? userData.avatar_url : null;
+            otherParticipantAge = 'age' in userData ? userData.age : null;
+            otherParticipantCountry = 'country' in userData ? userData.country : null;
             
             // Create participant object only if we have an ID
             if (otherParticipantId) {
               otherParticipant = { 
                 id: otherParticipantId, 
                 name: otherParticipantName, 
-                avatar_url: otherParticipantAvatar 
+                avatar_url: otherParticipantAvatar,
+                age: otherParticipantAge,
+                country: otherParticipantCountry,
+                is_online: false // Will be updated by the online status hook
               };
             }
           }
