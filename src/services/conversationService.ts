@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import type { Conversation } from "@/types/messages";
 
 export const fetchConversations = async (userId: string): Promise<Conversation[]> => {
@@ -144,63 +145,63 @@ export const createConversation = async (
   try {
     console.log(`Creating conversation between users: ${currentUserId} and ${otherUserId}`);
     
-    // Create a new conversation
+    // Create a new conversation first
     const { data: newConversation, error: conversationError } = await supabase
       .from("conversations")
-      .insert([{ is_pinned: false, is_archived: false }])
-      .select();
+      .insert([{}])
+      .select()
+      .single();
 
     if (conversationError) {
       console.error("Error creating conversation:", conversationError);
-      throw conversationError;
-    }
-
-    if (!newConversation || newConversation.length === 0) {
-      console.error("No conversation was created (empty response)");
+      toast.error("Error creating conversation");
       return null;
     }
 
-    console.log("Created new conversation with ID:", newConversation[0].id);
+    if (!newConversation) {
+      console.error("No conversation was created (empty response)");
+      toast.error("Error creating conversation - no data returned");
+      return null;
+    }
+
+    console.log("Created new conversation with ID:", newConversation.id);
 
     // Add participants one by one for better error handling
-    try {
-      // Add current user as participant
-      const { error: currentUserError } = await supabase
-        .from("conversation_participants")
-        .insert([{ 
-          conversation_id: newConversation[0].id, 
-          user_id: currentUserId 
-        }]);
+    const { error: currentUserError } = await supabase
+      .from("conversation_participants")
+      .insert({ 
+        conversation_id: newConversation.id, 
+        user_id: currentUserId 
+      });
 
-      if (currentUserError) {
-        console.error("Error adding current user as participant:", currentUserError);
-        throw currentUserError;
-      }
-
-      console.log(`Added current user ${currentUserId} as participant`);
-
-      // Add other user as participant
-      const { error: otherUserError } = await supabase
-        .from("conversation_participants")
-        .insert([{ 
-          conversation_id: newConversation[0].id, 
-          user_id: otherUserId 
-        }]);
-
-      if (otherUserError) {
-        console.error("Error adding other user as participant:", otherUserError);
-        throw otherUserError;
-      }
-
-      console.log(`Added other user ${otherUserId} as participant`);
-
-      return newConversation[0].id;
-    } catch (participantError) {
-      console.error("Error adding participants:", participantError);
+    if (currentUserError) {
+      console.error("Error adding current user as participant:", currentUserError);
+      toast.error("Error adding you to the conversation");
       return null;
     }
+
+    console.log(`Added current user ${currentUserId} as participant`);
+
+    const { error: otherUserError } = await supabase
+      .from("conversation_participants")
+      .insert({ 
+        conversation_id: newConversation.id, 
+        user_id: otherUserId 
+      });
+
+    if (otherUserError) {
+      console.error("Error adding other user as participant:", otherUserError);
+      toast.error("Error adding other user to the conversation");
+      return null;
+    }
+
+    console.log(`Added other user ${otherUserId} as participant`);
+    console.log("Conversation creation completed successfully");
+    
+    return newConversation.id;
   } catch (error) {
-    console.error("Error creating conversation:", error);
+    console.error("Error in createConversation:", error);
+    toast.error("Error creating the conversation");
     return null;
   }
 };
