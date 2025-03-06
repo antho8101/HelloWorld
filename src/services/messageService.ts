@@ -1,8 +1,7 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Message } from "@/types/messages";
-import { updateConversationTimestamp } from "./conversationService";
+import { updateConversationTimestamp } from "@/services/conversation";
 
 interface MessagePayload {
   content: string;

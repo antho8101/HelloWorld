@@ -4,9 +4,9 @@ import { useSession } from "@/hooks/useSession";
 import { toast } from "sonner";
 import type { Conversation, Message } from "@/types/messages";
 import { 
-  fetchConversations as fetchConversationsService,
+  fetchConversations,
   createConversation
-} from "@/services/conversationService";
+} from "@/services/conversation";
 import {
   fetchMessages as fetchMessagesService,
   sendMessage as sendMessageService
