@@ -56,13 +56,18 @@ export const useMessages = () => {
   };
 
   const sendMessage = async (receiverId: string, content: string) => {
-    if (!currentUserId || !content.trim()) return;
+    if (!currentUserId || !content.trim()) {
+      console.log("Missing user ID or empty message");
+      return;
+    }
 
     try {
+      console.log("Sending message to receiver:", receiverId);
       let conversationId = activeConversation?.id;
 
-      // If no active conversation, create a new one
-      if (!conversationId) {
+      // Si la conversation est temporaire ou n'a pas d'ID, on doit en créer une nouvelle
+      if (!conversationId || activeConversation?.isTemporary) {
+        console.log("Creating new conversation for message");
         // Create a new conversation
         const newConversationId = await createConversation(currentUserId, receiverId);
         
@@ -71,6 +76,7 @@ export const useMessages = () => {
         }
         
         conversationId = newConversationId;
+        console.log("New conversation created with ID:", conversationId);
       }
 
       // Send the message
@@ -80,14 +86,18 @@ export const useMessages = () => {
         sender_id: currentUserId
       };
 
+      console.log("Sending message with data:", messageData);
       const success = await sendMessageService(messageData);
 
       if (!success) {
         throw new Error("Failed to send message");
       }
 
+      console.log("Message sent successfully, refreshing data");
+      
       // Refresh conversations and messages
       await fetchConversations();
+      
       if (conversationId) {
         await fetchMessages(conversationId);
       }
@@ -97,6 +107,7 @@ export const useMessages = () => {
     } catch (error) {
       console.error("Error sending message:", error);
       toast("Error sending message");
+      throw error; // Propagate the error for handling in the component
     }
   };
 

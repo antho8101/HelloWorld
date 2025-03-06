@@ -2,7 +2,6 @@
 import React from "react";
 import { MessageList } from "@/components/messages/MessageList";
 import { MessageInput } from "@/components/messages/MessageInput";
-import { ConversationHeader } from "@/components/messages/ConversationHeader";
 import { Conversation, Message } from "@/types/messages";
 
 interface ActiveConversationProps {
@@ -26,14 +25,6 @@ export const ActiveConversation: React.FC<ActiveConversationProps> = ({
 }) => {
   return (
     <>
-      <ConversationHeader 
-        name={conversation.otherParticipant?.name || "Unknown"}
-        avatar={conversation.otherParticipant?.avatar_url}
-        isOnline={conversation.otherParticipant?.is_online || false}
-        age={conversation.otherParticipant?.age}
-        country={conversation.otherParticipant?.country}
-      />
-      
       <MessageList 
         messages={messages}
         loading={loadingMessages}
@@ -41,6 +32,7 @@ export const ActiveConversation: React.FC<ActiveConversationProps> = ({
         currentConversationId={conversation.id}
         showNewConversationBanner={conversation.isTemporary}
         isLoadingMessages={loadingMessages}
+        otherParticipant={conversation.otherParticipant}
       />
       
       <MessageInput 

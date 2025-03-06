@@ -2,6 +2,7 @@
 import React from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Conversation } from "@/types/messages";
+import { ChatCircle } from "@phosphor-icons/react";
 
 interface ConversationListProps {
   conversations: Conversation[];
@@ -26,7 +27,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
 
   return (
     <div className="h-full">
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-4 border-b border-gray-200 flex items-center">
         <h2 className="text-lg font-semibold">Messages</h2>
       </div>
       <ScrollArea className="h-[calc(100vh-250px)]">

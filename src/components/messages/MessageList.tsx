@@ -2,7 +2,7 @@
 import React, { useRef, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChatCircle, Chats } from "@phosphor-icons/react";
-import type { Message } from "@/types/messages";
+import type { Message, ConversationParticipant } from "@/types/messages";
 
 interface MessageListProps {
   messages: Message[];
@@ -11,6 +11,7 @@ interface MessageListProps {
   currentConversationId?: string | null;
   showNewConversationBanner?: boolean;
   isLoadingMessages?: boolean;
+  otherParticipant?: ConversationParticipant | null;
 }
 
 export const MessageList: React.FC<MessageListProps> = ({
@@ -19,7 +20,8 @@ export const MessageList: React.FC<MessageListProps> = ({
   currentUserId,
   currentConversationId,
   showNewConversationBanner,
-  isLoadingMessages
+  isLoadingMessages,
+  otherParticipant
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 

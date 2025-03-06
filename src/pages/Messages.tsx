@@ -49,9 +49,23 @@ export const Messages = () => {
     }
   }, [error]);
 
-  const handleSendMessage = () => {
-    if (activeConversation && activeConversation.otherParticipant && newMessage.trim()) {
-      sendMessage(activeConversation.otherParticipant.id, newMessage);
+  const handleSendMessage = async () => {
+    if (newMessage.trim() === '') return;
+    
+    try {
+      if (activeConversation) {
+        const receiverId = activeConversation.otherParticipant?.id;
+        if (!receiverId) {
+          console.error("No recipient found for message");
+          return;
+        }
+        
+        await sendMessage(receiverId, newMessage);
+        console.log("Message sent successfully");
+      }
+    } catch (error) {
+      console.error("Error in handleSendMessage:", error);
+      setHasError(true);
     }
   };
 
