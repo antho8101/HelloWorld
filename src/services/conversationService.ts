@@ -4,18 +4,27 @@ import type { Conversation } from "@/types/messages";
 
 export const fetchConversations = async (userId: string): Promise<Conversation[]> => {
   try {
+    console.log("Fetching conversations for user ID:", userId);
+    
     const { data: participations, error: participationsError } = await supabase
       .from("conversation_participants")
       .select("conversation_id")
       .eq("user_id", userId);
 
-    if (participationsError) throw participationsError;
+    if (participationsError) {
+      console.error("Error fetching conversation participations:", participationsError);
+      throw participationsError;
+    }
+
+    console.log("Fetched participations:", participations ? participations.length : 0);
 
     if (!participations || participations.length === 0) {
+      console.log("No conversations found for user");
       return [];
     }
 
     const conversationIds = participations.map(p => p.conversation_id);
+    console.log("Conversation IDs to fetch:", conversationIds);
 
     const { data: conversations, error: conversationsError } = await supabase
       .from("conversations")
@@ -44,7 +53,12 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
       .in("id", conversationIds)
       .order("updated_at", { ascending: false });
 
-    if (conversationsError) throw conversationsError;
+    if (conversationsError) {
+      console.error("Error fetching conversations:", conversationsError);
+      throw conversationsError;
+    }
+
+    console.log("Fetched conversations data:", conversations ? conversations.length : 0);
 
     return (conversations || []).map(convo => {
       // Initialize with default values
@@ -128,26 +142,63 @@ export const createConversation = async (
   otherUserId: string
 ): Promise<string | null> => {
   try {
+    console.log(`Creating conversation between users: ${currentUserId} and ${otherUserId}`);
+    
     // Create a new conversation
     const { data: newConversation, error: conversationError } = await supabase
       .from("conversations")
       .insert([{ is_pinned: false, is_archived: false }])
-      .select()
-      .single();
+      .select();
 
-    if (conversationError) throw conversationError;
+    if (conversationError) {
+      console.error("Error creating conversation:", conversationError);
+      throw conversationError;
+    }
 
-    // Add both users as participants
-    const { error: participantsError } = await supabase
-      .from("conversation_participants")
-      .insert([
-        { conversation_id: newConversation.id, user_id: currentUserId },
-        { conversation_id: newConversation.id, user_id: otherUserId },
-      ]);
+    if (!newConversation || newConversation.length === 0) {
+      console.error("No conversation was created (empty response)");
+      return null;
+    }
 
-    if (participantsError) throw participantsError;
+    console.log("Created new conversation with ID:", newConversation[0].id);
 
-    return newConversation.id;
+    // Add participants one by one for better error handling
+    try {
+      // Add current user as participant
+      const { error: currentUserError } = await supabase
+        .from("conversation_participants")
+        .insert([{ 
+          conversation_id: newConversation[0].id, 
+          user_id: currentUserId 
+        }]);
+
+      if (currentUserError) {
+        console.error("Error adding current user as participant:", currentUserError);
+        throw currentUserError;
+      }
+
+      console.log(`Added current user ${currentUserId} as participant`);
+
+      // Add other user as participant
+      const { error: otherUserError } = await supabase
+        .from("conversation_participants")
+        .insert([{ 
+          conversation_id: newConversation[0].id, 
+          user_id: otherUserId 
+        }]);
+
+      if (otherUserError) {
+        console.error("Error adding other user as participant:", otherUserError);
+        throw otherUserError;
+      }
+
+      console.log(`Added other user ${otherUserId} as participant`);
+
+      return newConversation[0].id;
+    } catch (participantError) {
+      console.error("Error adding participants:", participantError);
+      return null;
+    }
   } catch (error) {
     console.error("Error creating conversation:", error);
     return null;

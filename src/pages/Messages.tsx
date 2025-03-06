@@ -8,6 +8,7 @@ import { EmptyConversation } from "@/components/messages/EmptyConversation";
 import { useMessages } from "@/hooks/useMessages";
 import { useSession } from "@/hooks/useSession";
 import { useDirectMessage } from "@/hooks/useDirectMessage";
+import { toast } from "sonner";
 
 export const Messages = () => {
   const { 
@@ -27,6 +28,7 @@ export const Messages = () => {
   const location = useLocation();
   const { currentUserId } = useSession();
   const [hasError, setHasError] = useState(false);
+  const [sending, setSending] = useState(false);
   
   // Handle navigation state or URL parameter
   const otherUserId = location.state?.otherUserId || userId;
@@ -50,22 +52,31 @@ export const Messages = () => {
   }, [error]);
 
   const handleSendMessage = async () => {
-    if (newMessage.trim() === '') return;
+    if (newMessage.trim() === '') {
+      toast.info("Please enter a message");
+      return;
+    }
     
     try {
+      setSending(true);
       if (activeConversation) {
         const receiverId = activeConversation.otherParticipant?.id;
         if (!receiverId) {
           console.error("No recipient found for message");
+          toast.error("No recipient found for message");
           return;
         }
         
+        console.log("Sending message to:", receiverId, "Content:", newMessage);
         await sendMessage(receiverId, newMessage);
         console.log("Message sent successfully");
       }
     } catch (error) {
       console.error("Error in handleSendMessage:", error);
       setHasError(true);
+      toast.error("Error sending message. Please try again.");
+    } finally {
+      setSending(false);
     }
   };
 
@@ -97,6 +108,7 @@ export const Messages = () => {
             loadingMessages={loadingMessages}
             setNewMessage={setNewMessage}
             handleSendMessage={handleSendMessage}
+            sending={sending}
           />
         ) : (
           <EmptyConversation 

@@ -10,6 +10,7 @@ interface ActiveConversationProps {
   newMessage: string;
   currentUserId: string | null;
   loadingMessages: boolean;
+  sending?: boolean;
   setNewMessage: (message: string) => void;
   handleSendMessage: () => void;
 }
@@ -20,6 +21,7 @@ export const ActiveConversation: React.FC<ActiveConversationProps> = ({
   newMessage,
   currentUserId,
   loadingMessages,
+  sending = false,
   setNewMessage,
   handleSendMessage
 }) => {
@@ -39,6 +41,8 @@ export const ActiveConversation: React.FC<ActiveConversationProps> = ({
         value={newMessage}
         onChange={setNewMessage}
         onSend={handleSendMessage}
+        disabled={sending}
+        isLoading={sending}
       />
     </>
   );
