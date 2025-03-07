@@ -9,7 +9,31 @@ export const createConversation = async (
   try {
     console.log(`Creating conversation between users: ${currentUserId} and ${otherUserId}`);
     
-    // Create a new conversation first
+    // First, check if there's already a conversation between these users
+    const { data: existingParticipations, error: existingError } = await supabase
+      .from("conversation_participants")
+      .select("conversation_id")
+      .eq("user_id", currentUserId);
+      
+    if (!existingError && existingParticipations && existingParticipations.length > 0) {
+      // Get conversation IDs where current user is a participant
+      const conversationIds = existingParticipations.map(p => p.conversation_id);
+      
+      // Find conversations where the other user is also a participant
+      const { data: sharedConversations, error: sharedError } = await supabase
+        .from("conversation_participants")
+        .select("conversation_id")
+        .in("conversation_id", conversationIds)
+        .eq("user_id", otherUserId);
+        
+      if (!sharedError && sharedConversations && sharedConversations.length > 0) {
+        // We found an existing conversation between these users
+        console.log("Found existing conversation:", sharedConversations[0].conversation_id);
+        return sharedConversations[0].conversation_id;
+      }
+    }
+    
+    // No existing conversation found, create a new one
     const { data: newConversation, error: conversationError } = await supabase
       .from("conversations")
       .insert([{}])

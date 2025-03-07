@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Conversation } from "@/types/messages";
@@ -51,9 +50,11 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
 
     console.log("Fetched conversations data:", conversations ? conversations.length : 0);
 
-    // Now get participants separately for each conversation
+    // Map to track other participants by user ID to avoid duplicates
+    const otherParticipantsMap = new Map();
     const result: Conversation[] = [];
     
+    // First, collect all other participants for each conversation
     for (const convo of conversations || []) {
       // Get all participants for this conversation
       const { data: participants, error: participantsError } = await supabase
@@ -73,15 +74,32 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
         continue;
       }
       
+      const otherUserId = otherParticipantData.user_id;
+      
+      // If we already have a conversation with this user, check which one is more recent
+      if (otherParticipantsMap.has(otherUserId)) {
+        const existingConvo = otherParticipantsMap.get(otherUserId);
+        // Keep the more recent conversation
+        if (new Date(convo.updated_at) > new Date(existingConvo.updated_at)) {
+          otherParticipantsMap.set(otherUserId, convo);
+        }
+      } else {
+        // This is the first conversation we've found with this user
+        otherParticipantsMap.set(otherUserId, convo);
+      }
+    }
+    
+    // Now process the unique conversations (one per other user)
+    for (const [otherUserId, convo] of otherParticipantsMap.entries()) {
       // Get profile data for the other participant
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("id, name, avatar_url, age, country")
-        .eq("id", otherParticipantData.user_id)
+        .eq("id", otherUserId)
         .maybeSingle();
         
       if (profileError) {
-        console.error(`Error fetching profile for user ${otherParticipantData.user_id}:`, profileError);
+        console.error(`Error fetching profile for user ${otherUserId}:`, profileError);
         continue;
       }
       
