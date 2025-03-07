@@ -87,17 +87,23 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
 
 export const sendMessage = async (
   messageData: MessagePayload
-): Promise<boolean> => {
+): Promise<Message | null> => {
   try {
     console.log('Sending message to conversation:', messageData.conversation_id);
     
-    const { error: messageError } = await supabase
+    const { data, error: messageError } = await supabase
       .from("messages")
-      .insert(messageData);
+      .insert(messageData)
+      .select('id, content, created_at, sender_id')
+      .single();
 
     if (messageError) {
       console.error('Error sending message:', messageError);
       throw messageError;
+    }
+
+    if (!data) {
+      throw new Error('No data returned from message insertion');
     }
 
     console.log('Message sent successfully to conversation:', messageData.conversation_id);
@@ -105,10 +111,25 @@ export const sendMessage = async (
     // Update the timestamp on the conversation
     await updateConversationTimestamp(messageData.conversation_id);
 
-    return true;
+    // Get sender profile information
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("name, avatar_url")
+      .eq("id", messageData.sender_id)
+      .single();
+
+    // Return the complete message object
+    return {
+      id: data.id,
+      content: data.content,
+      created_at: data.created_at,
+      sender_id: data.sender_id,
+      sender_name: profileData?.name || null,
+      sender_avatar: profileData?.avatar_url || null
+    };
   } catch (error) {
     console.error("Error sending message:", error);
-    toast("Error sending message");
-    return false;
+    toast.error("Error sending message");
+    return null;
   }
 };

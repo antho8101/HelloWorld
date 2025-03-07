@@ -20,6 +20,7 @@ export const useMessages = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     if (currentUserId) {
@@ -62,10 +63,11 @@ export const useMessages = () => {
   const sendMessage = async (receiverId: string, content: string) => {
     if (!currentUserId || !content.trim()) {
       console.log("Missing user ID or empty message");
-      return;
+      return false;
     }
 
     try {
+      setSending(true);
       console.log("Sending message to receiver:", receiverId);
       let conversationId = activeConversation?.id;
 
@@ -93,30 +95,27 @@ export const useMessages = () => {
       };
 
       console.log("Sending message with data:", messageData);
-      const success = await sendMessageService(messageData);
+      const sentMessage = await sendMessageService(messageData);
 
-      if (!success) {
+      if (!sentMessage) {
         console.error("Failed to send message - API returned failure");
         throw new Error("Failed to send message");
       }
 
-      console.log("Message sent successfully, refreshing data");
+      console.log("Message sent successfully");
       
-      // Refresh conversations and messages
-      await fetchConversations();
+      // Add the new message to the list without a full refresh
+      setMessages(prevMessages => [...prevMessages, sentMessage]);
       
-      if (conversationId) {
+      // If this is a new conversation, we need to refresh the conversation list
+      if (!activeConversation?.id || activeConversation?.isTemporary) {
+        await fetchConversations();
+        
         // Find the newly created conversation in the updated list
-        const updatedConversation = conversations.find(c => c.id === conversationId) || 
-                                 conversations.find(c => c.otherParticipant?.id === receiverId);
+        const updatedConversation = conversations.find(c => c.id === conversationId);
         
         if (updatedConversation) {
-          // Update the active conversation
           setActiveConversation(updatedConversation);
-          await fetchMessages(conversationId);
-        } else {
-          // If we can't find it in the list yet, fetch messages for the known ID
-          await fetchMessages(conversationId);
         }
       }
 
@@ -126,7 +125,9 @@ export const useMessages = () => {
     } catch (error) {
       console.error("Error sending message:", error);
       toast.error("Error sending message. Please try again.");
-      throw error; // Propagate the error for handling in the component
+      return false;
+    } finally {
+      setSending(false);
     }
   };
 
@@ -146,6 +147,7 @@ export const useMessages = () => {
     messages,
     newMessage,
     loadingMessages,
+    sending,
     setActiveConversation: selectConversation,
     setNewMessage,
     sendMessage,

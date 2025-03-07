@@ -18,6 +18,7 @@ export const Messages = () => {
     messages, 
     newMessage, 
     loadingMessages, 
+    sending,
     setActiveConversation, 
     setNewMessage, 
     sendMessage,
@@ -28,7 +29,6 @@ export const Messages = () => {
   const location = useLocation();
   const { currentUserId } = useSession();
   const [hasError, setHasError] = useState(false);
-  const [sending, setSending] = useState(false);
   
   // Handle navigation state or URL parameter
   const otherUserId = location.state?.otherUserId || userId;
@@ -58,7 +58,6 @@ export const Messages = () => {
     }
     
     try {
-      setSending(true);
       if (activeConversation) {
         const receiverId = activeConversation.otherParticipant?.id;
         if (!receiverId) {
@@ -75,8 +74,6 @@ export const Messages = () => {
       console.error("Error in handleSendMessage:", error);
       setHasError(true);
       toast.error("Error sending message. Please try again.");
-    } finally {
-      setSending(false);
     }
   };
 
