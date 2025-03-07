@@ -1,5 +1,5 @@
 
-import React, { useState, KeyboardEvent } from "react";
+import React, { useState, KeyboardEvent, useRef, useEffect } from "react";
 import { PaperPlaneRight, Spinner } from "@phosphor-icons/react";
 
 interface MessageInputProps {
@@ -17,19 +17,38 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   disabled = false,
   isLoading = false 
 }) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       if (!disabled && value.trim()) {
         onSend();
+        // Focus will be maintained since we're not changing focus here
       }
     }
   };
+
+  const handleSendClick = () => {
+    onSend();
+    // Refocus the textarea after sending
+    setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 0);
+  };
+
+  // Maintain focus when component is mounted
+  useEffect(() => {
+    if (!disabled) {
+      textareaRef.current?.focus();
+    }
+  }, [disabled]);
 
   return (
     <div className="border-t border-gray-200 p-3 bg-white">
       <div className="flex items-end gap-2">
         <textarea
+          ref={textareaRef}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -38,7 +57,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           placeholder="Type a message..."
         />
         <button
-          onClick={onSend}
+          onClick={handleSendClick}
           disabled={disabled || !value.trim()}
           className={`p-3 rounded-full ${
             disabled || !value.trim() ? 'bg-gray-200 text-gray-400' : 'bg-[#6153BD] text-white'
