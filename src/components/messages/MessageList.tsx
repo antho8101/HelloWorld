@@ -24,10 +24,16 @@ export const MessageList: React.FC<MessageListProps> = ({
   otherParticipant
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to bottom when messages change
+  // Scroll to bottom when messages change, but with smooth scrolling
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messages.length > 0 && messagesEndRef.current) {
+      // Use requestAnimationFrame to ensure DOM has been updated
+      requestAnimationFrame(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      });
+    }
   }, [messages]);
 
   return (
@@ -45,7 +51,7 @@ export const MessageList: React.FC<MessageListProps> = ({
       )}
 
       {/* Messages Area */}
-      <ScrollArea className="flex-1 p-4">
+      <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
         <div className="space-y-4">
           {currentConversationId ? (
             isLoadingMessages ? (
@@ -80,7 +86,7 @@ export const MessageList: React.FC<MessageListProps> = ({
                   </div>
                 ))}
                 {/* This div allows us to scroll to the bottom of the messages */}
-                <div ref={messagesEndRef} />
+                <div ref={messagesEndRef} className="h-1" />
               </>
             )
           ) : (
