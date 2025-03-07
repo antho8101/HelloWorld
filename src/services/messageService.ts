@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Message } from "@/types/messages";
@@ -15,59 +16,71 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
   try {
     console.log('Fetching messages for conversation:', conversationId);
     
-    const { data, error } = await supabase
+    // First, fetch the messages without joining profiles
+    const { data: messagesData, error: messagesError } = await supabase
       .from("messages")
       .select(`
         id,
         content,
         created_at,
         sender_id,
-        sender:profiles(
-          name,
-          avatar_url
-        )
+        conversation_id
       `)
       .eq("conversation_id", conversationId)
       .order("created_at", { ascending: true });
 
-    if (error) {
-      console.error('Error fetching messages:', error);
-      throw error;
+    if (messagesError) {
+      console.error('Error fetching messages:', messagesError);
+      throw messagesError;
     }
 
-    console.log(`Fetched ${data?.length || 0} messages for conversation ${conversationId}`);
+    console.log(`Fetched ${messagesData?.length || 0} messages for conversation ${conversationId}`);
+    
+    if (!messagesData || messagesData.length === 0) {
+      return [];
+    }
+    
+    // Get unique sender IDs to fetch their profiles
+    const senderIds = [...new Set(messagesData.map(msg => msg.sender_id))];
+    
+    // Fetch profiles for all senders in one query
+    const { data: profilesData, error: profilesError } = await supabase
+      .from("profiles")
+      .select("id, name, avatar_url")
+      .in("id", senderIds);
+      
+    if (profilesError) {
+      console.error('Error fetching sender profiles:', profilesError);
+      // Continue without profile data rather than failing completely
+    }
+    
+    // Create a map for quick profile lookup
+    const profilesMap = new Map();
+    if (profilesData) {
+      profilesData.forEach(profile => {
+        profilesMap.set(profile.id, {
+          name: profile.name,
+          avatar_url: profile.avatar_url
+        });
+      });
+    }
 
-    // Transform the data into properly typed Message objects
-    return (data || []).map(item => {
-      // Default values
-      let senderName = null;
-      let senderAvatar = null;
+    // Map messages with sender data
+    return messagesData.map(msg => {
+      const senderProfile = profilesMap.get(msg.sender_id);
       
-      // Safely extract sender data with proper type checking
-      if (item.sender) {
-        // If sender is an array (which can happen with Supabase joins), take the first item
-        const senderData = Array.isArray(item.sender) ? item.sender[0] : item.sender;
-        
-        // Now safely extract properties
-        if (senderData && typeof senderData === 'object') {
-          senderName = 'name' in senderData ? senderData.name : null;
-          senderAvatar = 'avatar_url' in senderData ? senderData.avatar_url : null;
-        }
-      }
-      
-      // Return a properly typed Message object
       return {
-        id: item.id,
-        content: item.content,
-        created_at: item.created_at,
-        sender_id: item.sender_id,
-        sender_name: senderName,
-        sender_avatar: senderAvatar
+        id: msg.id,
+        content: msg.content,
+        created_at: msg.created_at,
+        sender_id: msg.sender_id,
+        sender_name: senderProfile?.name || null,
+        sender_avatar: senderProfile?.avatar_url || null
       };
     });
   } catch (error) {
     console.error("Error fetching messages:", error);
-    toast("Error loading messages");
+    toast.error("Error loading messages");
     return [];
   }
 };
