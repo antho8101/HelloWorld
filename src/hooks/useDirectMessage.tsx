@@ -39,6 +39,9 @@ export const useDirectMessage = (
       if (existingConversation) {
         console.log('Found existing conversation:', existingConversation.id);
         setActiveConversation(existingConversation);
+        
+        // Ensure this conversation appears in the URL
+        navigate(`/messages/${existingConversation.id}`, { replace: true });
       } else {
         console.log('No existing conversation found, creating temporary placeholder');
         
@@ -85,6 +88,9 @@ export const useDirectMessage = (
           if (newConversationId) {
             console.log('Created new conversation in background, refreshing data');
             await fetchConversations();
+            
+            // Navigate to the new conversation
+            navigate(`/messages/${newConversationId}`, { replace: true });
           } else {
             throw new Error('Failed to create conversation');
           }
@@ -100,11 +106,6 @@ export const useDirectMessage = (
       toast("Error setting up conversation");
       setError(error instanceof Error ? error : new Error('Unknown error setting up conversation'));
     } finally {
-      // Clear navigation state
-      navigate('/messages', { 
-        state: {}, 
-        replace: true 
-      });
       setInitializing(false);
     }
   };

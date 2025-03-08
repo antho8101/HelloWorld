@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { ConversationList } from "@/components/messages/ConversationList";
 import { MessagePageContainer } from "@/components/messages/MessagePageContainer";
 import { ActiveConversation } from "@/components/messages/ActiveConversation";
@@ -22,11 +22,13 @@ export const Messages = () => {
     setActiveConversation, 
     setNewMessage, 
     sendMessage,
-    fetchConversations
+    fetchConversations,
+    fetchMessages
   } = useMessages();
   
-  const { userId } = useParams();
+  const { userId, conversationId } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const { currentUserId } = useSession();
   const [hasError, setHasError] = useState(false);
   
@@ -41,6 +43,17 @@ export const Messages = () => {
     setActiveConversation,
     fetchConversations
   );
+
+  // Handle direct selection of conversation via URL
+  useEffect(() => {
+    if (conversationId && !initializing && conversations.length > 0 && !activeConversation) {
+      console.log("Selecting conversation from URL param:", conversationId);
+      const conversation = conversations.find(c => c.id === conversationId);
+      if (conversation) {
+        setActiveConversation(conversation);
+      }
+    }
+  }, [conversationId, conversations, initializing, activeConversation, setActiveConversation]);
 
   // Update error state based on hook error
   useEffect(() => {
@@ -77,6 +90,16 @@ export const Messages = () => {
     }
   };
 
+  const handleSelectConversation = (conversation: Conversation) => {
+    console.log("Selecting conversation:", conversation.id);
+    setActiveConversation(conversation);
+    
+    // Update URL to reflect selected conversation
+    if (conversation.id) {
+      navigate(`/messages/${conversation.id}`, { replace: true });
+    }
+  };
+
   const handleRetry = () => {
     setHasError(false);
     fetchConversations();
@@ -90,7 +113,7 @@ export const Messages = () => {
           conversations={conversations}
           loading={loading}
           activeConversationId={activeConversation?.id}
-          onSelectConversation={setActiveConversation}
+          onSelectConversation={handleSelectConversation}
         />
       </div>
 

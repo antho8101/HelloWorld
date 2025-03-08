@@ -25,6 +25,11 @@ export const ConversationList: React.FC<ConversationListProps> = ({
     );
   }
 
+  const handleConversationClick = (conversation: Conversation) => {
+    console.log("Selecting conversation:", conversation.id);
+    onSelectConversation(conversation);
+  };
+
   return (
     <div className="h-full">
       <div className="p-4 border-b border-gray-200 flex items-center">
@@ -39,7 +44,10 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                 className={`p-3 rounded-lg cursor-pointer transition-colors flex items-center ${
                   activeConversationId === conversation.id ? 'bg-gray-100' : 'hover:bg-gray-50'
                 }`}
-                onClick={() => onSelectConversation(conversation)}
+                onClick={() => handleConversationClick(conversation)}
+                role="button"
+                aria-selected={activeConversationId === conversation.id}
+                tabIndex={0}
               >
                 <div className="relative mr-3">
                   <div className="w-10 h-10 bg-[#6153BD]/10 rounded-full flex items-center justify-center overflow-hidden">
