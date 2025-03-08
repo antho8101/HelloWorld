@@ -36,6 +36,14 @@ export const Messages = () => {
   // Handle navigation state or URL parameter
   const otherUserId = location.state?.otherUserId || userId;
   
+  // Force refresh conversations on initial load
+  useEffect(() => {
+    if (currentUserId) {
+      console.log("Forcing initial conversations refresh");
+      fetchConversations();
+    }
+  }, [currentUserId]);
+
   // Use the direct message hook
   const { initializing, error } = useDirectMessage(
     otherUserId,
@@ -51,7 +59,10 @@ export const Messages = () => {
       console.log("Selecting conversation from URL param:", conversationId);
       const conversation = conversations.find(c => c.id === conversationId);
       if (conversation) {
+        console.log("Found conversation to select:", conversation.id);
         setActiveConversation(conversation);
+      } else {
+        console.log("Conversation not found in list, ID:", conversationId);
       }
     }
   }, [conversationId, conversations, initializing, activeConversation, setActiveConversation]);
@@ -102,6 +113,7 @@ export const Messages = () => {
     
     // Force fetch messages for this conversation
     if (conversation.id) {
+      console.log("Forcing message fetch for conversation:", conversation.id);
       fetchMessages(conversation.id);
     }
   };

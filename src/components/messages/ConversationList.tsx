@@ -1,8 +1,8 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Conversation } from "@/types/messages";
-import { ChatCircle } from "@phosphor-icons/react";
+import { ChatCircle, WarningCircle } from "@phosphor-icons/react";
 
 interface ConversationListProps {
   conversations: Conversation[];
@@ -17,10 +17,37 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   activeConversationId,
   onSelectConversation
 }) => {
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
+  
+  // Set a timeout to detect potentially infinite loading
+  useEffect(() => {
+    let timer: number | undefined;
+    
+    if (loading) {
+      // If loading takes more than 5 seconds, show timeout message
+      timer = setTimeout(() => {
+        setLoadingTimeout(true);
+      }, 5000) as unknown as number;
+    } else {
+      setLoadingTimeout(false);
+    }
+    
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [loading]);
+
+  // Handle loading states with reliability
   if (loading) {
     return (
-      <div className="h-full p-4 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6153BD]"></div>
+      <div className="h-full p-4 flex flex-col items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6153BD] mb-4"></div>
+        {loadingTimeout && (
+          <div className="text-center text-sm text-gray-500 flex items-center gap-2">
+            <WarningCircle className="text-amber-500" size={16} />
+            <span>Loading is taking longer than expected</span>
+          </div>
+        )}
       </div>
     );
   }
