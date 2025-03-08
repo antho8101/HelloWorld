@@ -8,6 +8,7 @@ import { EmptyConversation } from "@/components/messages/EmptyConversation";
 import { useMessages } from "@/hooks/useMessages";
 import { useSession } from "@/hooks/useSession";
 import { useDirectMessage } from "@/hooks/useDirectMessage";
+import type { Conversation } from "@/types/messages";
 import { toast } from "sonner";
 
 export const Messages = () => {
