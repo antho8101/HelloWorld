@@ -44,16 +44,33 @@ export const Messages = () => {
     fetchConversations
   );
 
+  // Load initial data
+  useEffect(() => {
+    if (currentUserId) {
+      console.log("Fetching initial conversations");
+      fetchConversations();
+    }
+  }, [currentUserId, fetchConversations]);
+
   // Handle direct selection of conversation via URL
   useEffect(() => {
-    if (conversationId && !initializing && conversations.length > 0 && !activeConversation) {
+    if (conversationId && !initializing && conversations.length > 0) {
       console.log("Selecting conversation from URL param:", conversationId);
       const conversation = conversations.find(c => c.id === conversationId);
+      
       if (conversation) {
+        console.log("Found matching conversation in list, selecting it");
         setActiveConversation(conversation);
+        
+        if (conversation.id) {
+          console.log("Fetching messages for conversation:", conversation.id);
+          fetchMessages(conversation.id);
+        }
+      } else {
+        console.log("Conversation not found in list:", conversationId);
       }
     }
-  }, [conversationId, conversations, initializing, activeConversation, setActiveConversation]);
+  }, [conversationId, conversations, initializing, setActiveConversation, fetchMessages]);
 
   // Update error state based on hook error
   useEffect(() => {
@@ -97,6 +114,9 @@ export const Messages = () => {
     // Update URL to reflect selected conversation
     if (conversation.id) {
       navigate(`/messages/${conversation.id}`, { replace: true });
+      
+      // Explicitly fetch messages for this conversation
+      fetchMessages(conversation.id);
     }
   };
 

@@ -28,6 +28,14 @@ const router = createBrowserRouter([
     element: <Messages />,
   },
   {
+    path: "/messages/:conversationId",
+    element: <Messages />,
+  },
+  {
+    path: "/messages/user/:userId",
+    element: <Messages />,
+  },
+  {
     path: "/profile",
     element: <Profile />,
   },

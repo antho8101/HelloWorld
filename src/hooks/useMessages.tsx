@@ -22,13 +22,7 @@ export const useMessages = () => {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sending, setSending] = useState(false);
 
-  useEffect(() => {
-    if (currentUserId) {
-      fetchConversations();
-    }
-  }, [currentUserId]);
-
-  const fetchConversations = async () => {
+  const fetchConversations = useCallback(async () => {
     if (!currentUserId) return;
 
     try {
@@ -39,26 +33,31 @@ export const useMessages = () => {
       setConversations(conversationsData);
     } catch (error) {
       console.error("Error in useMessages.fetchConversations:", error);
+      toast.error("Could not load conversations");
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUserId]);
 
-  const fetchMessages = async (conversationId: string) => {
-    if (!conversationId) return;
+  const fetchMessages = useCallback(async (conversationId: string) => {
+    if (!conversationId) {
+      console.log("No conversation ID provided to fetchMessages");
+      return;
+    }
     
     try {
       setLoadingMessages(true);
       console.log("Fetching messages for conversation:", conversationId);
       const messagesData = await fetchMessagesService(conversationId);
-      console.log("Fetched messages:", messagesData.length);
+      console.log("Fetched", messagesData.length, "messages");
       setMessages(messagesData);
     } catch (error) {
       console.error("Error in useMessages.fetchMessages:", error);
+      toast.error("Could not load messages");
     } finally {
       setLoadingMessages(false);
     }
-  };
+  }, []);
 
   const sendMessage = async (receiverId: string, content: string) => {
     if (!currentUserId || !content.trim()) {
@@ -132,13 +131,17 @@ export const useMessages = () => {
   };
 
   const selectConversation = useCallback((conversation: Conversation) => {
+    console.log("Setting active conversation:", conversation.id);
     setActiveConversation(conversation);
+    
     if (conversation.id) {
+      console.log("Will fetch messages for conversation:", conversation.id);
       fetchMessages(conversation.id);
     } else {
+      console.log("No conversation ID, clearing messages");
       setMessages([]);
     }
-  }, []);
+  }, [fetchMessages]);
 
   return {
     conversations,
