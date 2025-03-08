@@ -17,7 +17,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   activeConversationId,
   onSelectConversation
 }) => {
-  if (loading && conversations.length === 0) {
+  if (loading) {
     return (
       <div className="h-full p-4 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6153BD]"></div>
@@ -26,7 +26,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   }
 
   const handleConversationClick = (conversation: Conversation) => {
-    console.log("Selecting conversation:", conversation.id);
+    console.log("Clicking on conversation:", conversation.id);
     onSelectConversation(conversation);
   };
 

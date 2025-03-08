@@ -137,6 +137,7 @@ export const useMessages = () => {
   };
 
   const selectConversation = useCallback((conversation: Conversation) => {
+    console.log("Setting active conversation:", conversation.id);
     setActiveConversation(conversation);
     if (conversation.id) {
       fetchMessages(conversation.id);
