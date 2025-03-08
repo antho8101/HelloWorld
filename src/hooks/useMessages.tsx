@@ -21,7 +21,6 @@ export const useMessages = () => {
   const [newMessage, setNewMessage] = useState("");
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sending, setSending] = useState(false);
-  const [fetchError, setFetchError] = useState<Error | null>(null);
 
   useEffect(() => {
     if (currentUserId) {
@@ -29,26 +28,23 @@ export const useMessages = () => {
     }
   }, [currentUserId]);
 
-  const fetchConversations = useCallback(async () => {
+  const fetchConversations = async () => {
     if (!currentUserId) return;
 
     try {
       setLoading(true);
-      setFetchError(null);
       console.log("Fetching conversations for user:", currentUserId);
       const conversationsData = await fetchConversationsService(currentUserId);
       console.log("Fetched conversations:", conversationsData);
       setConversations(conversationsData);
     } catch (error) {
       console.error("Error in useMessages.fetchConversations:", error);
-      setFetchError(error instanceof Error ? error : new Error("Failed to fetch conversations"));
-      toast.error("Failed to load conversations");
     } finally {
       setLoading(false);
     }
-  }, [currentUserId]);
+  };
 
-  const fetchMessages = useCallback(async (conversationId: string) => {
+  const fetchMessages = async (conversationId: string) => {
     if (!conversationId) return;
     
     try {
@@ -59,11 +55,10 @@ export const useMessages = () => {
       setMessages(messagesData);
     } catch (error) {
       console.error("Error in useMessages.fetchMessages:", error);
-      toast.error("Failed to load messages");
     } finally {
       setLoadingMessages(false);
     }
-  }, []);
+  };
 
   const sendMessage = async (receiverId: string, content: string) => {
     if (!currentUserId || !content.trim()) {
@@ -137,14 +132,13 @@ export const useMessages = () => {
   };
 
   const selectConversation = useCallback((conversation: Conversation) => {
-    console.log("Setting active conversation:", conversation.id);
     setActiveConversation(conversation);
     if (conversation.id) {
       fetchMessages(conversation.id);
     } else {
       setMessages([]);
     }
-  }, [fetchMessages]);
+  }, []);
 
   return {
     conversations,
@@ -159,6 +153,5 @@ export const useMessages = () => {
     sendMessage,
     fetchMessages,
     fetchConversations,
-    error: fetchError,
   };
 };
