@@ -65,6 +65,14 @@ export const Messages = () => {
     }
   }, [error]);
 
+  // Ensure we load conversations when the component mounts
+  useEffect(() => {
+    if (currentUserId && !loading) {
+      console.log("Forcing conversations refresh on messages page load");
+      fetchConversations();
+    }
+  }, [currentUserId]);
+
   const handleSendMessage = async () => {
     if (newMessage.trim() === '') {
       toast.info("Please enter a message");
