@@ -22,6 +22,7 @@ export const useMessages = () => {
   const [newMessage, setNewMessage] = useState("");
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sending, setSending] = useState(false);
+  const [messagesFetched, setMessagesFetched] = useState(false);
 
   const fetchConversations = useCallback(async () => {
     if (!currentUserId) return;
@@ -43,6 +44,7 @@ export const useMessages = () => {
   const fetchMessages = useCallback(async (conversationId: string) => {
     if (!conversationId) {
       console.log("No conversation ID provided to fetchMessages");
+      setMessages([]);
       return;
     }
     
@@ -50,11 +52,15 @@ export const useMessages = () => {
       setLoadingMessages(true);
       console.log("Fetching messages for conversation:", conversationId);
       const messagesData = await fetchMessagesService(conversationId);
-      console.log("Fetched", messagesData.length, "messages");
+      console.log("Fetched", messagesData.length, "messages for conversation", conversationId);
+      
+      // Set messages state and mark as fetched
       setMessages(messagesData);
+      setMessagesFetched(true);
     } catch (error) {
       console.error("Error in useMessages.fetchMessages:", error);
       toast.error("Could not load messages");
+      setMessages([]);
     } finally {
       setLoadingMessages(false);
     }
@@ -132,11 +138,16 @@ export const useMessages = () => {
   };
 
   const selectConversation = useCallback((conversation: Conversation) => {
-    console.log("Setting active conversation:", conversation.id);
+    console.log("Setting active conversation:", conversation);
+    
+    // Reset message state when changing conversations
+    setMessages([]);
+    setMessagesFetched(false);
     setActiveConversation(conversation);
     
     if (conversation.id) {
       console.log("Will fetch messages for conversation:", conversation.id);
+      // Reset before fetching to avoid stale data
       fetchMessages(conversation.id);
     } else {
       console.log("No conversation ID, clearing messages");
@@ -144,13 +155,22 @@ export const useMessages = () => {
     }
   }, [fetchMessages]);
 
+  // Initial load of conversations
+  useEffect(() => {
+    if (currentUserId) {
+      fetchConversations();
+    }
+  }, [currentUserId, fetchConversations]);
+
   // Configure Supabase realtime to listen for new messages
   useEffect(() => {
     if (!activeConversation?.id) return;
 
+    console.log(`Setting up realtime subscription for conversation: ${activeConversation.id}`);
+    
     // Subscribe to changes on the messages table for the active conversation
     const channel = supabase
-      .channel('public:messages')
+      .channel(`messages-${activeConversation.id}`)
       .on(
         'postgres_changes', 
         { 
@@ -160,20 +180,24 @@ export const useMessages = () => {
           filter: `conversation_id=eq.${activeConversation.id}`
         }, 
         (payload) => {
-          console.log('New message received:', payload);
+          console.log('New message received via realtime:', payload);
           // If the message is from another user (not the current user sending), add it
           if (payload.new && payload.new.sender_id !== currentUserId) {
             // Fetch the full message with sender details
             fetchMessagesService(activeConversation.id as string)
               .then(updatedMessages => {
+                console.log('Updated messages after realtime event:', updatedMessages);
                 setMessages(updatedMessages);
               });
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log(`Supabase channel status for conversation ${activeConversation.id}:`, status);
+      });
 
     return () => {
+      console.log(`Removing realtime subscription for conversation: ${activeConversation.id}`);
       supabase.removeChannel(channel);
     };
   }, [activeConversation?.id, currentUserId]);
@@ -186,6 +210,7 @@ export const useMessages = () => {
     newMessage,
     loadingMessages,
     sending,
+    messagesFetched,
     setActiveConversation: selectConversation,
     setNewMessage,
     sendMessage,

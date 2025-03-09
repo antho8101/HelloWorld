@@ -11,6 +11,7 @@ interface MessageListProps {
   currentConversationId?: string | null;
   showNewConversationBanner?: boolean;
   isLoadingMessages?: boolean;
+  messagesFetched?: boolean;
   otherParticipant?: ConversationParticipant | null;
 }
 
@@ -21,6 +22,7 @@ export const MessageList: React.FC<MessageListProps> = ({
   currentConversationId,
   showNewConversationBanner,
   isLoadingMessages,
+  messagesFetched,
   otherParticipant
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -29,21 +31,24 @@ export const MessageList: React.FC<MessageListProps> = ({
   // Scroll to bottom when messages change
   useEffect(() => {
     if (messages.length > 0 && messagesEndRef.current) {
+      console.log("Scrolling to bottom of message list");
       // Use requestAnimationFrame to ensure DOM has been updated
       requestAnimationFrame(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
       });
     }
   }, [messages]);
 
   // Debug messages
   useEffect(() => {
-    console.log("MessageList rendered with", messages.length, "messages");
+    console.log("MessageList rendered with", messages.length, "messages, isLoading:", isLoadingMessages);
     if (messages.length > 0) {
       console.log("First message:", messages[0].content);
       console.log("Last message:", messages[messages.length - 1].content);
     }
-  }, [messages]);
+  }, [messages, isLoadingMessages]);
 
   return (
     <>
@@ -67,7 +72,7 @@ export const MessageList: React.FC<MessageListProps> = ({
               <div className="flex items-center justify-center h-full">
                 <p className="text-gray-500">Loading messages...</p>
               </div>
-            ) : messages.length === 0 ? (
+            ) : messagesFetched && messages.length === 0 ? (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center text-gray-500 max-w-md">
                   <ChatCircle size={64} weight="light" className="mx-auto mb-4 text-[#6153BD]" />

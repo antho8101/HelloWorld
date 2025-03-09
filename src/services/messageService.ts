@@ -11,7 +11,10 @@ interface MessagePayload {
 }
 
 export const fetchMessages = async (conversationId: string): Promise<Message[]> => {
-  if (!conversationId) return [];
+  if (!conversationId) {
+    console.warn('fetchMessages called with empty conversationId');
+    return [];
+  }
   
   try {
     console.log('Fetching messages for conversation:', conversationId);
@@ -34,14 +37,16 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       throw messagesError;
     }
 
-    console.log(`Fetched ${messagesData?.length || 0} messages for conversation ${conversationId}`, messagesData);
+    console.log(`Fetched ${messagesData?.length || 0} messages for conversation ${conversationId}:`, messagesData);
     
     if (!messagesData || messagesData.length === 0) {
+      console.log(`No messages found for conversation ${conversationId}`);
       return [];
     }
     
     // Get unique sender IDs to fetch their profiles
     const senderIds = [...new Set(messagesData.map(msg => msg.sender_id))];
+    console.log(`Found ${senderIds.length} unique senders:`, senderIds);
     
     // Fetch profiles for all senders in one query
     const { data: profilesData, error: profilesError } = await supabase
@@ -63,10 +68,11 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
           avatar_url: profile.avatar_url
         });
       });
+      console.log('Profile data map created:', Object.fromEntries(profilesMap));
     }
 
     // Map messages with sender data
-    return messagesData.map(msg => {
+    const mappedMessages = messagesData.map(msg => {
       const senderProfile = profilesMap.get(msg.sender_id);
       
       return {
@@ -78,6 +84,9 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
         sender_avatar: senderProfile?.avatar_url || null
       };
     });
+    
+    console.log(`Processed ${mappedMessages.length} messages with sender data`);
+    return mappedMessages;
   } catch (error) {
     console.error("Error fetching messages:", error);
     toast.error("Error loading messages");
