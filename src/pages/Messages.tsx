@@ -9,6 +9,7 @@ import { useMessages } from "@/hooks/useMessages";
 import { useSession } from "@/hooks/useSession";
 import { useDirectMessage } from "@/hooks/useDirectMessage";
 import { toast } from "sonner";
+import type { Conversation } from "@/types/messages";
 
 export const Messages = () => {
   const { 
