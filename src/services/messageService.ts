@@ -16,7 +16,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
   try {
     console.log('Fetching messages for conversation:', conversationId);
     
-    // First, fetch the messages without joining profiles
+    // First, fetch the messages with all needed fields
     const { data: messagesData, error: messagesError } = await supabase
       .from("messages")
       .select(`

@@ -26,13 +26,22 @@ export const MessageList: React.FC<MessageListProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to bottom when messages change, but with smooth scrolling
+  // Scroll to bottom when messages change
   useEffect(() => {
     if (messages.length > 0 && messagesEndRef.current) {
       // Use requestAnimationFrame to ensure DOM has been updated
       requestAnimationFrame(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
       });
+    }
+  }, [messages]);
+
+  // Debug messages
+  useEffect(() => {
+    console.log("MessageList rendered with", messages.length, "messages");
+    if (messages.length > 0) {
+      console.log("First message:", messages[0].content);
+      console.log("Last message:", messages[messages.length - 1].content);
     }
   }, [messages]);
 

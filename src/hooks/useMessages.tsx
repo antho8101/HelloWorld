@@ -143,6 +143,40 @@ export const useMessages = () => {
     }
   }, [fetchMessages]);
 
+  // Configure Supabase realtime to listen for new messages
+  useEffect(() => {
+    if (!activeConversation?.id) return;
+
+    // Subscribe to changes on the messages table for the active conversation
+    const channel = supabase
+      .channel('public:messages')
+      .on(
+        'postgres_changes', 
+        { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'messages',
+          filter: `conversation_id=eq.${activeConversation.id}`
+        }, 
+        (payload) => {
+          console.log('New message received:', payload);
+          // If the message is from another user (not the current user sending), add it
+          if (payload.new && payload.new.sender_id !== currentUserId) {
+            // Fetch the full message with sender details
+            fetchMessagesService(activeConversation.id as string)
+              .then(updatedMessages => {
+                setMessages(updatedMessages);
+              });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [activeConversation?.id, currentUserId]);
+
   return {
     conversations,
     loading,
