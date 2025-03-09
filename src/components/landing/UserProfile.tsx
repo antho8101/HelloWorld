@@ -44,12 +44,17 @@ export const UserProfile: React.FC<UserProfileProps> = ({
       />
       <div className="w-full mt-2.5 px-1">
         <div className="text-xl max-md:text-lg font-bold flex items-center gap-2">
-          <Circle
-            size={12}
-            fill={isOnline ? "#10b981" : "#ea384c"}
-            stroke="none"
-            className="transition-all duration-300 group-hover:scale-110"
-          />
+          <div className="relative">
+            <Circle
+              size={12}
+              fill={isOnline ? "#10b981" : "#ea384c"}
+              stroke="none"
+              className="transition-all duration-300 group-hover:scale-110"
+            />
+            {isOnline && (
+              <span className="absolute top-0 left-0 w-full h-full animate-ping rounded-full bg-green-500 opacity-75"></span>
+            )}
+          </div>
           <span className="transform transition-all duration-300 group-hover:text-[#6153BD]">
             {name}, {age}
           </span>

@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { User, MapPin } from "@phosphor-icons/react";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 
 interface ProfileHeaderProps {
   name: string | null;
@@ -11,7 +12,7 @@ interface ProfileHeaderProps {
   age: number | null;
   city: string | null;
   country: string | null;
-  isOnline?: boolean;
+  id?: string | null;
 }
 
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
@@ -21,9 +22,10 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   age,
   city,
   country,
-  isOnline = false,
+  id,
 }) => {
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const isOnline = useOnlineStatus(id || null);
 
   return (
     <div className="flex flex-col items-center pb-6 w-fit">
@@ -41,7 +43,11 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           className={`absolute bottom-5 right-2 w-4 h-4 rounded-full border-2 border-white transition-colors duration-300 ${
             isOnline ? 'bg-green-500' : 'bg-red-500'
           }`} 
-        />
+        >
+          {isOnline && (
+            <span className="absolute top-0 left-0 w-full h-full animate-ping rounded-full bg-green-500 opacity-75"></span>
+          )}
+        </div>
       </div>
 
       <div className="text-center">
