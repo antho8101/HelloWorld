@@ -34,7 +34,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       throw messagesError;
     }
 
-    console.log(`Fetched ${messagesData?.length || 0} messages for conversation ${conversationId}`);
+    console.log(`Fetched ${messagesData?.length || 0} messages for conversation ${conversationId}`, messagesData);
     
     if (!messagesData || messagesData.length === 0) {
       return [];
