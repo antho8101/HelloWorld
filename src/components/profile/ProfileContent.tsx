@@ -3,7 +3,6 @@ import React from "react";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { LanguagesSection } from "@/components/profile/LanguagesSection";
 import { InterestsSection } from "@/components/profile/InterestsSection";
-import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import type { LanguageWithLevel } from "@/components/LanguageSelector";
 
 interface ProfileContentProps {
@@ -24,8 +23,6 @@ interface ProfileContentProps {
 }
 
 export const ProfileContent: React.FC<ProfileContentProps> = ({ profile }) => {
-  const isOnline = useOnlineStatus(profile.id);
-
   return (
     <div className="bg-white/80 backdrop-blur-sm rounded-[20px] shadow-lg p-8">
       <div className="flex flex-col md:flex-row md:gap-12">
@@ -37,7 +34,7 @@ export const ProfileContent: React.FC<ProfileContentProps> = ({ profile }) => {
             age={profile.age}
             city={profile.city}
             country={profile.country}
-            isOnline={isOnline}
+            id={profile.id}
           />
         </div>
         
