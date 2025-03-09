@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "@/hooks/useSession";
 import { toast } from "sonner";
@@ -11,6 +10,7 @@ import {
   fetchMessages as fetchMessagesService,
   sendMessage as sendMessageService
 } from "@/services/messageService";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useMessages = () => {
   const { currentUserId } = useSession();
