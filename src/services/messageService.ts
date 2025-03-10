@@ -19,6 +19,30 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
   try {
     console.log('Fetching messages for conversation:', conversationId);
     
+    // Démonstration explicite du problème de RLS - si nous sommes authentifiés
+    const { data: authData } = await supabase.auth.getSession();
+    if (!authData.session) {
+      console.error('No authenticated session found - this will cause RLS to block access');
+    } else {
+      console.log('Authenticated as user:', authData.session.user.id);
+    }
+    
+    // Vérifier si l'utilisateur est participant à cette conversation
+    const { data: participantData, error: participantError } = await supabase
+      .from("conversation_participants")
+      .select("user_id")
+      .eq("conversation_id", conversationId)
+      .eq("user_id", authData.session?.user.id || '');
+      
+    if (participantError) {
+      console.error('Error checking conversation participation:', participantError);
+    } else {
+      console.log('Participant check result:', participantData);
+      if (!participantData || participantData.length === 0) {
+        console.warn('Current user is not a participant in this conversation - RLS will block access');
+      }
+    }
+    
     // First, fetch the messages with all needed fields
     const { data: messagesData, error: messagesError } = await supabase
       .from("messages")
@@ -41,6 +65,19 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     
     if (!messagesData || messagesData.length === 0) {
       console.log(`No messages found for conversation ${conversationId}`);
+      
+      // Vérifier directement dans la table messages sans RLS pour débogage
+      // Cette requête sera bloquée par RLS, mais en mode développement, on peut voir dans les logs
+      console.log('Attempting a direct SQL query to check if messages exist');
+      const { data: directMessages, error: directError } = await supabase
+        .rpc('debug_check_messages_exist', { conversation_id_param: conversationId });
+        
+      if (directError) {
+        console.error('Error checking messages directly:', directError);
+      } else {
+        console.log('Direct message check result:', directMessages);
+      }
+      
       return [];
     }
     
