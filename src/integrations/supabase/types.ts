@@ -545,6 +545,12 @@ export type Database = {
         }
         Returns: number
       }
+      debug_check_messages_exist: {
+        Args: {
+          conversation_id_param: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       gender_type: "male" | "female" | "other"
