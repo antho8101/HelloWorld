@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Message } from "@/types/messages";
@@ -21,26 +22,8 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     // Check authentication status
     const { data: authData } = await supabase.auth.getSession();
     if (!authData.session) {
-      console.error('No authenticated session found - this will cause RLS to block access');
-      return [];
-    }
-    console.log('Authenticated as user:', authData.session.user.id);
-    
-    // Verify conversation participation
-    const { data: participantData, error: participantError } = await supabase
-      .from("conversation_participants")
-      .select("user_id")
-      .eq("conversation_id", conversationId)
-      .eq("user_id", authData.session.user.id);
-      
-    if (participantError) {
-      console.error('Error checking conversation participation:', participantError);
-      throw participantError;
-    }
-    
-    console.log('Participant check result:', participantData);
-    if (!participantData || participantData.length === 0) {
-      console.warn('Current user is not a participant in this conversation - RLS will block access');
+      console.error('No authenticated session found');
+      toast.error("You must be logged in to view messages");
       return [];
     }
     
@@ -59,22 +42,30 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
 
     if (messagesError) {
       console.error('Error fetching messages:', messagesError);
-      throw messagesError;
+      
+      // Get more detailed error for debugging
+      if (messagesError.code === '42501') { // Permission denied
+        console.error('Permission denied. User likely not a participant in this conversation.');
+        
+        // Check if user is a participant
+        const { data: participantCheck } = await supabase
+          .from("conversation_participants")
+          .select("id")
+          .eq("conversation_id", conversationId)
+          .eq("user_id", authData.session.user.id)
+          .single();
+          
+        console.log('Participant check result:', participantCheck ? 'Is participant' : 'Not a participant');
+      }
+      
+      toast.error("Could not load messages");
+      return [];
     }
 
     console.log(`Fetched ${messagesData?.length || 0} messages for conversation ${conversationId}`);
     
     if (!messagesData || messagesData.length === 0) {
-      // Use the debug function to check if messages exist without RLS
-      const { data: debugData, error: debugError } = await supabase
-        .rpc('debug_check_messages_exist', { conversation_id_param: conversationId });
-        
-      if (debugError) {
-        console.error('Error in debug check:', debugError);
-      } else {
-        console.log('Debug check result:', debugData);
-      }
-      
+      console.log('No messages found for conversation:', conversationId);
       return [];
     }
     
