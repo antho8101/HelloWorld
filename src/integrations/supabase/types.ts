@@ -551,6 +551,21 @@ export type Database = {
         }
         Returns: Json
       }
+      get_user_conversations: {
+        Args: {
+          user_id_param: string
+        }
+        Returns: {
+          id: string
+          created_at: string
+          updated_at: string
+          is_pinned: boolean
+          is_archived: boolean
+          other_participant_id: string
+          latest_message: string
+          latest_message_time: string
+        }[]
+      }
     }
     Enums: {
       gender_type: "male" | "female" | "other"
