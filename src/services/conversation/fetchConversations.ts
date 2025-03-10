@@ -6,6 +6,82 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
   try {
     console.log("Fetching conversations for user ID:", userId);
     
+    // Direct approach: first get all conversations where the user is a participant
+    // This works around potential RLS recursive issues
+    const { data: conversations, error: conversationsError } = await supabase.rpc(
+      'get_user_conversations',
+      { user_id_param: userId }
+    );
+
+    if (conversationsError) {
+      console.error("Error fetching conversations via RPC:", conversationsError);
+      
+      // Fallback to direct query if RPC fails
+      console.log("Falling back to direct query...");
+      return await fallbackFetchConversations(userId);
+    }
+
+    console.log("Fetched conversations data:", conversations ? conversations.length : 0);
+    
+    if (!conversations || conversations.length === 0) {
+      console.log("No conversations found for user");
+      return [];
+    }
+
+    const result: Conversation[] = [];
+    
+    // Process conversations
+    for (const convo of conversations) {
+      // Get profile data for the other participant
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, name, avatar_url, age, country")
+        .eq("id", convo.other_participant_id)
+        .maybeSingle();
+        
+      if (profileError) {
+        console.error(`Error fetching profile for user ${convo.other_participant_id}:`, profileError);
+        continue;
+      }
+      
+      // Create the conversation object with profile data
+      result.push({
+        id: convo.id,
+        created_at: convo.created_at,
+        updated_at: convo.updated_at,
+        is_pinned: Boolean(convo.is_pinned),
+        is_archived: Boolean(convo.is_archived),
+        otherParticipant: profileData ? {
+          id: profileData.id,
+          name: profileData.name,
+          avatar_url: profileData.avatar_url,
+          age: profileData.age,
+          country: profileData.country,
+          is_online: false // Will be updated by online status hook
+        } : null,
+        isTemporary: false,
+        latest_message: convo.latest_message,
+        latest_message_time: convo.latest_message_time,
+        other_participant_id: profileData?.id || null,
+        other_participant_name: profileData?.name || null,
+        other_participant_avatar: profileData?.avatar_url || null,
+        other_participant_online: false
+      });
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Error fetching conversations:", error);
+    toast.error("Error loading conversations");
+    return [];
+  }
+};
+
+// Fallback function to fetch conversations directly
+async function fallbackFetchConversations(userId: string): Promise<Conversation[]> {
+  try {
+    console.log("Using fallback method to fetch conversations for user ID:", userId);
+    
     const { data: participations, error: participationsError } = await supabase
       .from("conversation_participants")
       .select("conversation_id")
@@ -140,8 +216,7 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
 
     return result;
   } catch (error) {
-    console.error("Error fetching conversations:", error);
-    toast.error("Error loading conversations");
+    console.error("Error in fallback fetching conversations:", error);
     return [];
   }
-};
+}
