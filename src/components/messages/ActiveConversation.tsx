@@ -11,8 +11,10 @@ interface ActiveConversationProps {
   currentUserId: string | null;
   loadingMessages: boolean;
   sending?: boolean;
+  error?: boolean;
   setNewMessage: (message: string) => void;
   handleSendMessage: () => void;
+  handleRetryMessages?: () => void;
 }
 
 export const ActiveConversation: React.FC<ActiveConversationProps> = ({
@@ -22,8 +24,10 @@ export const ActiveConversation: React.FC<ActiveConversationProps> = ({
   currentUserId,
   loadingMessages,
   sending = false,
+  error = false,
   setNewMessage,
-  handleSendMessage
+  handleSendMessage,
+  handleRetryMessages
 }) => {
   return (
     <>
@@ -35,13 +39,15 @@ export const ActiveConversation: React.FC<ActiveConversationProps> = ({
         showNewConversationBanner={conversation.isTemporary}
         isLoadingMessages={loadingMessages}
         otherParticipant={conversation.otherParticipant}
+        error={error}
+        onRetry={handleRetryMessages}
       />
       
       <MessageInput 
         value={newMessage}
         onChange={setNewMessage}
         onSend={handleSendMessage}
-        disabled={sending}
+        disabled={sending || error}
         isLoading={sending}
       />
     </>

@@ -23,6 +23,7 @@ export const useMessages = () => {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sending, setSending] = useState(false);
   const [messagesFetched, setMessagesFetched] = useState(false);
+  const [messageError, setMessageError] = useState(false);
 
   const fetchConversations = useCallback(async () => {
     if (!currentUserId) return;
@@ -50,6 +51,7 @@ export const useMessages = () => {
     
     try {
       setLoadingMessages(true);
+      setMessageError(false);
       console.log("Fetching messages for conversation:", conversationId);
       const messagesData = await fetchMessagesService(conversationId);
       console.log("Fetched", messagesData.length, "messages for conversation", conversationId);
@@ -60,6 +62,7 @@ export const useMessages = () => {
     } catch (error) {
       console.error("Error in useMessages.fetchMessages:", error);
       toast.error("Could not load messages");
+      setMessageError(true);
       setMessages([]);
     } finally {
       setLoadingMessages(false);
@@ -143,6 +146,7 @@ export const useMessages = () => {
     // Reset message state when changing conversations
     setMessages([]);
     setMessagesFetched(false);
+    setMessageError(false);
     setActiveConversation(conversation);
     
     if (conversation.id) {
@@ -211,6 +215,7 @@ export const useMessages = () => {
     loadingMessages,
     sending,
     messagesFetched,
+    messageError,
     setActiveConversation: selectConversation,
     setNewMessage,
     sendMessage,

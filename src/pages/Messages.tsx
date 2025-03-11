@@ -10,6 +10,7 @@ import { useSession } from "@/hooks/useSession";
 import { useDirectMessage } from "@/hooks/useDirectMessage";
 import { toast } from "sonner";
 import type { Conversation } from "@/types/messages";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 export const Messages = () => {
   const { 
@@ -24,13 +25,14 @@ export const Messages = () => {
     setNewMessage, 
     sendMessage,
     fetchConversations,
-    fetchMessages
+    fetchMessages,
+    messageError
   } = useMessages();
   
   const { userId, conversationId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const { currentUserId } = useSession();
+  const { currentUserId, authLoading } = useSession();
   const [hasError, setHasError] = useState(false);
   
   // Handle navigation state or URL parameter
@@ -62,16 +64,13 @@ export const Messages = () => {
       if (conversation) {
         console.log("Found matching conversation in list, selecting it");
         setActiveConversation(conversation);
-        
-        if (conversation.id) {
-          console.log("Fetching messages for conversation:", conversation.id);
-          fetchMessages(conversation.id);
-        }
       } else {
         console.log("Conversation not found in list:", conversationId);
+        toast.error("Conversation not found");
+        navigate("/messages", { replace: true });
       }
     }
-  }, [conversationId, conversations, initializing, setActiveConversation, fetchMessages]);
+  }, [conversationId, conversations, initializing, setActiveConversation, navigate]);
 
   // Update error state based on hook error
   useEffect(() => {
@@ -115,9 +114,6 @@ export const Messages = () => {
     // Update URL to reflect selected conversation
     if (conversation.id) {
       navigate(`/messages/${conversation.id}`, { replace: true });
-      
-      // Explicitly fetch messages for this conversation
-      fetchMessages(conversation.id);
     }
   };
 
@@ -125,6 +121,17 @@ export const Messages = () => {
     setHasError(false);
     fetchConversations();
   };
+
+  const handleRetryMessages = () => {
+    if (activeConversation?.id) {
+      fetchMessages(activeConversation.id);
+    }
+  };
+
+  // Show loading spinner while auth is initializing
+  if (authLoading) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <MessagePageContainer>
@@ -150,6 +157,8 @@ export const Messages = () => {
             setNewMessage={setNewMessage}
             handleSendMessage={handleSendMessage}
             sending={sending}
+            error={messageError}
+            handleRetryMessages={handleRetryMessages}
           />
         ) : (
           <EmptyConversation 

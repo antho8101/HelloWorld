@@ -1,7 +1,7 @@
 
 import React, { useRef, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChatCircle, Chats } from "@phosphor-icons/react";
+import { ChatCircle, Chats, WarningCircle } from "@phosphor-icons/react";
 import type { Message, ConversationParticipant } from "@/types/messages";
 
 interface MessageListProps {
@@ -13,6 +13,8 @@ interface MessageListProps {
   isLoadingMessages?: boolean;
   messagesFetched?: boolean;
   otherParticipant?: ConversationParticipant | null;
+  error?: boolean;
+  onRetry?: () => void;
 }
 
 export const MessageList: React.FC<MessageListProps> = ({
@@ -23,7 +25,9 @@ export const MessageList: React.FC<MessageListProps> = ({
   showNewConversationBanner,
   isLoadingMessages,
   messagesFetched,
-  otherParticipant
+  otherParticipant,
+  error,
+  onRetry
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -71,6 +75,22 @@ export const MessageList: React.FC<MessageListProps> = ({
             isLoadingMessages ? (
               <div className="flex items-center justify-center h-full">
                 <p className="text-gray-500">Loading messages...</p>
+              </div>
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center h-full py-8">
+                <WarningCircle size={40} weight="duotone" className="text-red-500 mb-2" />
+                <h3 className="text-lg font-medium text-gray-700 mb-2">Could not load messages</h3>
+                <p className="text-gray-500 text-center mb-4">
+                  There was a problem loading your conversation messages.
+                </p>
+                {onRetry && (
+                  <button 
+                    onClick={onRetry}
+                    className="px-4 py-2 bg-[#6153BD] text-white rounded-md hover:bg-[#4f44a3] transition-colors"
+                  >
+                    Try again
+                  </button>
+                )}
               </div>
             ) : messagesFetched && messages.length === 0 ? (
               <div className="flex items-center justify-center h-full">

@@ -27,27 +27,8 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       return [];
     }
     
-    // First, verify that the current user is a participant in this conversation
-    // This avoids the recursive RLS policy issues
-    const { data: participantCheck, error: participantError } = await supabase
-      .from("conversation_participants")
-      .select("user_id")
-      .eq("conversation_id", conversationId)
-      .eq("user_id", authData.session.user.id)
-      .single();
-      
-    if (participantError) {
-      console.error('Error checking conversation participation:', participantError);
-      return [];
-    }
-    
-    if (!participantCheck) {
-      console.error('User is not a participant in this conversation');
-      toast.error("You don't have permission to view these messages");
-      return [];
-    }
-    
     // Now fetch messages directly without relying on the problematic RLS check
+    // The RLS policy will use the security definer function to verify access
     const { data: messagesData, error: messagesError } = await supabase
       .from("messages")
       .select(`
@@ -62,8 +43,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
 
     if (messagesError) {
       console.error('Error fetching messages:', messagesError);
-      toast.error("Could not load messages");
-      return [];
+      throw messagesError;
     }
 
     console.log(`Fetched ${messagesData?.length || 0} messages for conversation ${conversationId}`);
@@ -112,8 +92,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     return mappedMessages;
   } catch (error) {
     console.error("Error fetching messages:", error);
-    toast.error("Error loading messages");
-    return [];
+    throw error;
   }
 };
 
