@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Message } from "@/types/messages";
@@ -27,19 +26,9 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       return [];
     }
     
-    // Now fetch messages directly without relying on the problematic RLS check
-    // The RLS policy will use the security definer function to verify access
+    // Utiliser la fonction sécurisée pour récupérer les messages
     const { data: messagesData, error: messagesError } = await supabase
-      .from("messages")
-      .select(`
-        id,
-        content,
-        created_at,
-        sender_id,
-        conversation_id
-      `)
-      .eq("conversation_id", conversationId)
-      .order("created_at", { ascending: true });
+      .rpc('get_conversation_messages', { conversation_id_param: conversationId });
 
     if (messagesError) {
       console.error('Error fetching messages:', messagesError);
@@ -55,39 +44,47 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     
     // Get profiles for senders
     const senderIds = [...new Set(messagesData.map(msg => msg.sender_id))];
-    const { data: profilesData, error: profilesError } = await supabase
-      .from("profiles")
-      .select("id, name, avatar_url")
-      .in("id", senderIds);
-      
-    if (profilesError) {
-      console.error('Error fetching sender profiles:', profilesError);
-      // Continue without profile data rather than failing completely
-    }
     
-    // Create profiles map
-    const profilesMap = new Map();
-    if (profilesData) {
-      profilesData.forEach(profile => {
-        profilesMap.set(profile.id, {
-          name: profile.name,
-          avatar_url: profile.avatar_url
+    // Vérifier que les senderIds ne contient pas de valeurs nulles
+    const validSenderIds = senderIds.filter(id => id !== null);
+    
+    let profilesMap = new Map();
+    if (validSenderIds.length > 0) {
+      const { data: profilesData, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, name, avatar_url")
+        .in("id", validSenderIds);
+        
+      if (profilesError) {
+        console.error('Error fetching sender profiles:', profilesError);
+        // Continue without profile data rather than failing completely
+      }
+      
+      // Create profiles map
+      if (profilesData) {
+        profilesData.forEach(profile => {
+          profilesMap.set(profile.id, {
+            name: profile.name,
+            avatar_url: profile.avatar_url
+          });
         });
-      });
+      }
     }
 
     // Map messages with sender data
-    const mappedMessages = messagesData.map(msg => {
-      const senderProfile = profilesMap.get(msg.sender_id);
-      return {
-        id: msg.id,
-        content: msg.content,
-        created_at: msg.created_at,
-        sender_id: msg.sender_id,
-        sender_name: senderProfile?.name || null,
-        sender_avatar: senderProfile?.avatar_url || null
-      };
-    });
+    const mappedMessages = messagesData
+      .filter(msg => msg.id !== null) // Filtrer les lignes nulles retournées par la fonction
+      .map(msg => {
+        const senderProfile = profilesMap.get(msg.sender_id);
+        return {
+          id: msg.id,
+          content: msg.content,
+          created_at: msg.created_at,
+          sender_id: msg.sender_id,
+          sender_name: senderProfile?.name || null,
+          sender_avatar: senderProfile?.avatar_url || null
+        };
+      });
     
     return mappedMessages;
   } catch (error) {

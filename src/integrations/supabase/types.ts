@@ -558,6 +558,18 @@ export type Database = {
         }
         Returns: Json
       }
+      get_conversation_messages: {
+        Args: {
+          conversation_id_param: string
+        }
+        Returns: {
+          id: string
+          content: string
+          created_at: string
+          sender_id: string
+          conversation_id: string
+        }[]
+      }
       get_user_conversations: {
         Args: {
           user_id_param: string
