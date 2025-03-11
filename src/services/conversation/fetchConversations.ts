@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Conversation } from "@/types/messages";
@@ -28,10 +29,22 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
       return [];
     }
 
-    const result: Conversation[] = [];
+    // Create a map to deduplicate conversations by other participant
+    const participantMap = new Map();
     
     // Process conversations
     for (const convo of conversations) {
+      if (!convo.other_participant_id) continue;
+      
+      // Skip if we already have a more recent conversation with this participant
+      if (participantMap.has(convo.other_participant_id)) {
+        const existingConvo = participantMap.get(convo.other_participant_id);
+        // Only replace if this conversation is more recent
+        if (new Date(convo.updated_at) <= new Date(existingConvo.updated_at)) {
+          continue;
+        }
+      }
+      
       // Get profile data for the other participant
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
@@ -45,7 +58,7 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
       }
       
       // Create the conversation object with profile data
-      result.push({
+      const conversationObj = {
         id: convo.id,
         created_at: convo.created_at,
         updated_at: convo.updated_at,
@@ -66,10 +79,14 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
         other_participant_name: profileData?.name || null,
         other_participant_avatar: profileData?.avatar_url || null,
         other_participant_online: false
-      });
+      };
+      
+      // Add to map, replacing any older conversation with same participant
+      participantMap.set(convo.other_participant_id, conversationObj);
     }
 
-    return result;
+    // Convert map to array
+    return Array.from(participantMap.values());
   } catch (error) {
     console.error("Error fetching conversations:", error);
     toast.error("Error loading conversations");
@@ -128,7 +145,6 @@ async function fallbackFetchConversations(userId: string): Promise<Conversation[
 
     // Map to track other participants by user ID to avoid duplicates
     const otherParticipantsMap = new Map();
-    const result: Conversation[] = [];
     
     // First, collect all other participants for each conversation
     for (const convo of conversations || []) {
@@ -165,6 +181,7 @@ async function fallbackFetchConversations(userId: string): Promise<Conversation[
       }
     }
     
+    const result: Conversation[] = [];
     // Now process the unique conversations (one per other user)
     for (const [otherUserId, convo] of otherParticipantsMap.entries()) {
       // Get profile data for the other participant
