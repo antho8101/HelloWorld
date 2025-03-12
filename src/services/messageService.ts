@@ -27,7 +27,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       return [];
     }
     
-    // Utiliser la fonction sécurisée pour récupérer les messages
+    // Use the updated function to get messages
     const { data: messagesData, error: messagesError } = await supabase
       .rpc('get_conversation_messages', { conversation_id_param: conversationId });
 
@@ -74,7 +74,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
 
     // Map messages with sender data
     const mappedMessages = messagesData
-      .filter(msg => msg.id !== null) // Filtrer les lignes nulles retournées par la fonction
+      .filter(msg => msg.id !== null) // Filter out any null rows
       .map(msg => {
         const senderProfile = profilesMap.get(msg.sender_id);
         return {
