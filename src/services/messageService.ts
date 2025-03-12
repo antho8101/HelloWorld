@@ -27,9 +27,31 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       return [];
     }
     
-    // Use the updated function to get messages
+    // First verify that the user has access to this conversation
+    const { data: participant, error: participantError } = await supabase
+      .from('conversation_participants')
+      .select('id')
+      .eq('conversation_id', conversationId)
+      .eq('user_id', authData.session.user.id)
+      .maybeSingle();
+      
+    if (participantError) {
+      console.error('Error checking conversation access:', participantError);
+      throw participantError;
+    }
+    
+    if (!participant) {
+      console.error('User does not have access to this conversation');
+      toast.error("You don't have access to this conversation");
+      return [];
+    }
+    
+    // Now fetch the messages directly from the messages table
     const { data: messagesData, error: messagesError } = await supabase
-      .rpc('get_conversation_messages', { conversation_id_param: conversationId });
+      .from('messages')
+      .select('id, content, created_at, sender_id, conversation_id')
+      .eq('conversation_id', conversationId)
+      .order('created_at', { ascending: true });
 
     if (messagesError) {
       console.error('Error fetching messages:', messagesError);
@@ -46,7 +68,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     // Get profiles for senders
     const senderIds = [...new Set(messagesData.map(msg => msg.sender_id))];
     
-    // Vérifier que les senderIds ne contient pas de valeurs nulles
+    // Verify that senderIds does not contain null values
     const validSenderIds = senderIds.filter(id => id !== null);
     
     let profilesMap = new Map();
@@ -73,19 +95,17 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     }
 
     // Map messages with sender data
-    const mappedMessages = messagesData
-      .filter(msg => msg.id !== null) // Filter out any null rows
-      .map(msg => {
-        const senderProfile = profilesMap.get(msg.sender_id);
-        return {
-          id: msg.id,
-          content: msg.content,
-          created_at: msg.created_at,
-          sender_id: msg.sender_id,
-          sender_name: senderProfile?.name || null,
-          sender_avatar: senderProfile?.avatar_url || null
-        };
-      });
+    const mappedMessages = messagesData.map(msg => {
+      const senderProfile = profilesMap.get(msg.sender_id);
+      return {
+        id: msg.id,
+        content: msg.content,
+        created_at: msg.created_at,
+        sender_id: msg.sender_id,
+        sender_name: senderProfile?.name || null,
+        sender_avatar: senderProfile?.avatar_url || null
+      };
+    });
     
     return mappedMessages;
   } catch (error) {
