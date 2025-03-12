@@ -2,12 +2,12 @@
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMessages as fetchMessagesService } from "@/services/messageService";
-import type { Conversation } from "@/types/messages";
+import type { Conversation, Message } from "@/types/messages";
 
 export const useRealtimeMessages = (
   activeConversation: Conversation | null,
   currentUserId: string | null,
-  setMessages: (messages: any[]) => void
+  setMessages: (messages: Message[] | ((prevMessages: Message[]) => Message[])) => void
 ) => {
   useEffect(() => {
     if (!activeConversation?.id) return;

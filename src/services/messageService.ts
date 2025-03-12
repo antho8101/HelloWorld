@@ -26,37 +26,10 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       return [];
     }
     
-    // Instead of checking the conversation_participants table with RLS policies that cause recursion,
-    // Let's directly fetch the messages and apply client-side permission check
-    
-    // First, check if the user is part of this conversation with a direct query
-    const { data: conversationData, error: conversationError } = await supabase
-      .from('conversations')
-      .select(`
-        id,
-        conversation_participants!inner(user_id)
-      `)
-      .eq('id', conversationId)
-      .eq('conversation_participants.user_id', authData.session.user.id)
-      .maybeSingle();
-      
-    if (conversationError) {
-      console.error('Error checking conversation access:', conversationError);
-      throw conversationError;
-    }
-    
-    if (!conversationData) {
-      console.error('User does not have access to this conversation');
-      toast.error("You don't have access to this conversation");
-      return [];
-    }
-    
-    // Now fetch the messages directly from the messages table
+    // Use our custom function to fetch messages that already has permission checks
+    // This avoids the recursive RLS policy issue
     const { data: messagesData, error: messagesError } = await supabase
-      .from('messages')
-      .select('id, content, created_at, sender_id, conversation_id')
-      .eq('conversation_id', conversationId)
-      .order('created_at', { ascending: true });
+      .rpc('get_conversation_messages', { conversation_id_param: conversationId });
 
     if (messagesError) {
       console.error('Error fetching messages:', messagesError);
