@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Message } from "@/types/messages";
@@ -27,20 +26,26 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       return [];
     }
     
-    // First verify that the user has access to this conversation
-    const { data: participant, error: participantError } = await supabase
-      .from('conversation_participants')
-      .select('id')
-      .eq('conversation_id', conversationId)
-      .eq('user_id', authData.session.user.id)
+    // Instead of checking the conversation_participants table with RLS policies that cause recursion,
+    // Let's directly fetch the messages and apply client-side permission check
+    
+    // First, check if the user is part of this conversation with a direct query
+    const { data: conversationData, error: conversationError } = await supabase
+      .from('conversations')
+      .select(`
+        id,
+        conversation_participants!inner(user_id)
+      `)
+      .eq('id', conversationId)
+      .eq('conversation_participants.user_id', authData.session.user.id)
       .maybeSingle();
       
-    if (participantError) {
-      console.error('Error checking conversation access:', participantError);
-      throw participantError;
+    if (conversationError) {
+      console.error('Error checking conversation access:', conversationError);
+      throw conversationError;
     }
     
-    if (!participant) {
+    if (!conversationData) {
       console.error('User does not have access to this conversation');
       toast.error("You don't have access to this conversation");
       return [];
