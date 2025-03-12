@@ -1,212 +1,76 @@
 
-import { useState, useEffect, useCallback } from "react";
+import { useEffect } from "react";
 import { useSession } from "@/hooks/useSession";
-import { toast } from "sonner";
-import type { Conversation, Message } from "@/types/messages";
-import { 
-  fetchConversations as fetchConversationsService,
-  createConversation
-} from "@/services/conversation";
-import {
-  fetchMessages as fetchMessagesService,
-  sendMessage as sendMessageService
-} from "@/services/messageService";
-import { supabase } from "@/integrations/supabase/client";
+import { useMessageState } from "@/hooks/messages/useMessageState";
+import { useConversationState } from "@/hooks/messages/useConversationState";
+import { useFetchConversations } from "@/hooks/messages/useFetchConversations";
+import { useFetchMessages } from "@/hooks/messages/useFetchMessages";
+import { useSendMessage } from "@/hooks/messages/useSendMessage";
+import { useRealtimeMessages } from "@/hooks/messages/useRealtimeMessages";
+import { useSelectConversation } from "@/hooks/messages/useSelectConversation";
 
 export const useMessages = () => {
   const { currentUserId } = useSession();
-  const [loading, setLoading] = useState(true);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [newMessage, setNewMessage] = useState("");
-  const [loadingMessages, setLoadingMessages] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [messagesFetched, setMessagesFetched] = useState(false);
-  const [messageError, setMessageError] = useState(false);
-
-  const fetchConversations = useCallback(async () => {
-    if (!currentUserId) return;
-
-    try {
-      setLoading(true);
-      console.log("Fetching conversations for user:", currentUserId);
-      const conversationsData = await fetchConversationsService(currentUserId);
-      console.log("Fetched conversations:", conversationsData);
-      setConversations(conversationsData);
-    } catch (error) {
-      console.error("Error in useMessages.fetchConversations:", error);
-      toast.error("Could not load conversations");
-    } finally {
-      setLoading(false);
-    }
-  }, [currentUserId]);
-
-  const fetchMessages = useCallback(async (conversationId: string) => {
-    if (!conversationId) {
-      console.log("No conversation ID provided to fetchMessages");
-      setMessages([]);
-      return;
-    }
-    
-    try {
-      setLoadingMessages(true);
-      setMessageError(false);
-      console.log("Fetching messages for conversation:", conversationId);
-      const messagesData = await fetchMessagesService(conversationId);
-      console.log("Fetched", messagesData.length, "messages for conversation", conversationId);
-      
-      // Set messages state and mark as fetched
-      setMessages(messagesData);
-      setMessagesFetched(true);
-    } catch (error) {
-      console.error("Error in useMessages.fetchMessages:", error);
-      toast.error("Could not load messages");
-      setMessageError(true);
-      setMessages([]);
-    } finally {
-      setLoadingMessages(false);
-    }
-  }, []);
-
-  const sendMessage = async (receiverId: string, content: string) => {
-    if (!currentUserId || !content.trim()) {
-      console.log("Missing user ID or empty message");
-      return false;
-    }
-
-    try {
-      setSending(true);
-      console.log("Sending message to receiver:", receiverId);
-      let conversationId = activeConversation?.id;
-
-      // If the conversation is temporary or doesn't have an ID, create a new one
-      if (!conversationId || activeConversation?.isTemporary) {
-        console.log("Creating new conversation for message");
-        // Create a new conversation
-        const newConversationId = await createConversation(currentUserId, receiverId);
-        
-        if (!newConversationId) {
-          console.error("Failed to create conversation - received null ID");
-          toast.error("Failed to create conversation");
-          throw new Error("Failed to create conversation");
-        }
-        
-        conversationId = newConversationId;
-        console.log("New conversation created with ID:", conversationId);
-      }
-
-      // Send the message
-      const messageData = {
-        content,
-        conversation_id: conversationId,
-        sender_id: currentUserId
-      };
-
-      console.log("Sending message with data:", messageData);
-      const sentMessage = await sendMessageService(messageData);
-
-      if (!sentMessage) {
-        console.error("Failed to send message - API returned failure");
-        throw new Error("Failed to send message");
-      }
-
-      console.log("Message sent successfully");
-      
-      // Add the new message to the list without a full refresh
-      setMessages(prevMessages => [...prevMessages, sentMessage]);
-      
-      // If this is a new conversation, we need to refresh the conversation list
-      if (!activeConversation?.id || activeConversation?.isTemporary) {
-        await fetchConversations();
-        
-        // Find the newly created conversation in the updated list
-        const updatedConversation = conversations.find(c => c.id === conversationId);
-        
-        if (updatedConversation) {
-          setActiveConversation(updatedConversation);
-        }
-      }
-
-      // Reset the message input
-      setNewMessage("");
-      return true;
-    } catch (error) {
-      console.error("Error sending message:", error);
-      toast.error("Error sending message. Please try again.");
-      return false;
-    } finally {
-      setSending(false);
-    }
-  };
-
-  const selectConversation = useCallback((conversation: Conversation) => {
-    console.log("Setting active conversation:", conversation);
-    
-    // Reset message state when changing conversations
-    setMessages([]);
-    setMessagesFetched(false);
-    setMessageError(false);
-    setActiveConversation(conversation);
-    
-    if (conversation.id) {
-      console.log("Will fetch messages for conversation:", conversation.id);
-      // Reset before fetching to avoid stale data
-      fetchMessages(conversation.id);
-    } else {
-      console.log("No conversation ID, clearing messages");
-      setMessages([]);
-    }
-  }, [fetchMessages]);
-
+  
+  // Get state from individual hooks
+  const {
+    messages, setMessages,
+    newMessage, setNewMessage,
+    loadingMessages, setLoadingMessages,
+    messagesFetched, setMessagesFetched,
+    messageError, setMessageError,
+    sending, setSending
+  } = useMessageState();
+  
+  const {
+    conversations, setConversations,
+    activeConversation, setActiveConversation,
+    loading, setLoading
+  } = useConversationState();
+  
+  // Get functionality from individual hooks
+  const { fetchConversations } = useFetchConversations(
+    currentUserId, 
+    setLoading, 
+    setConversations
+  );
+  
+  const { fetchMessages } = useFetchMessages(
+    setLoadingMessages,
+    setMessageError,
+    setMessages,
+    setMessagesFetched
+  );
+  
+  const { sendMessage } = useSendMessage(
+    currentUserId,
+    activeConversation,
+    setMessages,
+    setSending,
+    setNewMessage
+  );
+  
+  // Setup realtime messages
+  useRealtimeMessages(activeConversation, currentUserId, setMessages);
+  
+  // Setup conversation selection
+  const { selectConversation } = useSelectConversation(
+    setMessages,
+    setMessagesFetched,
+    setMessageError,
+    setActiveConversation,
+    fetchMessages
+  );
+  
   // Initial load of conversations
   useEffect(() => {
     if (currentUserId) {
       fetchConversations();
     }
   }, [currentUserId, fetchConversations]);
-
-  // Configure Supabase realtime to listen for new messages
-  useEffect(() => {
-    if (!activeConversation?.id) return;
-
-    console.log(`Setting up realtime subscription for conversation: ${activeConversation.id}`);
-    
-    // Subscribe to changes on the messages table for the active conversation
-    const channel = supabase
-      .channel(`messages-${activeConversation.id}`)
-      .on(
-        'postgres_changes', 
-        { 
-          event: 'INSERT', 
-          schema: 'public', 
-          table: 'messages',
-          filter: `conversation_id=eq.${activeConversation.id}`
-        }, 
-        (payload) => {
-          console.log('New message received via realtime:', payload);
-          // If the message is from another user (not the current user sending), add it
-          if (payload.new && payload.new.sender_id !== currentUserId) {
-            // Fetch the full message with sender details
-            fetchMessagesService(activeConversation.id as string)
-              .then(updatedMessages => {
-                console.log('Updated messages after realtime event:', updatedMessages);
-                setMessages(updatedMessages);
-              });
-          }
-        }
-      )
-      .subscribe((status) => {
-        console.log(`Supabase channel status for conversation ${activeConversation.id}:`, status);
-      });
-
-    return () => {
-      console.log(`Removing realtime subscription for conversation: ${activeConversation.id}`);
-      supabase.removeChannel(channel);
-    };
-  }, [activeConversation?.id, currentUserId]);
-
+  
   return {
+    // State
     conversations,
     loading,
     activeConversation,
@@ -216,6 +80,8 @@ export const useMessages = () => {
     sending,
     messagesFetched,
     messageError,
+    
+    // Actions
     setActiveConversation: selectConversation,
     setNewMessage,
     sendMessage,
