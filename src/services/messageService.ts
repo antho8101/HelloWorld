@@ -27,30 +27,8 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       return [];
     }
     
-    const currentUserId = authData.session.user.id;
-    
-    // First verify that the current user is a participant DIRECTLY (avoid RLS recursion)
-    const { data: participantData, error: participantError } = await supabase
-      .from("conversation_participants")
-      .select("id") // Just select id to verify existence
-      .eq("conversation_id", conversationId)
-      .eq("user_id", currentUserId);
-      
-    if (participantError) {
-      console.error('Error verifying conversation access:', participantError);
-      toast.error("Error accessing conversation");
-      return [];
-    }
-    
-    if (!participantData || participantData.length === 0) {
-      console.error('User does not have access to this conversation');
-      toast.error("You do not have access to this conversation");
-      return [];
-    }
-    
-    console.log('User verified as participant in conversation:', conversationId);
-    
-    // Directly fetch messages now that we've confirmed the user has access
+    // Use a simple direct query to fetch messages - no permission checks in this function
+    // (The RLS on the messages table will handle permissions)
     const { data: messagesData, error: messagesError } = await supabase
       .from("messages")
       .select("id, content, created_at, sender_id")
@@ -59,10 +37,13 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     
     if (messagesError) {
       console.error('Error fetching messages:', messagesError);
-      throw messagesError;
+      
+      // Don't throw here, just return empty and show error to user
+      toast.error("Could not load messages");
+      return [];
     }
     
-    console.log(`Fetched ${messagesData?.length || 0} raw messages for conversation ${conversationId}`);
+    console.log(`Fetched ${messagesData?.length || 0} messages for conversation ${conversationId}`);
     
     if (!messagesData || messagesData.length === 0) {
       console.log('No messages found for conversation:', conversationId);
@@ -107,11 +88,12 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       };
     });
     
-    console.log('Final mapped messages:', mappedMessages.length);
+    console.log('Final mapped messages count:', mappedMessages.length);
     return mappedMessages;
   } catch (error) {
     console.error("Error fetching messages:", error);
-    throw error;
+    toast.error("Error loading messages");
+    return [];
   }
 };
 
@@ -129,11 +111,14 @@ export const sendMessage = async (
 
     if (messageError) {
       console.error('Error sending message:', messageError);
-      throw messageError;
+      toast.error("Could not send message");
+      return null;
     }
 
     if (!data) {
-      throw new Error('No data returned from message insertion');
+      console.error('No data returned from message insertion');
+      toast.error("Could not send message");
+      return null;
     }
 
     console.log('Message sent successfully to conversation:', messageData.conversation_id);

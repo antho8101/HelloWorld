@@ -24,19 +24,15 @@ export const useFetchMessages = (
       
       const messagesData = await fetchMessagesService(conversationId);
       
-      // Log full response for debugging
-      console.log("Message fetch response:", messagesData);
+      // Log the response for debugging
+      console.log("Messages fetched:", messagesData.length);
       
       // Set messages state and mark as fetched
       setMessages(messagesData);
       setMessagesFetched(true);
       
-      // Let's log what we have after setting
-      console.log("Messages set to state:", messagesData.length, "messages");
-      
     } catch (error) {
       console.error("Error in useFetchMessages:", error);
-      toast.error("Could not load messages. Please try again.");
       setMessageError(true);
       setMessages([]);
     } finally {

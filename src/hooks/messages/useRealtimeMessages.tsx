@@ -1,7 +1,6 @@
 
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchMessages as fetchMessagesService } from "@/services/messageService";
 import type { Conversation, Message } from "@/types/messages";
 
 export const useRealtimeMessages = (
@@ -17,9 +16,12 @@ export const useRealtimeMessages = (
 
     console.log(`Setting up realtime subscription for conversation: ${activeConversation.id}`);
     
+    // Create a channel name using conversation ID
+    const channelName = `messages-${activeConversation.id}`;
+    
     // Subscribe to changes on the messages table for the active conversation
     const channel = supabase
-      .channel(`messages-${activeConversation.id}`)
+      .channel(channelName)
       .on(
         'postgres_changes', 
         { 
@@ -31,25 +33,38 @@ export const useRealtimeMessages = (
         (payload) => {
           console.log('New message received via realtime:', payload);
           
-          // Check if this message is from the current user
-          const isFromCurrentUser = payload.new.sender_id === currentUserId;
-          
-          if (isFromCurrentUser) {
+          // Skip our own messages, as they've been added optimistically
+          if (payload.new.sender_id === currentUserId) {
             console.log('Message was from current user, already in state');
-            return; // Skip updating messages - we've already optimistically added it
+            return;
           }
           
-          // For messages from other users, refresh the whole conversation
-          console.log('Message from another user, refreshing conversation data');
-          fetchMessagesService(activeConversation.id as string)
-            .then(updatedMessages => {
-              console.log('Updated messages after realtime event:', updatedMessages.length);
-              if (updatedMessages && updatedMessages.length > 0) {
-                setMessages(updatedMessages);
-              }
+          // For messages from other users, add them to the state
+          // We'll make a simpler approach to just add the new message directly
+          console.log('Adding new message from another user to state');
+          
+          // Get the sender profile
+          supabase
+            .from("profiles")
+            .select("name, avatar_url")
+            .eq("id", payload.new.sender_id)
+            .single()
+            .then(({ data: profile }) => {
+              // Create a full message object
+              const newMessage: Message = {
+                id: payload.new.id,
+                content: payload.new.content,
+                created_at: payload.new.created_at,
+                sender_id: payload.new.sender_id,
+                sender_name: profile?.name || null,
+                sender_avatar: profile?.avatar_url || null
+              };
+              
+              // Add the message to the state
+              setMessages(prev => [...prev, newMessage]);
             })
             .catch(error => {
-              console.error('Error fetching messages after realtime event:', error);
+              console.error('Error fetching profile for new message:', error);
             });
         }
       )
