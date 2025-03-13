@@ -43,13 +43,15 @@ export const useRealtimeMessages = (
           console.log('Adding new message from another user to state');
           
           // Fetch the sender profile
-          // Using proper Promise chain structure to handle errors
-          supabase
-            .from("profiles")
-            .select("name, avatar_url")
-            .eq("id", payload.new.sender_id)
-            .single()
-            .then(({ data: profile, error }) => {
+          // Fix the Promise chain to handle errors properly
+          const fetchProfile = async () => {
+            try {
+              const { data: profile, error } = await supabase
+                .from("profiles")
+                .select("name, avatar_url")
+                .eq("id", payload.new.sender_id)
+                .single();
+                
               if (error) {
                 console.error('Error fetching profile for new message:', error);
                 return;
@@ -67,10 +69,13 @@ export const useRealtimeMessages = (
               
               // Add the message to the state
               setMessages(prev => [...prev, newMessage]);
-            })
-            .catch(error => {
+            } catch (error) {
               console.error('Error in realtime message processing:', error);
-            });
+            }
+          };
+          
+          // Execute the async function
+          fetchProfile();
         }
       )
       .subscribe((status) => {
