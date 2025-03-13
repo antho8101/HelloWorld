@@ -40,16 +40,21 @@ export const useRealtimeMessages = (
           }
           
           // For messages from other users, add them to the state
-          // We'll make a simpler approach to just add the new message directly
           console.log('Adding new message from another user to state');
           
           // Get the sender profile
+          // Fix the TypeScript error by properly handling the Promise with then/catch
           supabase
             .from("profiles")
             .select("name, avatar_url")
             .eq("id", payload.new.sender_id)
             .single()
-            .then(({ data: profile }) => {
+            .then(({ data: profile, error }) => {
+              if (error) {
+                console.error('Error fetching profile for new message:', error);
+                return;
+              }
+              
               // Create a full message object
               const newMessage: Message = {
                 id: payload.new.id,
