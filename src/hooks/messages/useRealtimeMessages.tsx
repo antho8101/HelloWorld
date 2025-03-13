@@ -42,8 +42,8 @@ export const useRealtimeMessages = (
           // For messages from other users, add them to the state
           console.log('Adding new message from another user to state');
           
-          // Get the sender profile
-          // Fix the TypeScript error by properly handling the Promise chain
+          // Fetch the sender profile
+          // Using proper Promise chain structure to handle errors
           supabase
             .from("profiles")
             .select("name, avatar_url")
@@ -68,9 +68,8 @@ export const useRealtimeMessages = (
               // Add the message to the state
               setMessages(prev => [...prev, newMessage]);
             })
-            .catch((error) => {
-              // This will now properly handle the error
-              console.error('Error fetching profile for new message:', error);
+            .catch(error => {
+              console.error('Error in realtime message processing:', error);
             });
         }
       )
