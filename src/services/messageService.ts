@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Message } from "@/types/messages";
@@ -26,8 +27,8 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       return [];
     }
     
-    // Use our custom function to fetch messages that already has permission checks
-    // This avoids the recursive RLS policy issue
+    // Use the RPC function to get messages for the conversation
+    // This should avoid the recursive RLS policy issue
     const { data: messagesData, error: messagesError } = await supabase
       .rpc('get_conversation_messages', { conversation_id_param: conversationId });
 

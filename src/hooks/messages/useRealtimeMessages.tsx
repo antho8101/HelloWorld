@@ -34,6 +34,9 @@ export const useRealtimeMessages = (
               .then(updatedMessages => {
                 console.log('Updated messages after realtime event:', updatedMessages);
                 setMessages(updatedMessages);
+              })
+              .catch(error => {
+                console.error('Error fetching messages after realtime event:', error);
               });
           }
         }

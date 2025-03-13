@@ -48,11 +48,13 @@ export const MessageList: React.FC<MessageListProps> = ({
   // Debug messages
   useEffect(() => {
     console.log("MessageList rendered with", messages.length, "messages, isLoading:", isLoadingMessages);
+    console.log("currentConversationId:", currentConversationId);
+    console.log("messagesFetched:", messagesFetched);
     if (messages.length > 0) {
-      console.log("First message:", messages[0].content);
-      console.log("Last message:", messages[messages.length - 1].content);
+      console.log("First message:", messages[0]);
+      console.log("Last message:", messages[messages.length - 1]);
     }
-  }, [messages, isLoadingMessages]);
+  }, [messages, isLoadingMessages, currentConversationId, messagesFetched]);
 
   return (
     <>
