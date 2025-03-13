@@ -29,19 +29,26 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     
     const currentUserId = authData.session.user.id;
     
-    // First verify that the current user is a participant in this conversation
+    // First verify that the current user is a participant DIRECTLY (avoid RLS recursion)
     const { data: participantData, error: participantError } = await supabase
       .from("conversation_participants")
-      .select("user_id")
+      .select("id") // Just select id to verify existence
       .eq("conversation_id", conversationId)
-      .eq("user_id", currentUserId)
-      .single();
+      .eq("user_id", currentUserId);
       
     if (participantError) {
       console.error('Error verifying conversation access:', participantError);
+      toast.error("Error accessing conversation");
+      return [];
+    }
+    
+    if (!participantData || participantData.length === 0) {
+      console.error('User does not have access to this conversation');
       toast.error("You do not have access to this conversation");
       return [];
     }
+    
+    console.log('User verified as participant in conversation:', conversationId);
     
     // Directly fetch messages now that we've confirmed the user has access
     const { data: messagesData, error: messagesError } = await supabase
@@ -55,7 +62,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       throw messagesError;
     }
     
-    console.log(`Fetched ${messagesData?.length || 0} raw messages for conversation ${conversationId}:`, messagesData);
+    console.log(`Fetched ${messagesData?.length || 0} raw messages for conversation ${conversationId}`);
     
     if (!messagesData || messagesData.length === 0) {
       console.log('No messages found for conversation:', conversationId);
@@ -100,7 +107,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       };
     });
     
-    console.log('Final mapped messages:', mappedMessages);
+    console.log('Final mapped messages:', mappedMessages.length);
     return mappedMessages;
   } catch (error) {
     console.error("Error fetching messages:", error);

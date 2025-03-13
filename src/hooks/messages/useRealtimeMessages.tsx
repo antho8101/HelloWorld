@@ -10,7 +10,10 @@ export const useRealtimeMessages = (
   setMessages: (messages: Message[] | ((prevMessages: Message[]) => Message[])) => void
 ) => {
   useEffect(() => {
-    if (!activeConversation?.id) return;
+    if (!activeConversation?.id || !currentUserId) {
+      console.log("Not setting up realtime subscription - missing conversation ID or user ID");
+      return;
+    }
 
     console.log(`Setting up realtime subscription for conversation: ${activeConversation.id}`);
     
@@ -28,10 +31,19 @@ export const useRealtimeMessages = (
         (payload) => {
           console.log('New message received via realtime:', payload);
           
-          // For any message, refresh the whole conversation
+          // Check if this message is from the current user
+          const isFromCurrentUser = payload.new.sender_id === currentUserId;
+          
+          if (isFromCurrentUser) {
+            console.log('Message was from current user, already in state');
+            return; // Skip updating messages - we've already optimistically added it
+          }
+          
+          // For messages from other users, refresh the whole conversation
+          console.log('Message from another user, refreshing conversation data');
           fetchMessagesService(activeConversation.id as string)
             .then(updatedMessages => {
-              console.log('Updated messages after realtime event:', updatedMessages);
+              console.log('Updated messages after realtime event:', updatedMessages.length);
               if (updatedMessages && updatedMessages.length > 0) {
                 setMessages(updatedMessages);
               }
