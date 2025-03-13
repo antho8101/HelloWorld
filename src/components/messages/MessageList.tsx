@@ -59,7 +59,7 @@ export const MessageList: React.FC<MessageListProps> = ({
   return (
     <>
       {/* New Conversation Banner */}
-      {currentConversationId && messages.length === 0 && showNewConversationBanner && (
+      {currentConversationId && messages.length === 0 && messagesFetched && showNewConversationBanner && (
         <div className="bg-blue-50 p-4 border-b border-blue-100">
           <div className="flex items-center justify-center gap-2 text-blue-600">
             <Chats size={20} weight="fill" />

@@ -14,6 +14,7 @@ export const useFetchMessages = (
     if (!conversationId) {
       console.log("No conversation ID provided to fetchMessages");
       setMessages([]);
+      setMessagesFetched(true); // Mark as fetched even for empty conversations
       return;
     }
     
@@ -35,6 +36,7 @@ export const useFetchMessages = (
       console.error("Error in useFetchMessages:", error);
       setMessageError(true);
       setMessages([]);
+      setMessagesFetched(true); // Still mark as fetched so UI shows error state
     } finally {
       setLoadingMessages(false);
     }

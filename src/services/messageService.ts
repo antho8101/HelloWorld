@@ -27,13 +27,9 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       return [];
     }
     
-    // Use a simple direct query to fetch messages - no permission checks in this function
-    // (The RLS on the messages table will handle permissions)
+    // Use RPC function call instead of direct table query to avoid recursion in policies
     const { data: messagesData, error: messagesError } = await supabase
-      .from("messages")
-      .select("id, content, created_at, sender_id")
-      .eq("conversation_id", conversationId)
-      .order("created_at", { ascending: true });
+      .rpc('get_conversation_messages', { conversation_id_param: conversationId });
     
     if (messagesError) {
       console.error('Error fetching messages:', messagesError);
