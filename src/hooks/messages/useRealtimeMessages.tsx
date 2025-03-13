@@ -27,18 +27,18 @@ export const useRealtimeMessages = (
         }, 
         (payload) => {
           console.log('New message received via realtime:', payload);
-          // If the message is from another user (not the current user sending), add it
-          if (payload.new && payload.new.sender_id !== currentUserId) {
-            // Fetch the full message with sender details
-            fetchMessagesService(activeConversation.id as string)
-              .then(updatedMessages => {
-                console.log('Updated messages after realtime event:', updatedMessages);
+          
+          // For any message, refresh the whole conversation
+          fetchMessagesService(activeConversation.id as string)
+            .then(updatedMessages => {
+              console.log('Updated messages after realtime event:', updatedMessages);
+              if (updatedMessages && updatedMessages.length > 0) {
                 setMessages(updatedMessages);
-              })
-              .catch(error => {
-                console.error('Error fetching messages after realtime event:', error);
-              });
-          }
+              }
+            })
+            .catch(error => {
+              console.error('Error fetching messages after realtime event:', error);
+            });
         }
       )
       .subscribe((status) => {

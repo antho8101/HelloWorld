@@ -27,19 +27,13 @@ export const useFetchMessages = (
       // Log full response for debugging
       console.log("Message fetch response:", messagesData);
       
-      if (Array.isArray(messagesData)) {
-        console.log("Fetched", messagesData.length, "messages for conversation", conversationId);
-        // Filter out any null entries that might be in the response
-        const validMessages = messagesData.filter(msg => msg && msg.id) as Message[];
-        // Set messages state and mark as fetched
-        setMessages(validMessages);
-        setMessagesFetched(true);
-      } else {
-        console.error("Invalid message data returned:", messagesData);
-        setMessages([]);
-        setMessageError(true);
-        toast.error("Invalid message data returned");
-      }
+      // Set messages state and mark as fetched
+      setMessages(messagesData);
+      setMessagesFetched(true);
+      
+      // Let's log what we have after setting
+      console.log("Messages set to state:", messagesData.length, "messages");
+      
     } catch (error) {
       console.error("Error in useFetchMessages:", error);
       toast.error("Could not load messages. Please try again.");

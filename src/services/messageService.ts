@@ -27,17 +27,35 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       return [];
     }
     
-    // Use the RPC function to get messages for the conversation
-    // This should avoid the recursive RLS policy issue
+    const currentUserId = authData.session.user.id;
+    
+    // First verify that the current user is a participant in this conversation
+    const { data: participantData, error: participantError } = await supabase
+      .from("conversation_participants")
+      .select("user_id")
+      .eq("conversation_id", conversationId)
+      .eq("user_id", currentUserId)
+      .single();
+      
+    if (participantError) {
+      console.error('Error verifying conversation access:', participantError);
+      toast.error("You do not have access to this conversation");
+      return [];
+    }
+    
+    // Directly fetch messages now that we've confirmed the user has access
     const { data: messagesData, error: messagesError } = await supabase
-      .rpc('get_conversation_messages', { conversation_id_param: conversationId });
-
+      .from("messages")
+      .select("id, content, created_at, sender_id")
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: true });
+    
     if (messagesError) {
       console.error('Error fetching messages:', messagesError);
       throw messagesError;
     }
-
-    console.log(`Fetched ${messagesData?.length || 0} messages for conversation ${conversationId}`);
+    
+    console.log(`Fetched ${messagesData?.length || 0} raw messages for conversation ${conversationId}:`, messagesData);
     
     if (!messagesData || messagesData.length === 0) {
       console.log('No messages found for conversation:', conversationId);
@@ -46,8 +64,6 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     
     // Get profiles for senders
     const senderIds = [...new Set(messagesData.map(msg => msg.sender_id))];
-    
-    // Verify that senderIds does not contain null values
     const validSenderIds = senderIds.filter(id => id !== null);
     
     let profilesMap = new Map();
@@ -59,10 +75,8 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
         
       if (profilesError) {
         console.error('Error fetching sender profiles:', profilesError);
-        // Continue without profile data rather than failing completely
       }
       
-      // Create profiles map
       if (profilesData) {
         profilesData.forEach(profile => {
           profilesMap.set(profile.id, {
@@ -86,6 +100,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       };
     });
     
+    console.log('Final mapped messages:', mappedMessages);
     return mappedMessages;
   } catch (error) {
     console.error("Error fetching messages:", error);
