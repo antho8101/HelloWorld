@@ -74,9 +74,13 @@ export const useDirectMessage = (
             name,
             avatar_url,
             age,
-            country
+            country,
+            is_online: false
           },
-          isTemporary: true
+          isTemporary: true,
+          latest_message: null,
+          latest_message_time: null,
+          unread_count: 0
         };
         
         setActiveConversation(newConversationPlaceholder);
