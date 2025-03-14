@@ -17,17 +17,17 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
   }
   
   try {
-    console.log(`Fetching messages for conversation: ${conversationId}`);
+    console.log(`[messageService] Fetching messages for conversation: ${conversationId}`);
     
     // First verify we have a logged-in user
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     if (sessionError || !sessionData.session) {
-      console.error('No authenticated session found', sessionError);
+      console.error('[messageService] No authenticated session found', sessionError);
       return [];
     }
     
     const currentUserId = sessionData.session.user.id;
-    console.log('Current user ID:', currentUserId);
+    console.log('[messageService] Current user ID:', currentUserId);
     
     // Check if the user is a participant in this conversation directly
     const { data: participantCheck, error: participantError } = await supabase
@@ -38,19 +38,21 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       .limit(1);
       
     if (participantError) {
-      console.error('Error checking participant access:', participantError);
+      console.error('[messageService] Error checking participant access:', participantError);
       return [];
     }
     
+    console.log('[messageService] Participant check result:', participantCheck);
+    
     if (!participantCheck || participantCheck.length === 0) {
-      console.error('User is not a participant in this conversation');
+      console.error('[messageService] User is not a participant in this conversation');
       toast.error("You don't have access to this conversation");
       return [];
     }
     
-    console.log('User confirmed as participant in conversation, fetching messages');
+    console.log('[messageService] User confirmed as participant in conversation, fetching messages');
     
-    // Direct database query to get messages
+    // Try direct database query first with additional logging
     const { data: messagesData, error: messagesError } = await supabase
       .from('messages')
       .select('*')
@@ -58,16 +60,29 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       .order('created_at', { ascending: true });
     
     if (messagesError) {
-      console.error('Error fetching messages:', messagesError);
+      console.error('[messageService] Error fetching messages:', messagesError);
+      
+      // If we get an RLS error, let's try to debug by analyzing the exact permissions issue
+      console.log('[messageService] Debugging RLS permissions for conversation:', conversationId);
+      console.log('[messageService] Current user ID for RLS check:', currentUserId);
+      
       return [];
     }
     
-    if (!messagesData || messagesData.length === 0) {
-      console.log('No messages found for conversation:', conversationId);
+    if (!messagesData) {
+      console.log('[messageService] No messages data returned from query');
       return [];
     }
     
-    console.log(`Retrieved ${messagesData.length} messages from database:`, messagesData);
+    console.log(`[messageService] Retrieved ${messagesData.length} messages from database`);
+    
+    if (messagesData.length === 0) {
+      console.log('[messageService] No messages found for conversation:', conversationId);
+      return [];
+    }
+    
+    console.log('[messageService] First message retrieved:', messagesData[0]);
+    console.log('[messageService] Last message retrieved:', messagesData[messagesData.length - 1]);
     
     // Get all the unique sender IDs to fetch profiles in one request
     const senderIds = [...new Set(messagesData.map(msg => msg.sender_id))];
@@ -79,7 +94,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       .in('id', senderIds);
     
     if (profilesError) {
-      console.error('Error fetching sender profiles:', profilesError);
+      console.error('[messageService] Error fetching sender profiles:', profilesError);
     }
     
     // Create a map of profiles for easy lookup
@@ -106,10 +121,10 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       };
     });
     
-    console.log('Final formatted messages:', formattedMessages);
+    console.log('[messageService] Final formatted messages count:', formattedMessages.length);
     return formattedMessages;
   } catch (error) {
-    console.error("Error in fetchMessages service:", error);
+    console.error("[messageService] Error in fetchMessages service:", error);
     return [];
   }
 };

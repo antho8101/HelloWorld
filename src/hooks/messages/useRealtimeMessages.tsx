@@ -10,15 +10,21 @@ export const useRealtimeMessages = (
 ) => {
   useEffect(() => {
     if (!activeConversation?.id || !currentUserId) {
-      console.log("Not setting up realtime subscription - missing conversation ID or user ID");
+      console.log("[useRealtimeMessages] Not setting up realtime subscription - missing conversation ID or user ID");
       return;
     }
 
-    console.log(`Setting up realtime subscription for conversation: ${activeConversation.id}`);
+    console.log(`[useRealtimeMessages] Setting up realtime subscription for conversation: ${activeConversation.id}`);
     
     // Create a unique channel name for this conversation
     const channelName = `messages-channel-${activeConversation.id}`;
     
+    // First, make sure we're not already subscribed
+    supabase.removeChannel(supabase.getChannels().find(
+      channel => channel.topic === channelName
+    ));
+    
+    // Then set up a new subscription
     const channel = supabase
       .channel(channelName)
       .on(
@@ -30,11 +36,11 @@ export const useRealtimeMessages = (
           filter: `conversation_id=eq.${activeConversation.id}`
         }, 
         async (payload) => {
-          console.log('New message received via realtime:', payload);
+          console.log('[useRealtimeMessages] New message received via realtime:', payload);
           
           // Skip messages from the current user as they've been added optimistically
           if (payload.new.sender_id === currentUserId) {
-            console.log('Message was from current user, already in state');
+            console.log('[useRealtimeMessages] Message was from current user, already in state');
             return;
           }
           
@@ -47,7 +53,7 @@ export const useRealtimeMessages = (
               .single();
               
             if (error) {
-              console.error('Error fetching profile for new message:', error);
+              console.error('[useRealtimeMessages] Error fetching profile for new message:', error);
             }
             
             // Create a complete message object
@@ -60,19 +66,19 @@ export const useRealtimeMessages = (
               sender_avatar: profile?.avatar_url || null
             };
             
-            console.log('Adding new realtime message to state:', newMessage);
+            console.log('[useRealtimeMessages] Adding new realtime message to state:', newMessage);
             addMessage(newMessage);
           } catch (error) {
-            console.error('Error in realtime message processing:', error);
+            console.error('[useRealtimeMessages] Error in realtime message processing:', error);
           }
         }
       )
       .subscribe((status) => {
-        console.log(`Supabase channel status for conversation ${activeConversation.id}:`, status);
+        console.log(`[useRealtimeMessages] Supabase channel status for conversation ${activeConversation.id}:`, status);
       });
 
     return () => {
-      console.log(`Removing realtime subscription for conversation: ${activeConversation.id}`);
+      console.log(`[useRealtimeMessages] Removing realtime subscription for conversation: ${activeConversation.id}`);
       supabase.removeChannel(channel);
     };
   }, [activeConversation?.id, currentUserId, addMessage]);

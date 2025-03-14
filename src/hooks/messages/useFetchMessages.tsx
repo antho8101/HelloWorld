@@ -12,14 +12,14 @@ export const useFetchMessages = () => {
   
   const fetchMessages = useCallback(async (conversationId: string) => {
     if (!conversationId) {
-      console.log("No conversation ID provided to fetchMessages");
+      console.log("[useFetchMessages] No conversation ID provided to fetchMessages");
       setMessages([]);
       setMessagesFetched(true);
       return;
     }
     
     try {
-      console.log(`Starting to fetch messages for conversation: ${conversationId}`);
+      console.log(`[useFetchMessages] Starting to fetch messages for conversation: ${conversationId}`);
       
       // Reset states at the beginning of fetch
       setLoadingMessages(true);
@@ -31,18 +31,19 @@ export const useFetchMessages = () => {
       
       const messagesData = await fetchMessagesService(conversationId);
       
-      console.log(`Successfully fetched ${messagesData.length} messages for conversation ${conversationId}`);
-      console.log("Messages data:", messagesData); // Added detailed logging
+      console.log(`[useFetchMessages] Successfully fetched ${messagesData.length} messages for conversation ${conversationId}`);
+      console.log("[useFetchMessages] Messages data:", messagesData);
       
       if (Array.isArray(messagesData)) {
+        console.log(`[useFetchMessages] Setting ${messagesData.length} messages to state`);
         setMessages(messagesData);
       } else {
-        console.error("Fetched messages data is not an array:", messagesData);
+        console.error("[useFetchMessages] Fetched messages data is not an array:", messagesData);
         setMessages([]);
       }
       
     } catch (error) {
-      console.error("Error fetching messages:", error);
+      console.error("[useFetchMessages] Error fetching messages:", error);
       setMessageError(true);
       setMessages([]);
       toast.error("Could not load messages");
@@ -57,10 +58,10 @@ export const useFetchMessages = () => {
       // Check if message with this ID already exists
       const exists = prev.some(m => m.id === message.id);
       if (exists) {
-        console.log(`Message ${message.id} already exists, not adding duplicate`);
+        console.log(`[useFetchMessages] Message ${message.id} already exists, not adding duplicate`);
         return prev;
       }
-      console.log(`Adding new message ${message.id} to state`);
+      console.log(`[useFetchMessages] Adding new message ${message.id} to state`);
       return [...prev, message];
     });
   }, []);

@@ -1,7 +1,7 @@
 
 import React, { useRef, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChatCircle, Chats, WarningCircle } from "@phosphor-icons/react";
+import { ChatCircle, Chats, WarningCircle, Bug } from "@phosphor-icons/react";
 import type { Message, ConversationParticipant } from "@/types/messages";
 
 interface MessageListProps {
@@ -34,7 +34,7 @@ export const MessageList: React.FC<MessageListProps> = ({
 
   // Debug logging
   useEffect(() => {
-    console.log("MessageList rendered with:", {
+    console.log("[MessageList] Rendered with:", {
       messagesCount: messages.length,
       loading: isLoadingMessages,
       currentUserId,
@@ -44,21 +44,29 @@ export const MessageList: React.FC<MessageListProps> = ({
     });
     
     if (messages.length > 0) {
-      console.log("First message:", messages[0]);
-      console.log("Last message:", messages[messages.length - 1]);
+      console.log("[MessageList] First message:", messages[0]);
+      console.log("[MessageList] Last message:", messages[messages.length - 1]);
     }
   }, [messages, isLoadingMessages, currentUserId, currentConversationId, messagesFetched, error]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
     if (messages.length > 0 && messagesEndRef.current && !isLoadingMessages) {
-      console.log("Scrolling to bottom of message list");
+      console.log("[MessageList] Scrolling to bottom of message list");
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
   }, [messages, isLoadingMessages]);
 
   return (
     <>
+      {/* Debug Information (Temporary) */}
+      <div className="bg-yellow-50 p-2 border-b border-yellow-200 text-xs">
+        <p className="flex items-center gap-1">
+          <Bug size={14} weight="fill" className="text-yellow-600" />
+          <span>Debug: {messages.length} messages | Conversation: {currentConversationId || 'none'} | Loading: {isLoadingMessages ? 'yes' : 'no'} | Fetched: {messagesFetched ? 'yes' : 'no'} | Error: {error ? 'yes' : 'no'}</span>
+        </p>
+      </div>
+
       {/* New Conversation Banner */}
       {currentConversationId && messages.length === 0 && messagesFetched && !isLoadingMessages && !error && showNewConversationBanner && (
         <div className="bg-blue-50 p-4 border-b border-blue-100">
@@ -125,6 +133,9 @@ export const MessageList: React.FC<MessageListProps> = ({
                     }`}
                   >
                     {msg.content}
+                    <div className="text-xs mt-1 opacity-70">
+                      {new Date(msg.created_at).toLocaleTimeString()}
+                    </div>
                   </div>
                 </div>
               ))}
