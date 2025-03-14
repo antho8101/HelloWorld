@@ -23,7 +23,7 @@ export const useMessages = () => {
     loading, setLoading
   } = useConversationState();
   
-  // Use the refactored fetch messages hook
+  // Use the message fetching hook
   const {
     messages,
     loadingMessages, 
@@ -34,7 +34,7 @@ export const useMessages = () => {
     setMessages
   } = useFetchMessages();
   
-  // Get functionality from individual hooks
+  // Get functionality from hooks
   const { fetchConversations } = useFetchConversations(
     currentUserId, 
     setLoading, 
@@ -55,6 +55,7 @@ export const useMessages = () => {
   // Initial load of conversations
   useEffect(() => {
     if (currentUserId) {
+      console.log("Loading initial conversations for user:", currentUserId);
       fetchConversations();
     }
   }, [currentUserId, fetchConversations]);
@@ -66,6 +67,7 @@ export const useMessages = () => {
       fetchMessages(activeConversation.id);
     } else {
       // Reset messages when no active conversation
+      console.log("No active conversation, clearing messages");
       setMessages([]);
     }
   }, [activeConversation?.id, fetchMessages, setMessages]);

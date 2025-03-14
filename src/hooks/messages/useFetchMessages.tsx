@@ -19,33 +19,49 @@ export const useFetchMessages = () => {
     }
     
     try {
+      console.log(`Starting to fetch messages for conversation: ${conversationId}`);
+      
       // Reset states at the beginning of fetch
       setLoadingMessages(true);
       setMessageError(false);
       setMessagesFetched(false);
       
-      console.log(`Starting to fetch messages for conversation: ${conversationId}`);
+      // Clear messages while loading
+      setMessages([]);
       
       const messagesData = await fetchMessagesService(conversationId);
       
       console.log(`Successfully fetched ${messagesData.length} messages for conversation ${conversationId}`);
       
-      // Set messages and mark as fetched
-      setMessages(messagesData);
-      setMessagesFetched(true);
+      if (Array.isArray(messagesData)) {
+        setMessages(messagesData);
+      } else {
+        console.error("Fetched messages data is not an array:", messagesData);
+        setMessages([]);
+      }
       
     } catch (error) {
-      console.error("Error in useFetchMessages:", error);
+      console.error("Error fetching messages:", error);
       setMessageError(true);
       setMessages([]);
       toast.error("Could not load messages");
     } finally {
       setLoadingMessages(false);
+      setMessagesFetched(true);
     }
   }, []);
 
   const addMessage = useCallback((message: Message) => {
-    setMessages(prev => [...prev, message]);
+    setMessages(prev => {
+      // Check if message with this ID already exists
+      const exists = prev.some(m => m.id === message.id);
+      if (exists) {
+        console.log(`Message ${message.id} already exists, not adding duplicate`);
+        return prev;
+      }
+      console.log(`Adding new message ${message.id} to state`);
+      return [...prev, message];
+    });
   }, []);
   
   return { 

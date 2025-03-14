@@ -16,10 +16,9 @@ export const useRealtimeMessages = (
 
     console.log(`Setting up realtime subscription for conversation: ${activeConversation.id}`);
     
-    // Create a channel name using conversation ID to ensure uniqueness
-    const channelName = `messages-${activeConversation.id}`;
+    // Create a unique channel name for this conversation
+    const channelName = `messages-channel-${activeConversation.id}`;
     
-    // Subscribe to changes on the messages table for the active conversation
     const channel = supabase
       .channel(channelName)
       .on(
@@ -33,17 +32,14 @@ export const useRealtimeMessages = (
         async (payload) => {
           console.log('New message received via realtime:', payload);
           
-          // Skip our own messages, as they've been added optimistically
+          // Skip messages from the current user as they've been added optimistically
           if (payload.new.sender_id === currentUserId) {
             console.log('Message was from current user, already in state');
             return;
           }
           
-          // For messages from other users, add them to the state
-          console.log('Adding new message from another user to state');
-          
           try {
-            // Get profile data and construct message
+            // Get profile data
             const { data: profile, error } = await supabase
               .from("profiles")
               .select("name, avatar_url")
@@ -52,10 +48,9 @@ export const useRealtimeMessages = (
               
             if (error) {
               console.error('Error fetching profile for new message:', error);
-              return;
             }
             
-            // Create a full message object
+            // Create a complete message object
             const newMessage: Message = {
               id: payload.new.id,
               content: payload.new.content,
@@ -65,7 +60,7 @@ export const useRealtimeMessages = (
               sender_avatar: profile?.avatar_url || null
             };
             
-            // Add the message to the state
+            console.log('Adding new realtime message to state:', newMessage);
             addMessage(newMessage);
           } catch (error) {
             console.error('Error in realtime message processing:', error);

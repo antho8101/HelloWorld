@@ -48,6 +48,20 @@ export const Messages = () => {
     fetchConversations
   );
 
+  // Debug logging
+  useEffect(() => {
+    console.log("Messages page rendering with state:", {
+      conversationId: conversationId,
+      otherUserId: otherUserId,
+      activeConversation: activeConversation?.id,
+      messagesCount: messages.length,
+      initializing,
+      loading,
+      loadingMessages,
+      messagesFetched
+    });
+  }, [conversationId, otherUserId, activeConversation, messages.length, initializing, loading, loadingMessages, messagesFetched]);
+
   // Load initial data
   useEffect(() => {
     if (currentUserId) {
@@ -125,6 +139,7 @@ export const Messages = () => {
 
   const handleRetryMessages = () => {
     if (activeConversation?.id) {
+      console.log("Retrying to fetch messages for conversation:", activeConversation.id);
       fetchMessages(activeConversation.id);
     }
   };
