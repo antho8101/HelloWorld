@@ -1,35 +1,36 @@
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { fetchMessages as fetchMessagesService } from "@/services/messageService";
 import type { Message } from "@/types/messages";
 
-export const useFetchMessages = (
-  setLoadingMessages: (loading: boolean) => void,
-  setMessageError: (error: boolean) => void,
-  setMessages: (messages: Message[]) => void,
-  setMessagesFetched: (fetched: boolean) => void
-) => {
+export const useFetchMessages = () => {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [messageError, setMessageError] = useState(false);
+  const [messagesFetched, setMessagesFetched] = useState(false);
+  
   const fetchMessages = useCallback(async (conversationId: string) => {
     if (!conversationId) {
       console.log("No conversation ID provided to fetchMessages");
       setMessages([]);
-      setMessagesFetched(true); // Mark as fetched even for empty conversations
+      setMessagesFetched(true);
       return;
     }
     
     try {
+      // Reset states at the beginning of fetch
       setLoadingMessages(true);
       setMessageError(false);
-      setMessagesFetched(false); // Reset the fetched state while loading
-      console.log("Fetching messages for conversation:", conversationId);
+      setMessagesFetched(false);
+      
+      console.log(`Starting to fetch messages for conversation: ${conversationId}`);
       
       const messagesData = await fetchMessagesService(conversationId);
       
-      // Log the response for debugging
-      console.log("Messages fetched:", messagesData.length);
+      console.log(`Successfully fetched ${messagesData.length} messages for conversation ${conversationId}`);
       
-      // Set messages state and mark as fetched
+      // Set messages and mark as fetched
       setMessages(messagesData);
       setMessagesFetched(true);
       
@@ -37,11 +38,23 @@ export const useFetchMessages = (
       console.error("Error in useFetchMessages:", error);
       setMessageError(true);
       setMessages([]);
-      setMessagesFetched(true); // Still mark as fetched so UI shows error state
+      toast.error("Could not load messages");
     } finally {
       setLoadingMessages(false);
     }
-  }, [setLoadingMessages, setMessageError, setMessages, setMessagesFetched]);
+  }, []);
 
-  return { fetchMessages };
+  const addMessage = useCallback((message: Message) => {
+    setMessages(prev => [...prev, message]);
+  }, []);
+  
+  return { 
+    messages, 
+    loadingMessages, 
+    messageError, 
+    messagesFetched,
+    fetchMessages,
+    addMessage,
+    setMessages 
+  };
 };

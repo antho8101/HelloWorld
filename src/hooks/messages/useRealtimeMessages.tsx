@@ -6,7 +6,7 @@ import type { Conversation, Message } from "@/types/messages";
 export const useRealtimeMessages = (
   activeConversation: Conversation | null,
   currentUserId: string | null,
-  setMessages: (messages: Message[] | ((prevMessages: Message[]) => Message[])) => void
+  addMessage: (message: Message) => void
 ) => {
   useEffect(() => {
     if (!activeConversation?.id || !currentUserId) {
@@ -16,7 +16,7 @@ export const useRealtimeMessages = (
 
     console.log(`Setting up realtime subscription for conversation: ${activeConversation.id}`);
     
-    // Create a channel name using conversation ID
+    // Create a channel name using conversation ID to ensure uniqueness
     const channelName = `messages-${activeConversation.id}`;
     
     // Subscribe to changes on the messages table for the active conversation
@@ -30,7 +30,7 @@ export const useRealtimeMessages = (
           table: 'messages',
           filter: `conversation_id=eq.${activeConversation.id}`
         }, 
-        async (payload) => {
+        (payload) => {
           console.log('New message received via realtime:', payload);
           
           // Skip our own messages, as they've been added optimistically
@@ -42,34 +42,39 @@ export const useRealtimeMessages = (
           // For messages from other users, add them to the state
           console.log('Adding new message from another user to state');
           
-          // Using an async function with try/catch for better error handling
-          try {
-            const { data: profile, error } = await supabase
-              .from("profiles")
-              .select("name, avatar_url")
-              .eq("id", payload.new.sender_id)
-              .single();
+          // Get profile data and construct message
+          const getProfileAndAddMessage = async () => {
+            try {
+              const { data: profile, error } = await supabase
+                .from("profiles")
+                .select("name, avatar_url")
+                .eq("id", payload.new.sender_id)
+                .single();
+                
+              if (error) {
+                console.error('Error fetching profile for new message:', error);
+                return;
+              }
               
-            if (error) {
-              console.error('Error fetching profile for new message:', error);
-              return;
+              // Create a full message object
+              const newMessage: Message = {
+                id: payload.new.id,
+                content: payload.new.content,
+                created_at: payload.new.created_at,
+                sender_id: payload.new.sender_id,
+                sender_name: profile?.name || null,
+                sender_avatar: profile?.avatar_url || null
+              };
+              
+              // Add the message to the state
+              addMessage(newMessage);
+            } catch (error) {
+              console.error('Error in realtime message processing:', error);
             }
-            
-            // Create a full message object
-            const newMessage: Message = {
-              id: payload.new.id,
-              content: payload.new.content,
-              created_at: payload.new.created_at,
-              sender_id: payload.new.sender_id,
-              sender_name: profile?.name || null,
-              sender_avatar: profile?.avatar_url || null
-            };
-            
-            // Add the message to the state
-            setMessages(prev => [...prev, newMessage]);
-          } catch (error) {
-            console.error('Error in realtime message processing:', error);
-          }
+          };
+          
+          // Execute the async function
+          getProfileAndAddMessage();
         }
       )
       .subscribe((status) => {
@@ -80,5 +85,5 @@ export const useRealtimeMessages = (
       console.log(`Removing realtime subscription for conversation: ${activeConversation.id}`);
       supabase.removeChannel(channel);
     };
-  }, [activeConversation?.id, currentUserId, setMessages]);
+  }, [activeConversation?.id, currentUserId, addMessage]);
 };

@@ -7,18 +7,13 @@ import { useFetchConversations } from "@/hooks/messages/useFetchConversations";
 import { useFetchMessages } from "@/hooks/messages/useFetchMessages";
 import { useSendMessage } from "@/hooks/messages/useSendMessage";
 import { useRealtimeMessages } from "@/hooks/messages/useRealtimeMessages";
-import { useSelectConversation } from "@/hooks/messages/useSelectConversation";
 
 export const useMessages = () => {
   const { currentUserId } = useSession();
   
   // Get state from individual hooks
   const {
-    messages, setMessages,
     newMessage, setNewMessage,
-    loadingMessages, setLoadingMessages,
-    messagesFetched, setMessagesFetched,
-    messageError, setMessageError,
     sending, setSending
   } = useMessageState();
   
@@ -28,6 +23,17 @@ export const useMessages = () => {
     loading, setLoading
   } = useConversationState();
   
+  // Use the refactored fetch messages hook
+  const {
+    messages,
+    loadingMessages, 
+    messageError, 
+    messagesFetched,
+    fetchMessages,
+    addMessage,
+    setMessages
+  } = useFetchMessages();
+  
   // Get functionality from individual hooks
   const { fetchConversations } = useFetchConversations(
     currentUserId, 
@@ -35,32 +41,16 @@ export const useMessages = () => {
     setConversations
   );
   
-  const { fetchMessages } = useFetchMessages(
-    setLoadingMessages,
-    setMessageError,
-    setMessages,
-    setMessagesFetched
-  );
-  
   const { sendMessage } = useSendMessage(
     currentUserId,
     activeConversation,
-    setMessages,
+    addMessage,
     setSending,
     setNewMessage
   );
   
   // Setup realtime messages
-  useRealtimeMessages(activeConversation, currentUserId, setMessages);
-  
-  // Setup conversation selection
-  const { selectConversation } = useSelectConversation(
-    setMessages,
-    setMessagesFetched,
-    setMessageError,
-    setActiveConversation,
-    fetchMessages
-  );
+  useRealtimeMessages(activeConversation, currentUserId, addMessage);
   
   // Initial load of conversations
   useEffect(() => {
@@ -68,6 +58,22 @@ export const useMessages = () => {
       fetchConversations();
     }
   }, [currentUserId, fetchConversations]);
+  
+  // When active conversation changes, fetch messages
+  useEffect(() => {
+    if (activeConversation?.id) {
+      console.log(`Active conversation changed to ${activeConversation.id}, fetching messages`);
+      fetchMessages(activeConversation.id);
+    } else {
+      // Reset messages when no active conversation
+      setMessages([]);
+    }
+  }, [activeConversation?.id, fetchMessages, setMessages]);
+  
+  const selectConversation = (conversation: any) => {
+    console.log("Selected conversation:", conversation.id);
+    setActiveConversation(conversation);
+  };
   
   return {
     // State

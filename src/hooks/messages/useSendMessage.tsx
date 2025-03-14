@@ -8,7 +8,7 @@ import type { Message, Conversation } from "@/types/messages";
 export const useSendMessage = (
   currentUserId: string | null,
   activeConversation: Conversation | null,
-  setMessages: (messages: Message[] | ((prevMessages: Message[]) => Message[])) => void,
+  addMessage: (message: Message) => void,
   setSending: (sending: boolean) => void,
   setNewMessage: (message: string) => void
 ) => {
@@ -56,8 +56,8 @@ export const useSendMessage = (
 
       console.log("Message sent successfully");
       
-      // Add the new message to the list without a full refresh
-      setMessages((prevMessages: Message[]) => [...prevMessages, sentMessage]);
+      // Add the new message directly
+      addMessage(sentMessage);
       
       // Reset the message input
       setNewMessage("");
@@ -69,7 +69,7 @@ export const useSendMessage = (
     } finally {
       setSending(false);
     }
-  }, [currentUserId, activeConversation, setMessages, setSending, setNewMessage]);
+  }, [currentUserId, activeConversation, addMessage, setSending, setNewMessage]);
 
   return { sendMessage };
 };

@@ -17,7 +17,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
   }
   
   try {
-    console.log('Fetching messages for conversation:', conversationId);
+    console.log(`Fetching messages for conversation: ${conversationId}`);
     
     // Check authentication status
     const { data: authData } = await supabase.auth.getSession();
@@ -27,21 +27,23 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       return [];
     }
     
-    // Use RPC function call instead of direct table query to avoid recursion in policies
+    // Use RPC function call to get messages
     const { data: messagesData, error: messagesError } = await supabase
       .rpc('get_conversation_messages', { conversation_id_param: conversationId });
     
     if (messagesError) {
       console.error('Error fetching messages:', messagesError);
-      
-      // Don't throw here, just return empty and show error to user
-      toast.error("Could not load messages");
+      throw new Error(`Error fetching messages: ${messagesError.message}`);
+    }
+    
+    if (!messagesData) {
+      console.log('No messages data returned for conversation:', conversationId);
       return [];
     }
     
-    console.log(`Fetched ${messagesData?.length || 0} messages for conversation ${conversationId}`);
+    console.log(`Fetched ${messagesData.length} messages for conversation ${conversationId}`);
     
-    if (!messagesData || messagesData.length === 0) {
+    if (messagesData.length === 0) {
       console.log('No messages found for conversation:', conversationId);
       return [];
     }
@@ -88,8 +90,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     return mappedMessages;
   } catch (error) {
     console.error("Error fetching messages:", error);
-    toast.error("Error loading messages");
-    return [];
+    throw error; // Let the hook handle the error
   }
 };
 
@@ -107,14 +108,12 @@ export const sendMessage = async (
 
     if (messageError) {
       console.error('Error sending message:', messageError);
-      toast.error("Could not send message");
-      return null;
+      throw new Error(`Could not send message: ${messageError.message}`);
     }
 
     if (!data) {
       console.error('No data returned from message insertion');
-      toast.error("Could not send message");
-      return null;
+      throw new Error('Could not send message: No data returned');
     }
 
     console.log('Message sent successfully to conversation:', messageData.conversation_id);
@@ -140,7 +139,6 @@ export const sendMessage = async (
     };
   } catch (error) {
     console.error("Error sending message:", error);
-    toast.error("Error sending message");
-    return null;
+    throw error; // Let the hook handle the error
   }
 };
