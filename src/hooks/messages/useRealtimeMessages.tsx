@@ -19,15 +19,14 @@ export const useRealtimeMessages = (
     // Create a unique channel name for this conversation
     const channelName = `messages-channel-${activeConversation.id}`;
     
-    // First, make sure we're not already subscribed by checking existing channels
+    // First, remove any existing channels for this conversation
     const existingChannels = supabase.getChannels();
-    const existingChannel = existingChannels.find(
-      channel => channel.topic === `realtime:public:messages:conversation_id=eq.${activeConversation.id}`
-    );
     
-    if (existingChannel) {
-      console.log(`[useRealtimeMessages] Removing existing channel for conversation: ${activeConversation.id}`);
-      supabase.removeChannel(existingChannel);
+    for (const channel of existingChannels) {
+      if (channel.topic === `realtime:public:messages:conversation_id=eq.${activeConversation.id}`) {
+        console.log(`[useRealtimeMessages] Removing existing channel for conversation: ${activeConversation.id}`);
+        supabase.removeChannel(channel);
+      }
     }
     
     // Then set up a new subscription
@@ -56,7 +55,7 @@ export const useRealtimeMessages = (
               .from("profiles")
               .select("name, avatar_url")
               .eq("id", payload.new.sender_id)
-              .single();
+              .maybeSingle();
               
             if (error) {
               console.error('[useRealtimeMessages] Error fetching profile for new message:', error);

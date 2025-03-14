@@ -3,7 +3,6 @@ import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { fetchMessages as fetchMessagesService } from "@/services/messageService";
 import type { Message } from "@/types/messages";
-import { supabase } from "@/integrations/supabase/client";
 
 export const useFetchMessages = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -30,22 +29,7 @@ export const useFetchMessages = () => {
       // Clear messages while loading
       setMessages([]);
       
-      // Get current user session to verify we're authenticated
-      const { data: sessionData } = await supabase.auth.getSession();
-      console.log("[useFetchMessages] Current session:", sessionData?.session ? "Authenticated" : "Not authenticated");
-      
-      // Direct database query to check access
-      const { data: participantCheck } = await supabase
-        .from('conversation_participants')
-        .select('*')
-        .eq('conversation_id', conversationId)
-        .eq('user_id', sessionData.session?.user.id || '')
-        .limit(1);
-      
-      console.log(`[useFetchMessages] Participant check for conversation ${conversationId}:`, 
-        participantCheck && participantCheck.length > 0 ? "User is participant" : "User is NOT participant");
-      
-      // Fetch messages
+      // Fetch messages directly without additional participant check
       const messagesData = await fetchMessagesService(conversationId);
       
       console.log(`[useFetchMessages] Messages fetch result: ${messagesData.length} messages retrieved`);
