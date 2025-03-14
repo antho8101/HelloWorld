@@ -12,7 +12,7 @@ interface MessagePayload {
 
 export const fetchMessages = async (conversationId: string): Promise<Message[]> => {
   if (!conversationId) {
-    console.warn('fetchMessages called with empty conversationId');
+    console.error('fetchMessages called with empty conversationId');
     return [];
   }
   
@@ -27,9 +27,31 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       return [];
     }
     
-    // Use RPC function call to get messages
+    // First check if we can access this conversation
+    const { data: checkData, error: checkError } = await supabase
+      .rpc('check_conversation_participant', { 
+        user_id: authData.session.user.id, 
+        conversation_id: conversationId 
+      });
+    
+    if (checkError) {
+      console.error('Error checking conversation access:', checkError);
+      return [];
+    }
+    
+    if (!checkData) {
+      console.error('User does not have access to this conversation');
+      return [];
+    }
+    
+    console.log('Access check passed, fetching messages directly');
+    
+    // Direct fetch from the messages table
     const { data: messagesData, error: messagesError } = await supabase
-      .rpc('get_conversation_messages', { conversation_id_param: conversationId });
+      .from('messages')
+      .select('id, content, created_at, sender_id')
+      .eq('conversation_id', conversationId)
+      .order('created_at', { ascending: true });
     
     if (messagesError) {
       console.error('Error fetching messages:', messagesError);
@@ -41,6 +63,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       return [];
     }
     
+    console.log(`Raw messages data:`, messagesData);
     console.log(`Fetched ${messagesData.length} messages for conversation ${conversationId}`);
     
     if (messagesData.length === 0) {
@@ -86,7 +109,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       };
     });
     
-    console.log('Final mapped messages count:', mappedMessages.length);
+    console.log('Final mapped messages:', mappedMessages);
     return mappedMessages;
   } catch (error) {
     console.error("Error fetching messages:", error);

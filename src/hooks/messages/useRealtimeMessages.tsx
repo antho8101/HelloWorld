@@ -30,7 +30,7 @@ export const useRealtimeMessages = (
           table: 'messages',
           filter: `conversation_id=eq.${activeConversation.id}`
         }, 
-        (payload) => {
+        async (payload) => {
           console.log('New message received via realtime:', payload);
           
           // Skip our own messages, as they've been added optimistically
@@ -42,39 +42,34 @@ export const useRealtimeMessages = (
           // For messages from other users, add them to the state
           console.log('Adding new message from another user to state');
           
-          // Get profile data and construct message
-          const getProfileAndAddMessage = async () => {
-            try {
-              const { data: profile, error } = await supabase
-                .from("profiles")
-                .select("name, avatar_url")
-                .eq("id", payload.new.sender_id)
-                .single();
-                
-              if (error) {
-                console.error('Error fetching profile for new message:', error);
-                return;
-              }
+          try {
+            // Get profile data and construct message
+            const { data: profile, error } = await supabase
+              .from("profiles")
+              .select("name, avatar_url")
+              .eq("id", payload.new.sender_id)
+              .single();
               
-              // Create a full message object
-              const newMessage: Message = {
-                id: payload.new.id,
-                content: payload.new.content,
-                created_at: payload.new.created_at,
-                sender_id: payload.new.sender_id,
-                sender_name: profile?.name || null,
-                sender_avatar: profile?.avatar_url || null
-              };
-              
-              // Add the message to the state
-              addMessage(newMessage);
-            } catch (error) {
-              console.error('Error in realtime message processing:', error);
+            if (error) {
+              console.error('Error fetching profile for new message:', error);
+              return;
             }
-          };
-          
-          // Execute the async function
-          getProfileAndAddMessage();
+            
+            // Create a full message object
+            const newMessage: Message = {
+              id: payload.new.id,
+              content: payload.new.content,
+              created_at: payload.new.created_at,
+              sender_id: payload.new.sender_id,
+              sender_name: profile?.name || null,
+              sender_avatar: profile?.avatar_url || null
+            };
+            
+            // Add the message to the state
+            addMessage(newMessage);
+          } catch (error) {
+            console.error('Error in realtime message processing:', error);
+          }
         }
       )
       .subscribe((status) => {

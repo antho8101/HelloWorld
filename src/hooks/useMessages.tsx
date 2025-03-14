@@ -75,7 +75,7 @@ export const useMessages = () => {
     setActiveConversation(conversation);
   };
   
-  return {
+  return { 
     // State
     conversations,
     loading,
