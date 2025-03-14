@@ -29,18 +29,9 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     const currentUserId = sessionData.session.user.id;
     console.log('[messageService] Current user ID:', currentUserId);
 
-    // Fetch messages with a JOIN on profiles table
+    // Use the get_conversation_messages function to retrieve messages
     const { data: messagesData, error: messagesError } = await supabase
-      .from('messages')
-      .select(`
-        id,
-        content,
-        created_at,
-        sender_id,
-        profiles(name, avatar_url)
-      `)
-      .eq('conversation_id', conversationId)
-      .order('created_at', { ascending: true });
+      .rpc('get_conversation_messages', { p_conversation_id: conversationId });
     
     if (messagesError) {
       console.error('[messageService] Error fetching messages:', messagesError);
@@ -60,8 +51,8 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       content: msg.content,
       created_at: msg.created_at,
       sender_id: msg.sender_id,
-      sender_name: msg.profiles?.name || null,
-      sender_avatar: msg.profiles?.avatar_url || null
+      sender_name: msg.sender_name || null,
+      sender_avatar: msg.sender_avatar || null
     }));
     
     console.log('[messageService] Final formatted messages count:', formattedMessages.length);
@@ -78,7 +69,7 @@ export const sendMessage = async (
   try {
     console.log('Sending message to conversation:', messageData.conversation_id);
     
-    // Utiliser notre nouvelle fonction SQL sécurisée pour envoyer le message
+    // Use the send_message function with proper error handling
     const { data, error: messageError } = await supabase
       .rpc('send_message', {
         p_content: messageData.content,
