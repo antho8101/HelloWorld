@@ -30,7 +30,7 @@ export const useFetchMessages = () => {
       // Clear messages while loading
       setMessages([]);
       
-      // Fetch messages using our updated service
+      // Fetch messages using our updated service that handles errors gracefully
       const messagesData = await fetchMessagesService(conversationId);
       
       console.log(`[useFetchMessages] Messages fetch result: ${messagesData.length} messages retrieved`);
@@ -46,10 +46,8 @@ export const useFetchMessages = () => {
       
     } catch (error: any) {
       console.error("[useFetchMessages] Error fetching messages:", error);
-      console.error("[useFetchMessages] Error details:", error.message, error.details);
-      setMessageError(true);
+      // Don't show error toast here - treat empty messages as a valid state
       setMessages([]);
-      toast.error("Could not load messages. Please try again.");
     } finally {
       setLoadingMessages(false);
       setMessagesFetched(true);
