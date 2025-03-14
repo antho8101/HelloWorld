@@ -29,7 +29,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     const currentUserId = sessionData.session.user.id;
     console.log('[messageService] Current user ID:', currentUserId);
 
-    // Join with profiles table to get the sender information
+    // Fetch messages with explicit join to profiles table
     const { data: messagesData, error: messagesError } = await supabase
       .from('messages')
       .select(`
@@ -37,7 +37,10 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
         content,
         created_at,
         sender_id,
-        sender:profiles(name, avatar_url)
+        profiles!messages_sender_id_fkey (
+          name,
+          avatar_url
+        )
       `)
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: true });
@@ -55,13 +58,13 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     console.log(`[messageService] Retrieved ${messagesData.length} messages from database`);
     
     // Format messages for the application
-    const formattedMessages: Message[] = messagesData.map(msg => ({
+    const formattedMessages: Message[] = messagesData.map((msg: any) => ({
       id: msg.id,
       content: msg.content,
       created_at: msg.created_at,
       sender_id: msg.sender_id,
-      sender_name: msg.sender?.name || null,
-      sender_avatar: msg.sender?.avatar_url || null
+      sender_name: msg.profiles?.name || null,
+      sender_avatar: msg.profiles?.avatar_url || null
     }));
     
     console.log('[messageService] Final formatted messages count:', formattedMessages.length);
