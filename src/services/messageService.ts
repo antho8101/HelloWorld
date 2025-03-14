@@ -29,12 +29,13 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     const currentUserId = sessionData.session.user.id;
     console.log('[messageService] Current user ID:', currentUserId);
 
-    // Use the get_conversation_messages function to retrieve messages
+    // Use the get_conversation_messages function with more detailed error handling
     const { data: messagesData, error: messagesError } = await supabase
       .rpc('get_conversation_messages', { p_conversation_id: conversationId });
     
     if (messagesError) {
       console.error('[messageService] Error fetching messages:', messagesError);
+      console.error('[messageService] Error details:', messagesError.message, messagesError.details);
       throw messagesError;
     }
     
@@ -43,7 +44,10 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       return [];
     }
     
-    console.log(`[messageService] Retrieved ${messagesData.length} messages from database`, messagesData);
+    console.log(`[messageService] Retrieved ${messagesData.length} messages from database`);
+    if (messagesData.length > 0) {
+      console.log('[messageService] First message sample:', messagesData[0]);
+    }
     
     // Format messages for the application
     const formattedMessages: Message[] = messagesData.map((msg: any) => ({
@@ -75,16 +79,17 @@ export const sendMessage = async (
       throw new Error('Invalid message data');
     }
     
-    // Appel de la fonction RPC avec les bons paramètres
+    // Appel de la fonction RPC avec les bons paramètres et logging amélioré
     const { data, error: messageError } = await supabase
       .rpc('send_message', {
         p_content: messageData.content,
         p_conversation_id: messageData.conversation_id
       });
 
-    // Gestion explicite des erreurs
+    // Gestion explicite des erreurs avec plus de détails
     if (messageError) {
       console.error('[messageService] Error sending message:', messageError);
+      console.error('[messageService] Error details:', messageError.message, messageError.details, messageError.hint);
       throw new Error(`Could not send message: ${messageError.message}`);
     }
 

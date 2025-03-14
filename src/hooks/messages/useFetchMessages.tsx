@@ -29,7 +29,7 @@ export const useFetchMessages = () => {
       // Clear messages while loading
       setMessages([]);
       
-      // Utiliser notre service mis à jour qui utilise la fonction SQL sécurisée
+      // Utiliser notre service mis à jour qui utilise la fonction SQL corrigée
       const messagesData = await fetchMessagesService(conversationId);
       
       console.log(`[useFetchMessages] Messages fetch result: ${messagesData.length} messages retrieved`);
@@ -40,8 +40,9 @@ export const useFetchMessages = () => {
       
       setMessages(messagesData);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error("[useFetchMessages] Error fetching messages:", error);
+      console.error("[useFetchMessages] Error details:", error.message, error.details);
       setMessageError(true);
       setMessages([]);
       toast.error("Could not load messages. Please try again.");
