@@ -21,6 +21,7 @@ export const Messages = () => {
     newMessage, 
     loadingMessages, 
     sending,
+    messagesFetched,
     setActiveConversation, 
     setNewMessage, 
     sendMessage,
@@ -154,6 +155,7 @@ export const Messages = () => {
             newMessage={newMessage}
             currentUserId={currentUserId}
             loadingMessages={loadingMessages}
+            messagesFetched={messagesFetched}
             setNewMessage={setNewMessage}
             handleSendMessage={handleSendMessage}
             sending={sending}

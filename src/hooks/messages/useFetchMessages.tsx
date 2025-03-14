@@ -21,6 +21,7 @@ export const useFetchMessages = (
     try {
       setLoadingMessages(true);
       setMessageError(false);
+      setMessagesFetched(false); // Reset the fetched state while loading
       console.log("Fetching messages for conversation:", conversationId);
       
       const messagesData = await fetchMessagesService(conversationId);

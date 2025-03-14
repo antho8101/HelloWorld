@@ -24,7 +24,7 @@ export const MessageList: React.FC<MessageListProps> = ({
   currentConversationId,
   showNewConversationBanner,
   isLoadingMessages,
-  messagesFetched,
+  messagesFetched = false, // Provide a default value to prevent undefined
   otherParticipant,
   error,
   onRetry
