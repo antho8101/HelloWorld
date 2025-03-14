@@ -29,7 +29,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     const currentUserId = sessionData.session.user.id;
     console.log('[messageService] Current user ID:', currentUserId);
 
-    // Fetch messages with explicit join to profiles table
+    // Fetch messages with a JOIN on profiles table
     const { data: messagesData, error: messagesError } = await supabase
       .from('messages')
       .select(`
@@ -37,10 +37,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
         content,
         created_at,
         sender_id,
-        profiles!messages_sender_id_fkey (
-          name,
-          avatar_url
-        )
+        profiles(name, avatar_url)
       `)
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: true });
