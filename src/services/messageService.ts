@@ -29,30 +29,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     const currentUserId = sessionData.session.user.id;
     console.log('[messageService] Current user ID:', currentUserId);
     
-    // Check if the user is a participant in this conversation directly
-    const { data: participantCheck, error: participantError } = await supabase
-      .from('conversation_participants')
-      .select('*')
-      .eq('conversation_id', conversationId)
-      .eq('user_id', currentUserId)
-      .limit(1);
-      
-    if (participantError) {
-      console.error('[messageService] Error checking participant access:', participantError);
-      return [];
-    }
-    
-    console.log('[messageService] Participant check result:', participantCheck);
-    
-    if (!participantCheck || participantCheck.length === 0) {
-      console.error('[messageService] User is not a participant in this conversation');
-      toast.error("You don't have access to this conversation");
-      return [];
-    }
-    
-    console.log('[messageService] User confirmed as participant in conversation, fetching messages');
-    
-    // Try direct database query first with additional logging
+    // Get messages directly - our RLS policies will handle access control
     const { data: messagesData, error: messagesError } = await supabase
       .from('messages')
       .select('*')
@@ -61,11 +38,6 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     
     if (messagesError) {
       console.error('[messageService] Error fetching messages:', messagesError);
-      
-      // If we get an RLS error, let's try to debug by analyzing the exact permissions issue
-      console.log('[messageService] Debugging RLS permissions for conversation:', conversationId);
-      console.log('[messageService] Current user ID for RLS check:', currentUserId);
-      
       return [];
     }
     
@@ -75,14 +47,6 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     }
     
     console.log(`[messageService] Retrieved ${messagesData.length} messages from database`);
-    
-    if (messagesData.length === 0) {
-      console.log('[messageService] No messages found for conversation:', conversationId);
-      return [];
-    }
-    
-    console.log('[messageService] First message retrieved:', messagesData[0]);
-    console.log('[messageService] Last message retrieved:', messagesData[messagesData.length - 1]);
     
     // Get all the unique sender IDs to fetch profiles in one request
     const senderIds = [...new Set(messagesData.map(msg => msg.sender_id))];
@@ -135,29 +99,7 @@ export const sendMessage = async (
   try {
     console.log('Sending message to conversation:', messageData.conversation_id);
     
-    // First verify if user is a participant
-    const { data: sessionData } = await supabase.auth.getSession();
-    const currentUserId = sessionData.session?.user.id;
-    
-    if (!currentUserId || currentUserId !== messageData.sender_id) {
-      console.error('User not authenticated or sender ID mismatch');
-      return null;
-    }
-    
-    // Verify the user is a participant in this conversation
-    const { data: participantCheck, error: participantError } = await supabase
-      .from('conversation_participants')
-      .select('*')
-      .eq('conversation_id', messageData.conversation_id)
-      .eq('user_id', currentUserId)
-      .limit(1);
-      
-    if (participantError || !participantCheck || participantCheck.length === 0) {
-      console.error('User is not a participant in this conversation');
-      return null;
-    }
-    
-    // Send the message
+    // Send the message - RLS will handle access control
     const { data, error: messageError } = await supabase
       .from("messages")
       .insert(messageData)
