@@ -30,8 +30,8 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
       id: convo.id,
       created_at: convo.created_at,
       updated_at: convo.updated_at,
-      is_pinned: Boolean(convo.is_pinned) || false,
-      is_archived: Boolean(convo.is_archived) || false,
+      is_pinned: false, // Default values since these fields don't exist in DB anymore
+      is_archived: false, // Default values since these fields don't exist in DB anymore
       otherParticipant: convo.other_user_id ? {
         id: convo.other_user_id,
         name: convo.other_user_name,
