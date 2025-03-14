@@ -87,25 +87,16 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          is_archived: boolean
-          is_pinned: boolean
-          is_reported: boolean
           updated_at: string
         }
         Insert: {
           created_at?: string
           id?: string
-          is_archived?: boolean
-          is_pinned?: boolean
-          is_reported?: boolean
           updated_at?: string
         }
         Update: {
           created_at?: string
           id?: string
-          is_archived?: boolean
-          is_pinned?: boolean
-          is_reported?: boolean
           updated_at?: string
         }
         Relationships: []
@@ -197,24 +188,24 @@ export type Database = {
           conversation_id: string
           created_at: string
           id: string
+          is_read: boolean
           sender_id: string
-          updated_at: string
         }
         Insert: {
           content: string
           conversation_id: string
           created_at?: string
           id?: string
+          is_read?: boolean
           sender_id: string
-          updated_at?: string
         }
         Update: {
           content?: string
           conversation_id?: string
           created_at?: string
           id?: string
+          is_read?: boolean
           sender_id?: string
-          updated_at?: string
         }
         Relationships: [
           {
@@ -558,6 +549,12 @@ export type Database = {
         }
         Returns: number
       }
+      create_conversation: {
+        Args: {
+          p_other_user_id: string
+        }
+        Returns: string
+      }
       debug_check_messages_exist: {
         Args: {
           conversation_id_param: string
@@ -569,42 +566,42 @@ export type Database = {
           p_conversation_id: string
         }
         Returns: {
-          content: string
-          conversation_id: string
-          created_at: string
           id: string
           sender_id: string
-          updated_at: string
+          sender_name: string
+          sender_avatar: string
+          content: string
+          created_at: string
+          is_read: boolean
         }[]
       }
       get_user_conversations: {
         Args: {
-          user_id_param: string
+          p_user_id: string
         }
         Returns: {
           id: string
           created_at: string
           updated_at: string
-          is_pinned: boolean
-          is_archived: boolean
-          other_participant_id: string
-          latest_message: string
-          latest_message_time: string
+          other_user_id: string
+          other_user_name: string
+          other_user_avatar: string
+          last_message: string
+          last_message_time: string
+          unread_count: number
         }[]
       }
       send_message: {
         Args: {
           p_content: string
           p_conversation_id: string
-          p_sender_id: string
         }
         Returns: {
-          content: string
-          conversation_id: string
-          created_at: string
           id: string
           sender_id: string
-          updated_at: string
+          content: string
+          created_at: string
+          is_read: boolean
         }[]
       }
     }

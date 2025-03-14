@@ -45,42 +45,15 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     
     console.log(`[messageService] Retrieved ${messagesData.length} messages from database`);
     
-    // Get all the unique sender IDs to fetch profiles in one request
-    const senderIds = [...new Set(messagesData.map(msg => msg.sender_id))];
-    
-    // Fetch all profiles for the senders in a single request
-    const { data: profiles, error: profilesError } = await supabase
-      .from('profiles')
-      .select('id, name, avatar_url')
-      .in('id', senderIds);
-    
-    if (profilesError) {
-      console.error('[messageService] Error fetching sender profiles:', profilesError);
-    }
-    
-    // Create a map of profiles for easy lookup
-    const profileMap = new Map();
-    if (profiles) {
-      profiles.forEach(profile => {
-        profileMap.set(profile.id, {
-          name: profile.name,
-          avatar_url: profile.avatar_url
-        });
-      });
-    }
-    
-    // Map the messages with sender info
-    const formattedMessages: Message[] = messagesData.map(msg => {
-      const profile = profileMap.get(msg.sender_id);
-      return {
-        id: msg.id,
-        content: msg.content,
-        created_at: msg.created_at,
-        sender_id: msg.sender_id,
-        sender_name: profile ? profile.name : null,
-        sender_avatar: profile ? profile.avatar_url : null
-      };
-    });
+    // Format messages for the application
+    const formattedMessages: Message[] = messagesData.map(msg => ({
+      id: msg.id,
+      content: msg.content,
+      created_at: msg.created_at,
+      sender_id: msg.sender_id,
+      sender_name: msg.sender_name || null,
+      sender_avatar: msg.sender_avatar || null
+    }));
     
     console.log('[messageService] Final formatted messages count:', formattedMessages.length);
     return formattedMessages;
@@ -100,8 +73,7 @@ export const sendMessage = async (
     const { data, error: messageError } = await supabase
       .rpc('send_message', {
         p_content: messageData.content,
-        p_conversation_id: messageData.conversation_id,
-        p_sender_id: messageData.sender_id
+        p_conversation_id: messageData.conversation_id
       });
 
     if (messageError) {

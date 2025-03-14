@@ -12,7 +12,7 @@ interface ActiveConversationProps {
   loadingMessages: boolean;
   sending?: boolean;
   error?: boolean;
-  messagesFetched?: boolean; // Add this prop
+  messagesFetched?: boolean;
   setNewMessage: (message: string) => void;
   handleSendMessage: () => void;
   handleRetryMessages?: () => void;
@@ -26,7 +26,7 @@ export const ActiveConversation: React.FC<ActiveConversationProps> = ({
   loadingMessages,
   sending = false,
   error = false,
-  messagesFetched = false, // Default to false
+  messagesFetched = false,
   setNewMessage,
   handleSendMessage,
   handleRetryMessages

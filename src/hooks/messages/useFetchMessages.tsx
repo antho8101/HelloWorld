@@ -38,13 +38,7 @@ export const useFetchMessages = () => {
         console.log("[useFetchMessages] Last message:", messagesData[messagesData.length - 1]);
       }
       
-      if (Array.isArray(messagesData)) {
-        console.log(`[useFetchMessages] Setting ${messagesData.length} messages to state`);
-        setMessages(messagesData);
-      } else {
-        console.error("[useFetchMessages] Fetched messages data is not an array:", messagesData);
-        setMessages([]);
-      }
+      setMessages(messagesData);
       
     } catch (error) {
       console.error("[useFetchMessages] Error fetching messages:", error);
