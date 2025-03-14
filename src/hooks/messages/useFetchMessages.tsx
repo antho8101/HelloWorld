@@ -32,6 +32,7 @@ export const useFetchMessages = () => {
       const messagesData = await fetchMessagesService(conversationId);
       
       console.log(`Successfully fetched ${messagesData.length} messages for conversation ${conversationId}`);
+      console.log("Messages data:", messagesData); // Added detailed logging
       
       if (Array.isArray(messagesData)) {
         setMessages(messagesData);

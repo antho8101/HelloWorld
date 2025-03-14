@@ -29,7 +29,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     const currentUserId = sessionData.session.user.id;
     console.log('Current user ID:', currentUserId);
     
-    // Verify the user is a participant in this conversation
+    // Check if the user is a participant in this conversation directly
     const { data: participantCheck, error: participantError } = await supabase
       .from('conversation_participants')
       .select('*')
@@ -50,7 +50,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     
     console.log('User confirmed as participant in conversation, fetching messages');
     
-    // Now fetch messages directly with a service role approach
+    // Direct database query to get messages
     const { data: messagesData, error: messagesError } = await supabase
       .from('messages')
       .select('*')
