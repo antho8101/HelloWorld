@@ -14,62 +14,66 @@ export const useSendMessage = (
 ) => {
   const sendMessage = useCallback(async (receiverId: string, content: string) => {
     if (!currentUserId || !content.trim()) {
-      console.log("Missing user ID or empty message");
+      console.log("[useSendMessage] Missing user ID or empty message");
       return false;
     }
 
     try {
       setSending(true);
-      console.log("Sending message to receiver:", receiverId);
+      console.log("[useSendMessage] Preparing to send message to receiver:", receiverId);
+      console.log("[useSendMessage] Message content:", content);
+      
       let conversationId = activeConversation?.id;
 
-      // If the conversation is temporary or doesn't have an ID, create a new one
+      // Si la conversation est temporaire ou n'a pas d'ID, en créer une nouvelle
       if (!conversationId || activeConversation?.isTemporary) {
-        console.log("Creating new conversation for message");
-        // Create a new conversation
+        console.log("[useSendMessage] Creating new conversation for message");
+        // Créer une nouvelle conversation
         const newConversationId = await createConversation(currentUserId, receiverId);
         
         if (!newConversationId) {
-          console.error("Failed to create conversation - received null ID");
+          console.error("[useSendMessage] Failed to create conversation - received null ID");
           toast.error("Failed to create conversation");
           throw new Error("Failed to create conversation");
         }
         
         conversationId = newConversationId;
-        console.log("New conversation created with ID:", conversationId);
+        console.log("[useSendMessage] New conversation created with ID:", conversationId);
       }
 
-      // Send the message
+      // Préparer les données du message
       const messageData = {
         content,
         conversation_id: conversationId,
         sender_id: currentUserId
       };
 
-      console.log("Sending message with data:", messageData);
+      console.log("[useSendMessage] Sending message with data:", messageData);
       
       try {
+        // Envoi du message avec le service
         const sentMessage = await sendMessageService(messageData);
         
         if (!sentMessage) {
-          console.error("Failed to send message - API returned failure");
+          console.error("[useSendMessage] Failed to send message - API returned no message");
           throw new Error("Failed to send message");
         }
   
-        console.log("Message sent successfully, received:", sentMessage);
+        console.log("[useSendMessage] Message sent successfully, received:", sentMessage);
         
-        // Add the new message directly
+        // Ajouter le nouveau message directement à l'état
         addMessage(sentMessage);
         
-        // Reset the message input
+        // Réinitialiser le champ de saisie
         setNewMessage("");
         return true;
       } catch (error) {
-        console.error("Error in message sending:", error);
+        console.error("[useSendMessage] Error in message sending service:", error);
+        toast.error(`Error sending message: ${error instanceof Error ? error.message : 'Unknown error'}`);
         throw error;
       }
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error("[useSendMessage] Error in overall sending process:", error);
       toast.error("Error sending message. Please try again.");
       return false;
     } finally {

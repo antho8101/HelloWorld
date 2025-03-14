@@ -35,7 +35,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     
     if (messagesError) {
       console.error('[messageService] Error fetching messages:', messagesError);
-      return [];
+      throw messagesError;
     }
     
     if (!messagesData) {
@@ -43,7 +43,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       return [];
     }
     
-    console.log(`[messageService] Retrieved ${messagesData.length} messages from database`);
+    console.log(`[messageService] Retrieved ${messagesData.length} messages from database`, messagesData);
     
     // Format messages for the application
     const formattedMessages: Message[] = messagesData.map((msg: any) => ({
@@ -59,7 +59,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     return formattedMessages;
   } catch (error) {
     console.error("[messageService] Error in fetchMessages service:", error);
-    return [];
+    throw error;
   }
 };
 
@@ -67,42 +67,54 @@ export const sendMessage = async (
   messageData: MessagePayload
 ): Promise<Message | null> => {
   try {
-    console.log('Sending message to conversation:', messageData.conversation_id);
+    console.log('[messageService] Sending message to conversation:', messageData.conversation_id);
+    console.log('[messageService] Message content:', messageData.content);
     
-    // Make sure we're using the right parameters for the RPC call
+    if (!messageData.content || !messageData.conversation_id) {
+      console.error('[messageService] Invalid message data:', messageData);
+      throw new Error('Invalid message data');
+    }
+    
+    // Appel de la fonction RPC avec les bons paramètres
     const { data, error: messageError } = await supabase
       .rpc('send_message', {
         p_content: messageData.content,
         p_conversation_id: messageData.conversation_id
       });
 
+    // Gestion explicite des erreurs
     if (messageError) {
-      console.error('Error sending message:', messageError);
+      console.error('[messageService] Error sending message:', messageError);
       throw new Error(`Could not send message: ${messageError.message}`);
     }
 
+    // Vérification et log du résultat
     if (!data || data.length === 0) {
-      console.error('No data returned from message insertion');
+      console.error('[messageService] No data returned from message insertion');
       throw new Error('Could not send message: No data returned');
     }
 
-    console.log('Message sent successfully, data:', data);
+    console.log('[messageService] Message sent successfully, data returned:', data);
 
-    // Since the RPC function returns the new message, we can directly extract the data
+    // Extraire le message de la réponse
     const newMessage = data[0];
     
-    // Update the timestamp on the conversation
+    // Mettre à jour le timestamp de la conversation
     await updateConversationTimestamp(messageData.conversation_id);
 
-    // For compatibility with the UI, get the sender profile information
-    const { data: profileData } = await supabase
+    // Récupérer les informations du profil pour le message
+    const { data: profileData, error: profileError } = await supabase
       .from("profiles")
       .select("name, avatar_url")
       .eq("id", messageData.sender_id)
-      .single();
+      .maybeSingle();
+      
+    if (profileError) {
+      console.warn('[messageService] Error fetching profile for message:', profileError);
+    }
 
-    // Return the complete message object
-    return {
+    // Créer l'objet de message complet pour l'UI
+    const completeMessage: Message = {
       id: newMessage.id,
       content: newMessage.content,
       created_at: newMessage.created_at,
@@ -110,8 +122,11 @@ export const sendMessage = async (
       sender_name: profileData?.name || null,
       sender_avatar: profileData?.avatar_url || null
     };
+    
+    console.log('[messageService] Returning complete message:', completeMessage);
+    return completeMessage;
   } catch (error) {
-    console.error("Error sending message:", error);
+    console.error("[messageService] Error sending message:", error);
     throw error;
   }
 };

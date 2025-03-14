@@ -44,7 +44,7 @@ export const useFetchMessages = () => {
       console.error("[useFetchMessages] Error fetching messages:", error);
       setMessageError(true);
       setMessages([]);
-      toast.error("Could not load messages");
+      toast.error("Could not load messages. Please try again.");
     } finally {
       setLoadingMessages(false);
       setMessagesFetched(true);
