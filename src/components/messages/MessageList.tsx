@@ -59,7 +59,7 @@ export const MessageList: React.FC<MessageListProps> = ({
 
   return (
     <>
-      {/* Debug Information (Temporary) */}
+      {/* Debug Information */}
       <div className="bg-yellow-50 p-2 border-b border-yellow-200 text-xs">
         <p className="flex items-center gap-1">
           <Bug size={14} weight="fill" className="text-yellow-600" />

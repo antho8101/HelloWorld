@@ -20,9 +20,14 @@ export const useRealtimeMessages = (
     const channelName = `messages-channel-${activeConversation.id}`;
     
     // First, make sure we're not already subscribed
-    supabase.removeChannel(supabase.getChannels().find(
-      channel => channel.topic === channelName
-    ));
+    const existingChannel = supabase.getChannels().find(
+      channel => channel.topic === `realtime:public:messages:conversation_id=eq.${activeConversation.id}`
+    );
+    
+    if (existingChannel) {
+      console.log(`[useRealtimeMessages] Removing existing channel for conversation: ${activeConversation.id}`);
+      supabase.removeChannel(existingChannel);
+    }
     
     // Then set up a new subscription
     const channel = supabase
