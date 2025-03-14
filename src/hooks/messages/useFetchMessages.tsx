@@ -15,6 +15,7 @@ export const useFetchMessages = () => {
       console.log("[useFetchMessages] No conversation ID provided to fetchMessages");
       setMessages([]);
       setMessagesFetched(true);
+      setMessageError(false);
       return;
     }
     
@@ -41,6 +42,7 @@ export const useFetchMessages = () => {
       }
       
       setMessages(messagesData);
+      setMessageError(false);
       
     } catch (error: any) {
       console.error("[useFetchMessages] Error fetching messages:", error);

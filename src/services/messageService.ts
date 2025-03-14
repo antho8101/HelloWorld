@@ -29,7 +29,20 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     const currentUserId = sessionData.session.user.id;
     console.log('[messageService] Current user ID:', currentUserId);
     
-    // Use the simpler query approach without trying to join profiles in the same query
+    // Check if user is a participant in this conversation first
+    const { data: participantData, error: participantError } = await supabase
+      .from('conversation_participants')
+      .select('user_id')
+      .eq('conversation_id', conversationId)
+      .eq('user_id', currentUserId)
+      .single();
+      
+    if (participantError) {
+      console.error('[messageService] User is not a participant in this conversation', participantError);
+      throw new Error('You are not authorized to view this conversation');
+    }
+    
+    // Fetch messages directly without using the function that causes recursion
     const { data: messagesData, error: messagesError } = await supabase
       .from('messages')
       .select('id, content, created_at, sender_id, is_read')
