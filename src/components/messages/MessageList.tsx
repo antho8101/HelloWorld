@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChatCircle, Chats, WarningCircle, Bug } from "@phosphor-icons/react";

@@ -29,13 +29,15 @@ export const useFetchMessages = () => {
       // Clear messages while loading
       setMessages([]);
       
-      // Utiliser notre service mis à jour qui utilise la fonction SQL corrigée
+      // Fetch messages using our updated service
       const messagesData = await fetchMessagesService(conversationId);
       
       console.log(`[useFetchMessages] Messages fetch result: ${messagesData.length} messages retrieved`);
       if (messagesData.length > 0) {
         console.log("[useFetchMessages] First message:", messagesData[0]);
         console.log("[useFetchMessages] Last message:", messagesData[messagesData.length - 1]);
+      } else {
+        console.log("[useFetchMessages] No messages found - this is normal for new conversations");
       }
       
       setMessages(messagesData);

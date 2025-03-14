@@ -29,17 +29,10 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     const currentUserId = sessionData.session.user.id;
     console.log('[messageService] Current user ID:', currentUserId);
     
-    // Utilisons directement une requête SQL au lieu de la fonction RPC problématique
+    // Use the simpler query approach without trying to join profiles in the same query
     const { data: messagesData, error: messagesError } = await supabase
       .from('messages')
-      .select(`
-        id,
-        content,
-        created_at,
-        sender_id,
-        is_read,
-        profiles:sender_id (name, avatar_url)
-      `)
+      .select('id, content, created_at, sender_id, is_read')
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: true });
     
@@ -49,27 +42,49 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       throw messagesError;
     }
     
+    // If no messages, return empty array (NOT an error case)
     if (!messagesData || messagesData.length === 0) {
-      console.log('[messageService] No messages found for this conversation');
+      console.log('[messageService] No messages found for this conversation - this is normal for new conversations');
       return [];
     }
     
     console.log(`[messageService] Retrieved ${messagesData.length} messages from database`);
-    if (messagesData.length > 0) {
-      console.log('[messageService] First message sample:', messagesData[0]);
+    
+    // Now get all the unique sender IDs to fetch their profiles
+    const senderIds = [...new Set(messagesData.map(msg => msg.sender_id))];
+    
+    // Fetch profiles separately for these senders
+    const { data: profilesData, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, name, avatar_url')
+      .in('id', senderIds);
+      
+    if (profilesError) {
+      console.error('[messageService] Error fetching sender profiles:', profilesError);
     }
     
-    // Format messages for the application
-    const formattedMessages: Message[] = messagesData.map((msg: any) => ({
-      id: msg.id,
-      content: msg.content,
-      created_at: msg.created_at,
-      sender_id: msg.sender_id,
-      sender_name: msg.profiles?.name || null,
-      sender_avatar: msg.profiles?.avatar_url || null
-    }));
+    // Create a map of profiles by ID for easy lookup
+    const profilesMap = new Map();
+    if (profilesData) {
+      profilesData.forEach(profile => {
+        profilesMap.set(profile.id, profile);
+      });
+    }
     
-    // Marquer les messages non-lus comme lus
+    // Format messages, adding profile data
+    const formattedMessages: Message[] = messagesData.map((msg: any) => {
+      const profile = profilesMap.get(msg.sender_id);
+      return {
+        id: msg.id,
+        content: msg.content,
+        created_at: msg.created_at,
+        sender_id: msg.sender_id,
+        sender_name: profile?.name || null,
+        sender_avatar: profile?.avatar_url || null
+      };
+    });
+    
+    // Mark unread messages as read
     const unreadMessages = messagesData
       .filter(msg => msg.sender_id !== currentUserId && !msg.is_read)
       .map(msg => msg.id);
@@ -102,7 +117,7 @@ export const sendMessage = async (
       throw new Error('Invalid message data');
     }
     
-    // Insérer directement le message au lieu d'utiliser la fonction RPC
+    // Insert the message directly
     const { data: insertedMessage, error: messageError } = await supabase
       .from('messages')
       .insert({
@@ -113,14 +128,14 @@ export const sendMessage = async (
       .select('id, content, created_at, sender_id')
       .single();
 
-    // Gestion explicite des erreurs avec plus de détails
+    // Handle errors
     if (messageError) {
       console.error('[messageService] Error sending message:', messageError);
       console.error('[messageService] Error details:', messageError.message, messageError.details);
       throw new Error(`Could not send message: ${messageError.message}`);
     }
 
-    // Vérification et log du résultat
+    // Check result
     if (!insertedMessage) {
       console.error('[messageService] No data returned from message insertion');
       throw new Error('Could not send message: No data returned');
@@ -128,10 +143,10 @@ export const sendMessage = async (
 
     console.log('[messageService] Message sent successfully, data returned:', insertedMessage);
     
-    // Mettre à jour le timestamp de la conversation
+    // Update conversation timestamp
     await updateConversationTimestamp(messageData.conversation_id);
 
-    // Récupérer les informations du profil pour le message
+    // Get profile information for the sender
     const { data: profileData, error: profileError } = await supabase
       .from("profiles")
       .select("name, avatar_url")
@@ -142,7 +157,7 @@ export const sendMessage = async (
       console.warn('[messageService] Error fetching profile for message:', profileError);
     }
 
-    // Créer l'objet de message complet pour l'UI
+    // Create complete message object
     const completeMessage: Message = {
       id: insertedMessage.id,
       content: insertedMessage.content,
