@@ -566,14 +566,15 @@ export type Database = {
       }
       get_conversation_messages: {
         Args: {
-          conversation_id_param: string
+          p_conversation_id: string
         }
         Returns: {
-          id: string
           content: string
-          created_at: string
-          sender_id: string
           conversation_id: string
+          created_at: string
+          id: string
+          sender_id: string
+          updated_at: string
         }[]
       }
       get_user_conversations: {
@@ -589,6 +590,21 @@ export type Database = {
           other_participant_id: string
           latest_message: string
           latest_message_time: string
+        }[]
+      }
+      send_message: {
+        Args: {
+          p_content: string
+          p_conversation_id: string
+          p_sender_id: string
+        }
+        Returns: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          sender_id: string
+          updated_at: string
         }[]
       }
     }

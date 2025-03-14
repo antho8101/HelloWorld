@@ -29,7 +29,7 @@ export const useFetchMessages = () => {
       // Clear messages while loading
       setMessages([]);
       
-      // Use the simplified approach with our new RLS policies
+      // Utiliser notre service mis à jour qui utilise la fonction SQL sécurisée
       const messagesData = await fetchMessagesService(conversationId);
       
       console.log(`[useFetchMessages] Messages fetch result: ${messagesData.length} messages retrieved`);

@@ -29,12 +29,9 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     const currentUserId = sessionData.session.user.id;
     console.log('[messageService] Current user ID:', currentUserId);
 
-    // Direct query using RLS policies
+    // Utiliser notre nouvelle fonction SQL sécurisée au lieu de requêtes directes
     const { data: messagesData, error: messagesError } = await supabase
-      .from('messages')
-      .select('*')
-      .eq('conversation_id', conversationId)
-      .order('created_at', { ascending: true });
+      .rpc('get_conversation_messages', { p_conversation_id: conversationId });
     
     if (messagesError) {
       console.error('[messageService] Error fetching messages:', messagesError);
@@ -99,37 +96,25 @@ export const sendMessage = async (
   try {
     console.log('Sending message to conversation:', messageData.conversation_id);
     
-    // First validate that the user is part of the conversation
-    const { data: participantCheck, error: participantError } = await supabase
-      .from('conversation_participants')
-      .select('user_id')
-      .eq('conversation_id', messageData.conversation_id)
-      .eq('user_id', messageData.sender_id)
-      .single();
-    
-    if (participantError || !participantCheck) {
-      console.error('Error verifying conversation participation:', participantError);
-      throw new Error('You are not a participant in this conversation');
-    }
-    
-    // Now send the message
+    // Utiliser notre nouvelle fonction SQL sécurisée pour envoyer le message
     const { data, error: messageError } = await supabase
-      .from("messages")
-      .insert(messageData)
-      .select('id, content, created_at, sender_id')
-      .single();
+      .rpc('send_message', {
+        p_content: messageData.content,
+        p_conversation_id: messageData.conversation_id,
+        p_sender_id: messageData.sender_id
+      });
 
     if (messageError) {
       console.error('Error sending message:', messageError);
       throw new Error(`Could not send message: ${messageError.message}`);
     }
 
-    if (!data) {
+    if (!data || data.length === 0) {
       console.error('No data returned from message insertion');
       throw new Error('Could not send message: No data returned');
     }
 
-    console.log('Message sent successfully:', data);
+    console.log('Message sent successfully:', data[0]);
 
     // Update the timestamp on the conversation
     await updateConversationTimestamp(messageData.conversation_id);
@@ -143,10 +128,10 @@ export const sendMessage = async (
 
     // Return the complete message object
     return {
-      id: data.id,
-      content: data.content,
-      created_at: data.created_at,
-      sender_id: data.sender_id,
+      id: data[0].id,
+      content: data[0].content,
+      created_at: data[0].created_at,
+      sender_id: data[0].sender_id,
       sender_name: profileData?.name || null,
       sender_avatar: profileData?.avatar_url || null
     };
