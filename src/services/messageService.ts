@@ -28,10 +28,20 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     
     const currentUserId = sessionData.session.user.id;
     console.log('[messageService] Current user ID:', currentUserId);
-
-    // Use the get_conversation_messages function with more detailed error handling
+    
+    // Utilisons directement une requête SQL au lieu de la fonction RPC problématique
     const { data: messagesData, error: messagesError } = await supabase
-      .rpc('get_conversation_messages', { p_conversation_id: conversationId });
+      .from('messages')
+      .select(`
+        id,
+        content,
+        created_at,
+        sender_id,
+        is_read,
+        profiles:sender_id (name, avatar_url)
+      `)
+      .eq('conversation_id', conversationId)
+      .order('created_at', { ascending: true });
     
     if (messagesError) {
       console.error('[messageService] Error fetching messages:', messagesError);
@@ -39,8 +49,8 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       throw messagesError;
     }
     
-    if (!messagesData) {
-      console.log('[messageService] No messages data returned from query');
+    if (!messagesData || messagesData.length === 0) {
+      console.log('[messageService] No messages found for this conversation');
       return [];
     }
     
@@ -55,9 +65,22 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       content: msg.content,
       created_at: msg.created_at,
       sender_id: msg.sender_id,
-      sender_name: msg.sender_name || null,
-      sender_avatar: msg.sender_avatar || null
+      sender_name: msg.profiles?.name || null,
+      sender_avatar: msg.profiles?.avatar_url || null
     }));
+    
+    // Marquer les messages non-lus comme lus
+    const unreadMessages = messagesData
+      .filter(msg => msg.sender_id !== currentUserId && !msg.is_read)
+      .map(msg => msg.id);
+      
+    if (unreadMessages.length > 0) {
+      console.log(`[messageService] Marking ${unreadMessages.length} messages as read`);
+      await supabase
+        .from('messages')
+        .update({ is_read: true })
+        .in('id', unreadMessages);
+    }
     
     console.log('[messageService] Final formatted messages count:', formattedMessages.length);
     return formattedMessages;
@@ -79,30 +102,31 @@ export const sendMessage = async (
       throw new Error('Invalid message data');
     }
     
-    // Appel de la fonction RPC avec les bons paramètres et logging amélioré
-    const { data, error: messageError } = await supabase
-      .rpc('send_message', {
-        p_content: messageData.content,
-        p_conversation_id: messageData.conversation_id
-      });
+    // Insérer directement le message au lieu d'utiliser la fonction RPC
+    const { data: insertedMessage, error: messageError } = await supabase
+      .from('messages')
+      .insert({
+        conversation_id: messageData.conversation_id,
+        content: messageData.content,
+        sender_id: messageData.sender_id
+      })
+      .select('id, content, created_at, sender_id')
+      .single();
 
     // Gestion explicite des erreurs avec plus de détails
     if (messageError) {
       console.error('[messageService] Error sending message:', messageError);
-      console.error('[messageService] Error details:', messageError.message, messageError.details, messageError.hint);
+      console.error('[messageService] Error details:', messageError.message, messageError.details);
       throw new Error(`Could not send message: ${messageError.message}`);
     }
 
     // Vérification et log du résultat
-    if (!data || data.length === 0) {
+    if (!insertedMessage) {
       console.error('[messageService] No data returned from message insertion');
       throw new Error('Could not send message: No data returned');
     }
 
-    console.log('[messageService] Message sent successfully, data returned:', data);
-
-    // Extraire le message de la réponse
-    const newMessage = data[0];
+    console.log('[messageService] Message sent successfully, data returned:', insertedMessage);
     
     // Mettre à jour le timestamp de la conversation
     await updateConversationTimestamp(messageData.conversation_id);
@@ -120,10 +144,10 @@ export const sendMessage = async (
 
     // Créer l'objet de message complet pour l'UI
     const completeMessage: Message = {
-      id: newMessage.id,
-      content: newMessage.content,
-      created_at: newMessage.created_at,
-      sender_id: newMessage.sender_id,
+      id: insertedMessage.id,
+      content: insertedMessage.content,
+      created_at: insertedMessage.created_at,
+      sender_id: insertedMessage.sender_id,
       sender_name: profileData?.name || null,
       sender_avatar: profileData?.avatar_url || null
     };

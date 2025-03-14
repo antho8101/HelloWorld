@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChatCircle, Chats, WarningCircle, Bug } from "@phosphor-icons/react";
@@ -68,7 +67,7 @@ export const MessageList: React.FC<MessageListProps> = ({
       </div>
 
       {/* New Conversation Banner */}
-      {currentConversationId && messages.length === 0 && messagesFetched && !isLoadingMessages && !error && showNewConversationBanner && (
+      {currentConversationId && messages.length === 0 && messagesFetched && !isLoadingMessages && !error && (
         <div className="bg-blue-50 p-4 border-b border-blue-100">
           <div className="flex items-center justify-center gap-2 text-blue-600">
             <Chats size={20} weight="fill" />
