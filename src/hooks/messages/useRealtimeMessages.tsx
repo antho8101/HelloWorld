@@ -19,8 +19,9 @@ export const useRealtimeMessages = (
     // Create a unique channel name for this conversation
     const channelName = `messages-channel-${activeConversation.id}`;
     
-    // First, make sure we're not already subscribed
-    const existingChannel = supabase.getChannels().find(
+    // First, make sure we're not already subscribed by checking existing channels
+    const existingChannels = supabase.getChannels();
+    const existingChannel = existingChannels.find(
       channel => channel.topic === `realtime:public:messages:conversation_id=eq.${activeConversation.id}`
     );
     
