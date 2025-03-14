@@ -29,7 +29,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     const currentUserId = sessionData.session.user.id;
     console.log('[messageService] Current user ID:', currentUserId);
 
-    // Simplified direct query - with the new RLS policies in place, this should work smoothly
+    // Direct query using RLS policies
     const { data: messagesData, error: messagesError } = await supabase
       .from('messages')
       .select('*')
@@ -99,7 +99,20 @@ export const sendMessage = async (
   try {
     console.log('Sending message to conversation:', messageData.conversation_id);
     
-    // Simplifier l'envoi de message en utilisant directement les RLS
+    // First validate that the user is part of the conversation
+    const { data: participantCheck, error: participantError } = await supabase
+      .from('conversation_participants')
+      .select('user_id')
+      .eq('conversation_id', messageData.conversation_id)
+      .eq('user_id', messageData.sender_id)
+      .single();
+    
+    if (participantError || !participantCheck) {
+      console.error('Error verifying conversation participation:', participantError);
+      throw new Error('You are not a participant in this conversation');
+    }
+    
+    // Now send the message
     const { data, error: messageError } = await supabase
       .from("messages")
       .insert(messageData)

@@ -47,21 +47,27 @@ export const useSendMessage = (
       };
 
       console.log("Sending message with data:", messageData);
-      const sentMessage = await sendMessageService(messageData);
-
-      if (!sentMessage) {
-        console.error("Failed to send message - API returned failure");
-        throw new Error("Failed to send message");
+      
+      try {
+        const sentMessage = await sendMessageService(messageData);
+        
+        if (!sentMessage) {
+          console.error("Failed to send message - API returned failure");
+          throw new Error("Failed to send message");
+        }
+  
+        console.log("Message sent successfully");
+        
+        // Add the new message directly
+        addMessage(sentMessage);
+        
+        // Reset the message input
+        setNewMessage("");
+        return true;
+      } catch (error) {
+        console.error("Error in message sending:", error);
+        throw error;
       }
-
-      console.log("Message sent successfully");
-      
-      // Add the new message directly
-      addMessage(sentMessage);
-      
-      // Reset the message input
-      setNewMessage("");
-      return true;
     } catch (error) {
       console.error("Error sending message:", error);
       toast.error("Error sending message. Please try again.");

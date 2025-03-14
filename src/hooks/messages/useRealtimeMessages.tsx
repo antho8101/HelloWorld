@@ -23,6 +23,7 @@ export const useRealtimeMessages = (
     const existingChannels = supabase.getChannels();
     
     for (const channel of existingChannels) {
+      // The topic is different from the channel name
       if (channel.topic === `realtime:public:messages:conversation_id=eq.${activeConversation.id}`) {
         console.log(`[useRealtimeMessages] Removing existing channel for conversation: ${activeConversation.id}`);
         supabase.removeChannel(channel);
