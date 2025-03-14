@@ -538,6 +538,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_conversation_access: {
+        Args: {
+          conversation_id_param: string
+        }
+        Returns: boolean
+      }
       check_conversation_participant: {
         Args: {
           user_id: string

@@ -29,7 +29,7 @@ export const useFetchMessages = () => {
       // Clear messages while loading
       setMessages([]);
       
-      // Fetch messages directly without additional participant check
+      // Use the simplified approach with our new RLS policies
       const messagesData = await fetchMessagesService(conversationId);
       
       console.log(`[useFetchMessages] Messages fetch result: ${messagesData.length} messages retrieved`);

@@ -29,7 +29,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     const currentUserId = sessionData.session.user.id;
     console.log('[messageService] Current user ID:', currentUserId);
 
-    // Try to fetch messages using direct query (RLS will handle access)
+    // Simplified direct query - with the new RLS policies in place, this should work smoothly
     const { data: messagesData, error: messagesError } = await supabase
       .from('messages')
       .select('*')
@@ -99,7 +99,7 @@ export const sendMessage = async (
   try {
     console.log('Sending message to conversation:', messageData.conversation_id);
     
-    // Use RLS to handle access control
+    // Simplifier l'envoi de message en utilisant directement les RLS
     const { data, error: messageError } = await supabase
       .from("messages")
       .insert(messageData)
