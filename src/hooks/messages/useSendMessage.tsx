@@ -56,7 +56,7 @@ export const useSendMessage = (
           throw new Error("Failed to send message");
         }
   
-        console.log("Message sent successfully");
+        console.log("Message sent successfully, received:", sentMessage);
         
         // Add the new message directly
         addMessage(sentMessage);

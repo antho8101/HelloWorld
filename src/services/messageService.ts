@@ -69,7 +69,7 @@ export const sendMessage = async (
   try {
     console.log('Sending message to conversation:', messageData.conversation_id);
     
-    // Use the send_message function with proper error handling
+    // Make sure we're using the right parameters for the RPC call
     const { data, error: messageError } = await supabase
       .rpc('send_message', {
         p_content: messageData.content,
@@ -86,12 +86,15 @@ export const sendMessage = async (
       throw new Error('Could not send message: No data returned');
     }
 
-    console.log('Message sent successfully:', data[0]);
+    console.log('Message sent successfully, data:', data);
 
+    // Since the RPC function returns the new message, we can directly extract the data
+    const newMessage = data[0];
+    
     // Update the timestamp on the conversation
     await updateConversationTimestamp(messageData.conversation_id);
 
-    // Get sender profile information
+    // For compatibility with the UI, get the sender profile information
     const { data: profileData } = await supabase
       .from("profiles")
       .select("name, avatar_url")
@@ -100,10 +103,10 @@ export const sendMessage = async (
 
     // Return the complete message object
     return {
-      id: data[0].id,
-      content: data[0].content,
-      created_at: data[0].created_at,
-      sender_id: data[0].sender_id,
+      id: newMessage.id,
+      content: newMessage.content,
+      created_at: newMessage.created_at,
+      sender_id: newMessage.sender_id,
       sender_name: profileData?.name || null,
       sender_avatar: profileData?.avatar_url || null
     };
