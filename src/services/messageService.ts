@@ -29,9 +29,18 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
     const currentUserId = sessionData.session.user.id;
     console.log('[messageService] Current user ID:', currentUserId);
 
-    // Utiliser notre nouvelle fonction SQL sécurisée au lieu de requêtes directes
+    // Make a direct query instead of using the RPC function with the ambiguous column
     const { data: messagesData, error: messagesError } = await supabase
-      .rpc('get_conversation_messages', { p_conversation_id: conversationId });
+      .from('messages')
+      .select(`
+        id,
+        content,
+        created_at,
+        sender_id,
+        profiles(name, avatar_url)
+      `)
+      .eq('conversation_id', conversationId)
+      .order('created_at', { ascending: true });
     
     if (messagesError) {
       console.error('[messageService] Error fetching messages:', messagesError);
@@ -51,8 +60,8 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       content: msg.content,
       created_at: msg.created_at,
       sender_id: msg.sender_id,
-      sender_name: msg.sender_name || null,
-      sender_avatar: msg.sender_avatar || null
+      sender_name: msg.profiles?.name || null,
+      sender_avatar: msg.profiles?.avatar_url || null
     }));
     
     console.log('[messageService] Final formatted messages count:', formattedMessages.length);
