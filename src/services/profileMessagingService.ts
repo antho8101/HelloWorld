@@ -16,41 +16,7 @@ export const handleMessageAction = async (
   try {
     console.log('Starting message action between', currentUserId, 'and', profileId);
 
-    // Approche simplifiée pour vérifier les conversations existantes
-    const { data: participations, error: participationsError } = await supabase
-      .from("conversation_participants")
-      .select("conversation_id")
-      .eq("user_id", currentUserId);
-
-    if (participationsError) {
-      console.error('Error fetching user participations:', participationsError);
-      // Continue despite error and try to create a new conversation
-    }
-
-    // Get conversation IDs where the current user participates
-    const conversationIds = participations?.map(p => p.conversation_id) || [];
-    
-    if (conversationIds.length > 0) {
-      // Find if the other user is in any of those conversations
-      const { data: existingConversations, error: existingError } = await supabase
-        .from("conversation_participants")
-        .select("conversation_id")
-        .eq("user_id", profileId)
-        .in("conversation_id", conversationIds);
-
-      if (existingError) {
-        console.error('Error checking existing conversations:', existingError);
-        // Continue despite error and try to create a new conversation
-      } else if (existingConversations && existingConversations.length > 0) {
-        // A conversation exists already between these users
-        console.log('Found existing conversation:', existingConversations[0].conversation_id);
-        onMessage();
-        return true;
-      }
-    }
-
-    // No existing conversation found, create a new one using the RPC function
-    console.log('Creating a new conversation via RPC...');
+    // Utiliser la RPC create_conversation qui vérifie et crée/récupère la conversation
     const { data: conversationId, error: createError } = await supabase
       .rpc('create_conversation', { 
         p_other_user_id: profileId 

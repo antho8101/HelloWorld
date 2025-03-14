@@ -40,7 +40,8 @@ export const fetchConversations = async (userId: string): Promise<Conversation[]
       } : null,
       isTemporary: false,
       latest_message: convo.last_message,
-      latest_message_time: convo.last_message_time
+      latest_message_time: convo.last_message_time,
+      unread_count: convo.unread_count || 0
     }));
 
     return formattedConversations;
